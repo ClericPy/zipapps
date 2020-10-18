@@ -6,7 +6,7 @@ import sys
 import zipapp
 from pathlib import Path
 
-DEFAULT_CACHE_PATH = '_zipme_cache'
+DEFAULT_CACHE_PATH = '_zipapps_cache'
 DEFAULT_OUTPUT_PATH = 'app.pyz'
 USAGE = r'''
 ====================================================================
@@ -102,7 +102,12 @@ def create_app(includes: str = '',
                 'target arg can be set with --cache-path to rewrite the zipapps cache path.'
             )
         pip_install(_cache_path, pip_args)
-    if not main:
+    if main:
+        if ':' not in main:
+            raise RuntimeError(
+                'main arg should have ":", please set it like package.__main__:main which package with __main__.py.'
+            )
+    else:
         main = prepare_default_main(_cache_path, shell=shell)
     zipapp.create_archive(source=_cache_path,
                           target=output,
@@ -123,12 +128,13 @@ def main():
         help='The name of the output file, defaults to "app.pyz".')
     parser.add_argument('--python',
                         '-p',
+                        dest='interpreter',
                         default=None,
                         help='The name of the Python interpreter to use '
                         '(default: no shebang line).')
     parser.add_argument('--main',
                         '-m',
-                        default=None,
+                        default='',
                         help='The main function of the application.'
                         ' Format like package.module:function.')
     parser.add_argument('--compress',
@@ -154,14 +160,11 @@ def main():
                         help='Only while `main` is not set, used for shell=True'
                         ' in subprocess.Popen')
     args, pip_args = parser.parse_known_args()
-    if not (args.main or args.includes or pip_args):
-        return parser.print_help()
-    print(args.includes)
     return create_app(includes=args.includes,
                       cache_path=args.cache_path,
                       main=args.main,
                       output=args.output,
-                      interpreter=args.python,
+                      interpreter=args.interpreter,
                       compressed=args.compress,
                       shell=args.shell,
                       pip_args=pip_args)
