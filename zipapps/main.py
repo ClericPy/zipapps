@@ -9,10 +9,16 @@ from pathlib import Path
 DEFAULT_CACHE_PATH = '_zipapps_cache'
 DEFAULT_OUTPUT_PATH = 'app.pyz'
 USAGE = r'''
-====================================================================
+===========================================================================
 0. package your code without any requirements
+
 > python3 -m zipapps -c -a ./simple_package -p /usr/bin/python3 -o simple_package.pyz
 > ./simple_package.pyz
+OR
+> python3 -m zipapps -c -a ./simple_package -o simple_package.pyz
+> python3 simple_package.pyz
+
+------------------------------------
 
 1. use zipapps to make a standalone app which need bottle installed
 > python3 -m zipapps -c -a bottle_server.py -m bottle_server:main bottle
@@ -21,12 +27,16 @@ OR
 > python3 -m zipapps -c -a bottle_server.py -m bottle_server:main bottle
 > python3 app.pyz
 
-2. use zipapps like a venv zip file
+------------------------------------
+
+2. use zipapps for venv
 > python3 -m zipapps -c bottle
 > python3 app.pyz bottle_server.py
 OR
 > python3 -m zipapps -c -p /usr/bin/python3 bottle
 > ./app.pyz bottle_server.py
+
+------------------------------------
 
 3. advanced usages
 3.1 more args
@@ -34,8 +44,8 @@ python3 -m zipapps -c -a package1,package2 -o server.pyz -m package1.server:main
 ./server.pyz
 
 
-PS: all the unknown args will be used for "pip install".
-===================================================================='''
+PS: all the unknown args will be used by "pip install".
+==========================================================================='''
 
 
 def refresh_dir(path):
