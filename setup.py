@@ -9,8 +9,7 @@ from setuptools import find_packages, setup
 linux:
 rm -rf "dist/*";rm -rf "build/*";python3 setup.py bdist_wheel;python2 setup.py bdist_wheel;twine upload "dist/*;rm -rf "dist/*";rm -rf "build/*""
 win32:
-rm -rf dist;rm -rf build;python3 setup.py bdist_wheel;python2 setup.py bdist_wheel;twine upload "dist/*"
-rm -rf dist;rm -rf build;rm -rf *.egg-info
+rm -rf dist;rm -rf build;python3 setup.py bdist_wheel;python2 setup.py bdist_wheel;twine upload "dist/*";rm -rf dist;rm -rf build;rm -rf *.egg-info
 """
 
 with codecs.open("README.md", encoding="u8") as f:
@@ -30,24 +29,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     license="MIT License",
-    install_requires=[],
     py_modules=["zipapps"],
-    extras_require={
-        'security': ['pyOpenSSL >= 0.14', 'cryptography>=1.3.4', 'idna>=2.0.0'],
-        'socks': ['PySocks>=1.5.6, !=1.5.7'],
-        'socks:sys_platform == "win32" and python_version == "2.7"': [
-            'win_inet_pton'
-        ],
-        'all': [
-            'pyOpenSSL >= 0.14', 'cryptography>=1.3.4', 'idna>=2.0.0',
-            'PySocks>=1.5.6, !=1.5.7', 'psutil', 'pyperclip'
-        ],
-        'speedups': [
-            'aiodns>=1.1',
-            'Brotli',
-            'cchardet',
-        ],
-    },
     python_requires=">=3.6",
     classifiers=[
         "License :: OSI Approved :: MIT License",
