@@ -119,11 +119,19 @@ def create_app(includes: str = '',
             )
     else:
         main = prepare_default_main(_cache_path, shell=shell)
-    zipapp.create_archive(source=_cache_path,
-                          target=output,
-                          interpreter=interpreter,
-                          main=main,
-                          compressed=compressed)
+    if sys.version_info.minor >= 7:
+        zipapp.create_archive(source=_cache_path,
+                              target=output,
+                              interpreter=interpreter,
+                              main=main,
+                              compressed=compressed)
+    elif compressed:
+        raise RuntimeError('compressed arg only support python3.7+')
+    else:
+        zipapp.create_archive(source=_cache_path,
+                              target=output,
+                              interpreter=interpreter,
+                              main=main)
     if cache_path == DEFAULT_CACHE_PATH:
         shutil.rmtree(_cache_path)
     return Path(output)
