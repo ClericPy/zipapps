@@ -20,7 +20,7 @@ with codecs.open(os.path.join(here, 'zipapps', '__init__.py'),
                  encoding="u8") as f:
     version = re.search(r'''__version__ = ['"](.*?)['"]''', f.read()).group(1)
 desc = "Package your python code into one zip file, even a virtual environment."
-keywords = "zipapp".split()
+keywords = "zipapp distribute publish zip standalone portable".split()
 setup(
     name="zipapps",
     version=version,
