@@ -67,24 +67,21 @@ def test_create_app_function():
     _clean_paths()
     app_path = create_app(includes='')
     _, stderr_output = subprocess.Popen(
-        [sys.executable, '-c', 'import _entry_point;import _entry_point_shell'],
+        [sys.executable, '-c', 'import main'],
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
     # files not be set by includes arg
     assert b'Traceback' in stderr_output, 'test includes failed'
     app_path = create_app(
-        includes='./zipapps/_entry_point.py,./zipapps/_entry_point_shell.py')
+        includes='./zipapps/_entry_point.py,./zipapps/main.py')
     _, stderr_output = subprocess.Popen(
-        [
-            sys.executable,
-            str(app_path), '-c', 'import _entry_point;import _entry_point_shell'
-        ],
+        [sys.executable, str(app_path), '-c', 'import main'],
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
     # files has been copied
-    assert stderr_output == b'', 'test includes failed'
+    assert stderr_output == b'', 'test includes failed %s' % stderr_output
 
     # test pip_args
     _clean_paths()
@@ -109,6 +106,18 @@ def test_create_app_function():
     app_path = create_app(cache_path=DEFAULT_CACHE_PATH)
     assert not Path(
         DEFAULT_CACHE_PATH).is_dir(), 'test auto rm default cache_path failed'
+
+    # test unzip
+    app_path = create_app(unzip='bottle', pip_args=['bottle'])
+    output, _ = subprocess.Popen(
+        [
+            sys.executable,
+            str(app_path), '-c', 'import bottle;print(bottle.__file__)'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    assert b'app_' in output, 'test unzip failed, app_ as sys.path should be priority'
 
 
 def test_create_app_command_line():

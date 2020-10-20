@@ -1,8 +1,12 @@
+# -*- coding: utf-8 -*-
+
 import argparse
+import os
 import re
 import shutil
 import subprocess
 import sys
+import time
 import zipapp
 from pathlib import Path
 
@@ -69,11 +73,22 @@ def prepare_includes(includes, cache_path):
             raise RuntimeError('%s is not exist' % include_path.absolute())
 
 
-def prepare_default_main(cache_path, shell=False):
-    _file_name = '_entry_point_shell' if shell else '_entry_point'
-    src = Path(__file__).parent / ('%s.py' % _file_name)
-    shutil.copyfile(src, cache_path / ('%s.py' % _file_name))
-    return '%s:main' % _file_name
+def prepare_entry(cache_path: Path, shell=False, main='', unzip='', ts='None'):
+    with open(Path(__file__).parent / '_entry_point.py',
+              encoding='u8') as f:
+        module, _, function = main.partition(':')
+        if module and (cache_path / module).is_file():
+            module = os.path.splitext(module)[0]
+        kwargs = {
+            'ts': ts,
+            'unzip': unzip,
+            'shell': True,
+            'has_main': bool(main),
+            'import_main': '\n        import %s' % module if module else '',
+            'run_main': '\n        %s.%s()' %
+                        (module, function) if function else ''
+        }
+        (cache_path / '__main__.py').write_text(f.read().format(**kwargs))
 
 
 def clean_pip_cache(path):
@@ -93,18 +108,28 @@ def pip_install(path, pip_args):
     clean_pip_cache(path)
 
 
-def create_app(includes: str = '',
-               cache_path: str = '',
-               main: str = '',
-               output: str = DEFAULT_OUTPUT_PATH,
-               interpreter: str = None,
-               compressed: bool = False,
-               shell: bool = False,
-               pip_args: list = None):
+def set_timestamp(_cache_path):
+    ts = str(int(time.time() * 10000000))
+    (_cache_path / ('_zip_time_%s' % ts)).touch()
+    return ts
+
+
+def create_app(
+    includes: str = '',
+    cache_path: str = '',
+    main: str = '',
+    output: str = DEFAULT_OUTPUT_PATH,
+    interpreter: str = None,
+    compressed: bool = False,
+    shell: bool = False,
+    unzip: str = '',
+    pip_args: list = None,
+):
     cache_path = cache_path or DEFAULT_CACHE_PATH
     _cache_path = Path(cache_path)
     if cache_path == DEFAULT_CACHE_PATH:
         refresh_dir(_cache_path)
+    ts = set_timestamp(_cache_path)
     prepare_includes(includes, _cache_path)
     if pip_args:
         if '-t' in pip_args or '--target' in pip_args:
@@ -112,18 +137,11 @@ def create_app(includes: str = '',
                 'target arg can be set with --cache-path to rewrite the zipapps cache path.'
             )
         pip_install(_cache_path, pip_args)
-    if main:
-        if ':' not in main:
-            raise RuntimeError(
-                'main arg should have ":", please set it like package.__main__:main which package with __main__.py.'
-            )
-    else:
-        main = prepare_default_main(_cache_path, shell=shell)
+    prepare_entry(_cache_path, shell=shell, main=main, unzip=unzip, ts=ts)
     if sys.version_info.minor >= 7:
         zipapp.create_archive(source=_cache_path,
                               target=output,
                               interpreter=interpreter,
-                              main=main,
                               compressed=compressed)
     elif compressed:
         raise RuntimeError('compressed arg only support python3.7+')
@@ -133,7 +151,13 @@ def create_app(includes: str = '',
                               interpreter=interpreter,
                               main=main)
     if cache_path == DEFAULT_CACHE_PATH:
-        shutil.rmtree(_cache_path)
+        for _ in range(3):
+            try:
+                if not _cache_path.is_dir():
+                    break
+                shutil.rmtree(_cache_path)
+            except FileNotFoundError:
+                break
     return Path(output)
 
 
@@ -168,12 +192,21 @@ def main():
                         'which can be import from PYTHONPATH).'
                         ' The path string will be splited by ",".')
     parser.add_argument('--cache-path',
+                        '-cp',
                         default=DEFAULT_CACHE_PATH,
                         help='The cache path of zipapps to store '
                         'site-packages and `includes` files, '
                         'which will be treat as PYTHONPATH.'
                         ' If not set, will create and clean-up automately.')
+    parser.add_argument(
+        '--unzip',
+        '-u',
+        default='',
+        help='The names which need to be unzip while running, name without ext. '
+        'such as .so/.pyd files(which can not be loaded by zipimport), '
+        'or packages with operations of static files.')
     parser.add_argument('--shell',
+                        '-s',
                         action='store_true',
                         help='Only while `main` is not set, used for shell=True'
                         ' in subprocess.Popen')
@@ -185,6 +218,7 @@ def main():
                       interpreter=args.interpreter,
                       compressed=args.compress,
                       shell=args.shell,
+                      unzip=args.unzip,
                       pip_args=pip_args)
 
 
