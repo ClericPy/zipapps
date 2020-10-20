@@ -167,8 +167,7 @@ def create_app(
     else:
         zipapp.create_archive(source=_cache_path,
                               target=str(output_path.absolute()),
-                              interpreter=interpreter,
-                              main=main)
+                              interpreter=interpreter)
     if cache_path == DEFAULT_CACHE_PATH:
         for _ in range(3):
             try:
