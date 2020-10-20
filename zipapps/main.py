@@ -12,6 +12,7 @@ from pathlib import Path
 
 DEFAULT_CACHE_PATH = '_zipapps_cache'
 DEFAULT_OUTPUT_PATH = 'app.pyz'
+UNZIP_CACHE_TEMPLATE = '%s_'
 USAGE = r'''
 ===========================================================================
 0. package your code without any requirements
@@ -73,20 +74,27 @@ def prepare_includes(includes, cache_path):
             raise RuntimeError('%s is not exist' % include_path.absolute())
 
 
-def prepare_entry(cache_path: Path, shell=False, main='', unzip='', ts='None'):
-    with open(Path(__file__).parent / '_entry_point.py',
-              encoding='u8') as f:
+def prepare_entry(cache_path: Path,
+                  shell=False,
+                  main='',
+                  unzip='',
+                  unzip_path='',
+                  output_name='noname',
+                  ignore_system_python_path=False,
+                  ts='None'):
+    with open(Path(__file__).parent / '_entry_point.py', encoding='u8') as f:
         module, _, function = main.partition(':')
         if module and (cache_path / module).is_file():
             module = os.path.splitext(module)[0]
         kwargs = {
             'ts': ts,
+            'shell': shell,
             'unzip': unzip,
-            'shell': True,
+            'unzip_path': unzip_path or UNZIP_CACHE_TEMPLATE % output_name,
+            'ignore_system_python_path': ignore_system_python_path,
             'has_main': bool(main),
-            'import_main': '\n        import %s' % module if module else '',
-            'run_main': '\n        %s.%s()' %
-                        (module, function) if function else ''
+            'import_main': 'import %s' % module if module else '',
+            'run_main': '%s.%s()' % (module, function) if function else ''
         }
         (cache_path / '__main__.py').write_text(f.read().format(**kwargs))
 
@@ -123,6 +131,8 @@ def create_app(
     compressed: bool = False,
     shell: bool = False,
     unzip: str = '',
+    unzip_path: str = '',
+    ignore_system_python_path=False,
     pip_args: list = None,
 ):
     cache_path = cache_path or DEFAULT_CACHE_PATH
@@ -137,17 +147,26 @@ def create_app(
                 'target arg can be set with --cache-path to rewrite the zipapps cache path.'
             )
         pip_install(_cache_path, pip_args)
-    prepare_entry(_cache_path, shell=shell, main=main, unzip=unzip, ts=ts)
+    output_path = Path(output)
+    output_name = os.path.splitext(Path(output_path).name)[0]
+    prepare_entry(_cache_path,
+                  shell=shell,
+                  main=main,
+                  unzip=unzip,
+                  unzip_path=unzip_path,
+                  output_name=output_name,
+                  ignore_system_python_path=ignore_system_python_path,
+                  ts=ts)
     if sys.version_info.minor >= 7:
         zipapp.create_archive(source=_cache_path,
-                              target=output,
+                              target=str(output_path.absolute()),
                               interpreter=interpreter,
                               compressed=compressed)
     elif compressed:
         raise RuntimeError('compressed arg only support python3.7+')
     else:
         zipapp.create_archive(source=_cache_path,
-                              target=output,
+                              target=str(output_path.absolute()),
                               interpreter=interpreter,
                               main=main)
     if cache_path == DEFAULT_CACHE_PATH:
@@ -158,7 +177,7 @@ def create_app(
                 shutil.rmtree(_cache_path)
             except FileNotFoundError:
                 break
-    return Path(output)
+    return output_path
 
 
 def main():
@@ -205,11 +224,23 @@ def main():
         help='The names which need to be unzip while running, name without ext. '
         'such as .so/.pyd files(which can not be loaded by zipimport), '
         'or packages with operations of static files.')
+    parser.add_argument(
+        '--unzip-path',
+        '-up',
+        default='',
+        help='The names which need to be unzip while running, name without ext. '
+        'such as .so/.pyd files(which can not be loaded by zipimport), '
+        'or packages with operations of static files.')
     parser.add_argument('--shell',
                         '-s',
                         action='store_true',
                         help='Only while `main` is not set, used for shell=True'
                         ' in subprocess.Popen')
+    parser.add_argument('--strict-python-path',
+                        '-spp',
+                        action='store_true',
+                        dest='ignore_system_python_path',
+                        help='Skip global PYTHONPATH.')
     args, pip_args = parser.parse_known_args()
     return create_app(includes=args.includes,
                       cache_path=args.cache_path,
@@ -219,6 +250,8 @@ def main():
                       compressed=args.compress,
                       shell=args.shell,
                       unzip=args.unzip,
+                      unzip_path=args.unzip_path,
+                      ignore_system_python_path=args.ignore_system_python_path,
                       pip_args=pip_args)
 
 

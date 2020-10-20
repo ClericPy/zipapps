@@ -14,7 +14,7 @@ def main():
     python_path_list = [zip_file_path]
     unzip = r'''{unzip}'''
     if unzip:
-        _temp_folder = os.path.splitext(zip_file_path)[0] + '_'
+        _temp_folder = r'''{unzip_path}'''
         python_path_list.insert(0, _temp_folder)
         _temp_folder_path = Path(_temp_folder)
         if not (_temp_folder_path / '_zip_time_{ts}').is_file():
@@ -31,9 +31,11 @@ def main():
             _need_unzip_names.append('_zip_time_{ts}')
             with ZipFile(zip_file_path, "r") as zf:
                 for member in zf.infolist():
-                    file_dir_name = os.path.splitext(member.filename.split('/')[0])[0]
+                    file_dir_name = os.path.splitext(
+                        member.filename.split('/')[0])[0]
                     if file_dir_name in _need_unzip_names:
-                        zf.extract(member, path=str(_temp_folder_path.absolute()))
+                        zf.extract(member,
+                                   path=str(_temp_folder_path.absolute()))
 
     sep = ';' if sys.platform == 'win32' else ':'
     os.environ['PYTHONPATH'] = sep.join(python_path_list)
@@ -41,9 +43,12 @@ def main():
     shell_args = [sys.executable] + sys.argv[1:]
     has_main = {has_main}
     if has_main:
+        if {ignore_system_python_path}:
+            sys.path.clear()
         for p in python_path_list[::-1]:
             sys.path.insert(0, p)
-        pass{import_main}{run_main}
+        {import_main}
+        {run_main}
     else:
         from subprocess import Popen
         Popen(shell_args, shell={shell}).wait()
