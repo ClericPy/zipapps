@@ -91,4 +91,8 @@ optional arguments:
 3. `PYTHONPATH` between zipapps's zip file and global python environment?
    1. If you set `-spp` for strict `PYTHONPATH`, you will not use the global `PYTHONPATH`.
    2. else you will use global libs as a second choice.
-4. enjoy yourself.
+4. Where to Use it?
+   1. Hadoop-Streaming's mapper & reducer.
+   2. Simple deployment for different server with Jenkins(or other CI/CD tools).
+   3. Distribute zipapp with embedded python.
+   4. Other usages need to be found, and enjoy yourself.
