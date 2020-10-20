@@ -64,7 +64,31 @@ optional arguments:
   --compress, -c        Compress files with the deflate method, defaults to uncompressed.
   --includes INCLUDES, -a INCLUDES
                         The files/folders of given dir path will be copied into cache-path, which can be import from PYTHONPATH). The path string will be splited by ",".
-  --cache-path CACHE_PATH
+  --cache-path CACHE_PATH, -cp CACHE_PATH
                         The cache path of zipapps to store site-packages and `includes` files, which will be treat as PYTHONPATH. If not set, will create and clean-up automately.
-  --shell               Only while `main` is not set, used for shell=True in subprocess.Popen
+  --unzip UNZIP, -u UNZIP
+                        The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of
+                        static files.
+  --unzip-path UNZIP_PATH, -up UNZIP_PATH
+                        The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of
+                        static files.
+  --shell, -s           Only while `main` is not set, used for shell=True in subprocess.Popen
+  --strict-python-path, -spp
+                        Skip global PYTHONPATH.
 ```
+
+
+## FAQ
+
+1. How to zip apps with C-lib requirements for `zipimport` ingore `.pyd`, `.so` files?
+   1. as https://docs.python.org/3/library/zipimport.html
+   2. we can unzip those packages in temp dirs with `-u` args
+   3. > python3 -m zipapps -c -u selectolax selectolax
+   4. > python3 app.pyz xxx.py
+2. How to avoid  unlimited unzip cachefolder size growth?
+   1. There is a null file named like `zip-time` in zip files and unzip folders
+   2. The same `zip-time` cache with same name will not unzip again.
+3. `PYTHONPATH` between zipapps's zip file and global python environment?
+   1. If you set `-spp` for strict `PYTHONPATH`, you will not use the global `PYTHONPATH`.
+   2. else you will use global libs as a second choice.
+4. enjoy yourself.
