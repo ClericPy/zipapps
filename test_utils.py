@@ -13,7 +13,7 @@ def _clean_paths():
             Path(p).unlink()
         except Exception:
             pass
-    for d in ['mock_package', DEFAULT_CACHE_PATH]:
+    for d in ['mock_package', DEFAULT_CACHE_PATH, 'app_']:
         try:
             shutil.rmtree(d)
         except Exception:
