@@ -8,10 +8,17 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
 
 ## Features
 - [x] Zip pure python code without cache folder while running.
+  - pure python code will not unzip anything by default.
 - [x] Zip files/folders by your choice, and unzip which your want.
+  - files/libs/folders will be unzip to `-up` path.
 - [x] Zip the dynamic modules (.pyd, .so) which [`zipimport`](https://docs.python.org/3/library/zipimport.html) not support.
-- [x] Reuse the unzip cache folder for the same zip timestamp. (zip-timestamp will play as a `build_id`)
-- [x] Use like a `venv` or interpreter with `python3 ./env.pyz script.py`, script.py will enjoy the PYTHONPATH of env.pyz. (package without `-m` arg)
+  - package with `-u` for these libs.
+- [x] Reuse the unzip cache folder for the same zip timestamp. 
+  - `zip-timestamp` will play as a `build_id`
+- [x] Use like a `venv` or interpreter with `python3 ./env.pyz script.py`, script.py will enjoy the PYTHONPATH of env.pyz.
+- package without `-m` arg, then run codes in `Popen`.
+- [x] Fix `psutil` ImportError of DLL loading.
+  - package with `-ss` to use `Popen` instead of import directly.
 
 ## Requirements
 
@@ -88,7 +95,8 @@ optional arguments:
                         The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of static files. If unzip is *, will unzip all files and folders.
   --unzip-path UNZIP_PATH, -up UNZIP_PATH
                         The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of static files. Defaults to $(appname)_unzip_cache
-  --shell, -s           Only while `main` is not set, used for shell=True in subprocess.Popen
+  --shell, -s           Only while `main` is not set, used for shell=True in subprocess.Popen.
+  --main-shell, -ss     Only for `main` is not null, call `main` with subprocess: run `python -c "import a.b;a.b.c()"`. This is used for `psutil` ImportError of DLL load.
   --strict-python-path, -spp
                         Ignore global PYTHONPATH, only use app_unzip_cache and app.pyz.
 ```

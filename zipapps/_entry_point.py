@@ -40,18 +40,22 @@ def main():
 
     sep = ';' if sys.platform == 'win32' else ':'
     os.environ['PYTHONPATH'] = sep.join(python_path_list)
-
-    shell_args = [sys.executable] + sys.argv[1:]
     has_main = {has_main}
     if has_main:
-        if {ignore_system_python_path}:
-            sys.path.clear()
-        for p in python_path_list[::-1]:
-            sys.path.insert(0, p)
-        {import_main}
-        {run_main}
+        if {main_shell}:
+            from subprocess import Popen
+            shell_args = [sys.executable, '-c', '{import_main};{run_main}']
+            Popen(shell_args, shell={shell}).wait()
+        else:
+            if {ignore_system_python_path}:
+                sys.path.clear()
+            for p in python_path_list[::-1]:
+                sys.path.insert(0, p)
+            {import_main}
+            {run_main}
     else:
         from subprocess import Popen
+        shell_args = [sys.executable] + sys.argv[1:]
         Popen(shell_args, shell={shell}).wait()
 
 

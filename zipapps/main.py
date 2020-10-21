@@ -10,7 +10,6 @@ import time
 import zipapp
 from pathlib import Path
 
-
 DEFAULT_OUTPUT_PATH = 'app.pyz'
 UNZIP_CACHE_TEMPLATE = '%s_unzip_cache'
 
@@ -43,6 +42,7 @@ def prepare_entry(cache_path: Path,
                   unzip_path='',
                   output_path: Path = None,
                   ignore_system_python_path=False,
+                  main_shell=False,
                   ts='None'):
     output_path = output_path or Path(DEFAULT_OUTPUT_PATH)
     output_name = os.path.splitext(Path(output_path).name)[0]
@@ -53,6 +53,7 @@ def prepare_entry(cache_path: Path,
         kwargs = {
             'ts': ts,
             'shell': shell,
+            'main_shell': main_shell,
             'unzip': unzip,
             'unzip_path': unzip_path or UNZIP_CACHE_TEMPLATE % output_name,
             'ignore_system_python_path': ignore_system_python_path,
@@ -116,6 +117,7 @@ def create_app(
     unzip: str = '',
     unzip_path: str = '',
     ignore_system_python_path=False,
+    main_shell=False,
     pip_args: list = None,
 ):
     tmp_dir: tempfile.TemporaryDirectory = None
@@ -135,6 +137,7 @@ def create_app(
                       unzip_path=unzip_path,
                       output_path=output_path,
                       ignore_system_python_path=ignore_system_python_path,
+                      main_shell=main_shell,
                       ts=set_timestamp(_cache_path))
         _create_archive(_cache_path, output_path, interpreter, compressed)
         return output_path
