@@ -1,13 +1,21 @@
-# [zipapps](https://github.com/ClericPy/zipapps) [![PyPI](https://img.shields.io/pypi/v/zipapps?style=plastic)](https://pypi.org/project/zipapps/)[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/clericpy/zipapps/Python%20package?style=plastic)](https://github.com/ClericPy/zipapps/actions?query=workflow%3A%22Python+package%22)![PyPI - Wheel](https://img.shields.io/pypi/wheel/zipapps?style=plastic)![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zipapps?style=plastic)![PyPI - Downloads](https://img.shields.io/pypi/dm/zipapps?style=plastic)![PyPI - License](https://img.shields.io/pypi/l/zipapps?style=plastic)
+# [zipapps](https://github.com/ClericPy/zipapps)
+[![PyPI](https://img.shields.io/pypi/v/zipapps?style=plastic)](https://pypi.org/project/zipapps/)[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/clericpy/zipapps/Python%20package?style=plastic)](https://github.com/ClericPy/zipapps/actions?query=workflow%3A%22Python+package%22)![PyPI - Wheel](https://img.shields.io/pypi/wheel/zipapps?style=plastic)![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zipapps?style=plastic)![PyPI - Downloads](https://img.shields.io/pypi/dm/zipapps?style=plastic)![PyPI - License](https://img.shields.io/pypi/l/zipapps?style=plastic)
 
-Package your python code into one zip file, even a virtual environment. Also compatible for win32.
+Package your code into one zip file, even like the virtual environment usage. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/) also compatible for win32.
 
-Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications easily. Unlike shiv, this lib will not create cache folders while running apps.
+Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications easily. Unlike shiv, this lib will not always create new cache folders while running.
 
+
+## Features
+- [x] Zip pure python code without cache folder while running.
+- [x] Zip files/folders by your choice, and unzip which your want.
+- [x] Zip the dynamic modules (.pyd, .so) which [`zipimport`](https://docs.python.org/3/library/zipimport.html) not support.
+- [x] Reuse the unzip cache folder for the same zip timestamp. (zip-timestamp will play as a `build_id`)
+- [x] Use like a `venv` or interpreter with `python3 ./env.pyz script.py`, script.py will enjoy the PYTHONPATH of env.pyz. (package without `-m` arg)
 
 ## Requirements
 
-> Only python3.6+
+> Only python3.6+, without any requirements.
 
 ## Install
 
@@ -101,6 +109,6 @@ optional arguments:
    2. else you will use global libs as a second choice.
 4. Where to Use it?
    1. Hadoop-Streaming's mapper & reducer.
-   2. Simple deployment for different server with Jenkins(or other CI/CD tools).
+   2. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
    3. Distribute zipapp with embedded python.
    4. Other usages need to be found, and enjoy yourself.
