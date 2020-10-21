@@ -6,13 +6,13 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import zipapp
 from pathlib import Path
 
-DEFAULT_CACHE_PATH = '_zipapps_cache'
 DEFAULT_OUTPUT_PATH = 'app.pyz'
-UNZIP_CACHE_TEMPLATE = '%s_zipcache'
+UNZIP_CACHE_TEMPLATE = '%s_unzip_cache'
 USAGE = r'''
 ===========================================================================
 0. package your code without any requirements
@@ -45,9 +45,16 @@ OR
 
 3. advanced usages
 3.1 more args
-python3 -m zipapps -c -a package1,package2 -o server.pyz -m package1.server:main -p /usr/bin/python3 -r requirements.txt
-./server.pyz
+> python3 -m zipapps -c -a package1,package2 -o server.pyz -m package1.server:main -p /usr/bin/python3 -r requirements.txt
+> ./server.pyz
 
+3.2 unzip C-libs to cache folder for zipimport do not support .so .pyd files.
+    bad
+    > python3 -m zipapps -c lxml
+    > python3 app.pyz -c "import lxml.html;print(lxml.html.__file__)"
+    good
+    > python3 -m zipapps -c -u lxml lxml
+    > python3 app.pyz -c "import lxml.html;print(lxml.html.__file__)"
 
 PS: all the unknown args will be used by "pip install".
 ==========================================================================='''
@@ -79,9 +86,11 @@ def prepare_entry(cache_path: Path,
                   main='',
                   unzip='',
                   unzip_path='',
-                  output_name='noname',
+                  output_path: Path = None,
                   ignore_system_python_path=False,
                   ts='None'):
+    output_path = output_path or Path(DEFAULT_OUTPUT_PATH)
+    output_name = os.path.splitext(Path(output_path).name)[0]
     with open(Path(__file__).parent / '_entry_point.py', encoding='u8') as f:
         module, _, function = main.partition(':')
         if module and (cache_path / module).is_file():
@@ -108,12 +117,17 @@ def clean_pip_cache(path):
 
 
 def pip_install(path, pip_args):
-    shell_args = [
-        sys.executable, '-m', 'pip', 'install', '--target',
-        str(path.absolute())
-    ] + pip_args
-    subprocess.Popen(shell_args).wait()
-    clean_pip_cache(path)
+    if pip_args:
+        if '-t' in pip_args or '--target' in pip_args:
+            raise RuntimeError(
+                'target arg can be set with --cache-path to rewrite the zipapps cache path.'
+            )
+        shell_args = [
+            sys.executable, '-m', 'pip', 'install', '--target',
+            str(path.absolute())
+        ] + pip_args
+        subprocess.Popen(shell_args).wait()
+        clean_pip_cache(path)
 
 
 def set_timestamp(_cache_path):
@@ -122,41 +136,7 @@ def set_timestamp(_cache_path):
     return ts
 
 
-def create_app(
-    includes: str = '',
-    cache_path: str = '',
-    main: str = '',
-    output: str = DEFAULT_OUTPUT_PATH,
-    interpreter: str = None,
-    compressed: bool = False,
-    shell: bool = False,
-    unzip: str = '',
-    unzip_path: str = '',
-    ignore_system_python_path=False,
-    pip_args: list = None,
-):
-    cache_path = cache_path or DEFAULT_CACHE_PATH
-    _cache_path = Path(cache_path)
-    if cache_path == DEFAULT_CACHE_PATH:
-        refresh_dir(_cache_path)
-    ts = set_timestamp(_cache_path)
-    prepare_includes(includes, _cache_path)
-    if pip_args:
-        if '-t' in pip_args or '--target' in pip_args:
-            raise RuntimeError(
-                'target arg can be set with --cache-path to rewrite the zipapps cache path.'
-            )
-        pip_install(_cache_path, pip_args)
-    output_path = Path(output)
-    output_name = os.path.splitext(Path(output_path).name)[0]
-    prepare_entry(_cache_path,
-                  shell=shell,
-                  main=main,
-                  unzip=unzip,
-                  unzip_path=unzip_path,
-                  output_name=output_name,
-                  ignore_system_python_path=ignore_system_python_path,
-                  ts=ts)
+def _create_archive(_cache_path, output_path, interpreter, compressed):
     if sys.version_info.minor >= 7:
         zipapp.create_archive(source=_cache_path,
                               target=str(output_path.absolute()),
@@ -168,15 +148,44 @@ def create_app(
         zipapp.create_archive(source=_cache_path,
                               target=str(output_path.absolute()),
                               interpreter=interpreter)
-    if cache_path == DEFAULT_CACHE_PATH:
-        for _ in range(3):
-            try:
-                if not _cache_path.is_dir():
-                    break
-                shutil.rmtree(_cache_path)
-            except FileNotFoundError:
-                break
-    return output_path
+
+
+def create_app(
+    includes: str = '',
+    cache_path: str = None,
+    main: str = '',
+    output: str = DEFAULT_OUTPUT_PATH,
+    interpreter: str = None,
+    compressed: bool = False,
+    shell: bool = False,
+    unzip: str = '',
+    unzip_path: str = '',
+    ignore_system_python_path=False,
+    pip_args: list = None,
+):
+    tmp_dir: tempfile.TemporaryDirectory = None
+    try:
+        if cache_path:
+            _cache_path = Path(cache_path)
+        else:
+            tmp_dir = tempfile.TemporaryDirectory()
+            _cache_path = Path(tmp_dir.name)
+        prepare_includes(includes, _cache_path)
+        pip_install(_cache_path, pip_args)
+        output_path = Path(output)
+        prepare_entry(_cache_path,
+                      shell=shell,
+                      main=main,
+                      unzip=unzip,
+                      unzip_path=unzip_path,
+                      output_path=output_path,
+                      ignore_system_python_path=ignore_system_python_path,
+                      ts=set_timestamp(_cache_path))
+        _create_archive(_cache_path, output_path, interpreter, compressed)
+        return output_path
+    finally:
+        if tmp_dir:
+            tmp_dir.cleanup()
 
 
 def main():
@@ -209,9 +218,10 @@ def main():
                         ' will be copied into cache-path, '
                         'which can be import from PYTHONPATH).'
                         ' The path string will be splited by ",".')
-    parser.add_argument('--cache-path',
+    parser.add_argument('--source-dir',
+                        '--cache-path',
                         '-cp',
-                        default=DEFAULT_CACHE_PATH,
+                        default=None,
                         help='The cache path of zipapps to store '
                         'site-packages and `includes` files, '
                         'which will be treat as PYTHONPATH.'
@@ -222,24 +232,27 @@ def main():
         default='',
         help='The names which need to be unzip while running, name without ext. '
         'such as .so/.pyd files(which can not be loaded by zipimport), '
-        'or packages with operations of static files.')
+        'or packages with operations of static files. If unzip is *, will unzip all files and folders.'
+    )
     parser.add_argument(
         '--unzip-path',
         '-up',
         default='',
         help='The names which need to be unzip while running, name without ext. '
         'such as .so/.pyd files(which can not be loaded by zipimport), '
-        'or packages with operations of static files.')
+        'or packages with operations of static files. Defaults to $(appname)_unzip_cache.'
+    )
     parser.add_argument('--shell',
                         '-s',
                         action='store_true',
                         help='Only while `main` is not set, used for shell=True'
                         ' in subprocess.Popen')
-    parser.add_argument('--strict-python-path',
-                        '-spp',
-                        action='store_true',
-                        dest='ignore_system_python_path',
-                        help='Skip global PYTHONPATH.')
+    parser.add_argument(
+        '--strict-python-path',
+        '-spp',
+        action='store_true',
+        dest='ignore_system_python_path',
+        help='Ignore global PYTHONPATH, only use app_unzip_cache and app.pyz.')
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()

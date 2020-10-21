@@ -1,9 +1,10 @@
+import atexit
+import shutil
 import subprocess
 import sys
-from zipapps.main import create_app, DEFAULT_CACHE_PATH
 from pathlib import Path
-import shutil
-import atexit
+
+from zipapps.main import create_app
 
 
 @atexit.register
@@ -13,7 +14,7 @@ def _clean_paths():
             Path(p).unlink()
         except Exception:
             pass
-    for d in ['mock_package', DEFAULT_CACHE_PATH, 'app_']:
+    for d in ['mock_package', 'app_unzip_cache']:
         try:
             shutil.rmtree(d)
         except Exception:
@@ -102,10 +103,6 @@ def test_create_app_function():
     mock_dir.mkdir()
     app_path = create_app(cache_path=mock_dir)
     assert mock_dir.is_dir(), 'test cache_path failed'
-    # test auto rm default cache_path
-    app_path = create_app(cache_path=DEFAULT_CACHE_PATH)
-    assert not Path(
-        DEFAULT_CACHE_PATH).is_dir(), 'test auto rm default cache_path failed'
 
     # test unzip
     app_path = create_app(unzip='bottle', pip_args=['bottle'])
@@ -117,7 +114,22 @@ def test_create_app_function():
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
-    assert b'app_' in output, 'test unzip failed, app_ as sys.path should be priority'
+    file_counts = len(list(Path('app_unzip_cache').glob('**/*')))
+    assert file_counts == 4, file_counts
+    assert b'app_unzip_cache' in output, 'test unzip failed, app_unzip_cache as sys.path should be priority'
+
+    # test unzip *
+    app_path = create_app(unzip='*', pip_args=['bottle'])
+    output, _ = subprocess.Popen(
+        [
+            sys.executable,
+            str(app_path), '-c', 'import bottle;print(bottle.__file__)'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    file_counts = len(list(Path('app_unzip_cache').glob('**/*')))
+    assert file_counts > 4, 'test unzip failed, app_unzip_cache as sys.path should be priority'
 
 
 def test_create_app_command_line():
