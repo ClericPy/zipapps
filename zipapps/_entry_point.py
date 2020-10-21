@@ -7,7 +7,7 @@ from zipfile import ZipFile
 
 
 def main():
-    """run with current PYTHONPATH"""
+    """Template code for zipapps entry point. Run with current PYTHONPATH"""
     # env of Popen is not valid for win32 platform, use os.environ instead.
     # PYTHONPATH=./app.pyz
     zip_file_path = str(Path(__file__).parent.absolute())
@@ -17,7 +17,8 @@ def main():
         _temp_folder = r'''{unzip_path}'''
         python_path_list.insert(0, _temp_folder)
         _temp_folder_path = Path(_temp_folder)
-        if not (_temp_folder_path / '_zip_time_{ts}').is_file():
+        ts_file_name = '_zip_time_{ts}'
+        if not (_temp_folder_path / ts_file_name).is_file():
             # check timestamp different, need to refresh _temp_folder
             for _ in range(3):
                 try:
@@ -28,12 +29,12 @@ def main():
                     break
             _temp_folder_path.mkdir()
             _need_unzip_names = unzip.split(',')
-            _need_unzip_names.append('_zip_time_{ts}')
+            _need_unzip_names.append(ts_file_name)
             with ZipFile(zip_file_path, "r") as zf:
                 for member in zf.infolist():
                     file_dir_name = os.path.splitext(
                         member.filename.split('/')[0])[0]
-                    if file_dir_name in _need_unzip_names:
+                    if unzip == '*' or file_dir_name in _need_unzip_names:
                         zf.extract(member,
                                    path=str(_temp_folder_path.absolute()))
 

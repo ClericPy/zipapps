@@ -18,6 +18,8 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
 > python3 -m zipapps -h
 
 ```
+usage:
+===========================================================================
 0. package your code without any requirements
 
 > python3 -m zipapps -c -a ./simple_package -p /usr/bin/python3 -o simple_package.pyz
@@ -48,8 +50,16 @@ OR
 
 3. advanced usages
 3.1 more args
-python3 -m zipapps -c -a package1,package2 -o server.pyz -m package1.server:main -p /usr/bin/python3 -r requirements.txt
-./server.pyz
+> python3 -m zipapps -c -a package1,package2 -o server.pyz -m package1.server:main -p /usr/bin/python3 -r requirements.txt
+> ./server.pyz
+
+3.2 unzip C-libs to cache folder for zipimport do not support .so .pyd files.
+    bad
+    > python3 -m zipapps -c lxml
+    > python3 app.pyz -c "import lxml.html;print(lxml.html.__file__)"
+    good
+    > python3 -m zipapps -c -u lxml lxml
+    > python3 app.pyz -c "import lxml.html;print(lxml.html.__file__)"
 
 PS: all the unknown args will be used by "pip install".
 ===========================================================================
@@ -67,14 +77,12 @@ optional arguments:
   --cache-path CACHE_PATH, -cp CACHE_PATH
                         The cache path of zipapps to store site-packages and `includes` files, which will be treat as PYTHONPATH. If not set, will create and clean-up automately.
   --unzip UNZIP, -u UNZIP
-                        The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of
-                        static files.
+                        The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of static files. If unzip is *, will unzip all files and folders.
   --unzip-path UNZIP_PATH, -up UNZIP_PATH
-                        The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of
-                        static files.
+                        The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of static files. Defaults to $(appname)_unzip_cache
   --shell, -s           Only while `main` is not set, used for shell=True in subprocess.Popen
   --strict-python-path, -spp
-                        Skip global PYTHONPATH.
+                        Ignore global PYTHONPATH, only use app_unzip_cache and app.pyz.
 ```
 
 
