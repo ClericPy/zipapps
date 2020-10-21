@@ -55,11 +55,11 @@ OR
 
 3.2 unzip C-libs to cache folder for zipimport do not support .so .pyd files.
     bad
-    > python3 -m zipapps -c lxml
-    > python3 app.pyz -c "import lxml.html;print(lxml.html.__file__)"
+        > python3 -m zipapps -c lxml
+        > python3 app.pyz -c "import lxml.html;print(lxml.html.__file__)"
     good
-    > python3 -m zipapps -c -u lxml lxml
-    > python3 app.pyz -c "import lxml.html;print(lxml.html.__file__)"
+        > python3 -m zipapps -c -u lxml lxml
+        > python3 app.pyz -c "import lxml.html;print(lxml.html.__file__)"
 
 PS: all the unknown args will be used by "pip install".
 ===========================================================================

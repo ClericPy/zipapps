@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 _temp*
 *_unzip_cache/
+*.pyz
