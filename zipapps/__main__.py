@@ -111,7 +111,15 @@ def main():
                         '-s',
                         action='store_true',
                         help='Only while `main` is not set, used for shell=True'
-                        ' in subprocess.Popen')
+                        ' in subprocess.Popen.')
+    parser.add_argument(
+        '--main-shell',
+        '-ss',
+        action='store_true',
+        dest='main_shell',
+        help='Only for `main` is not null, call `main` with subprocess.Popen: '
+        '`python -c "import a.b;a.b.c()"`. This is used for `psutil` ImportError of DLL load.'
+    )
     parser.add_argument(
         '--strict-python-path',
         '-spp',
@@ -131,6 +139,7 @@ def main():
                       unzip=args.unzip,
                       unzip_path=args.unzip_path,
                       ignore_system_python_path=args.ignore_system_python_path,
+                      main_shell=args.main_shell,
                       pip_args=pip_args)
 
 
