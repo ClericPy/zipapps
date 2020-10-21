@@ -12,7 +12,7 @@ from pathlib import Path
 
 DEFAULT_CACHE_PATH = '_zipapps_cache'
 DEFAULT_OUTPUT_PATH = 'app.pyz'
-UNZIP_CACHE_TEMPLATE = '%s_'
+UNZIP_CACHE_TEMPLATE = '%s_zipcache'
 USAGE = r'''
 ===========================================================================
 0. package your code without any requirements
@@ -240,6 +240,8 @@ def main():
                         action='store_true',
                         dest='ignore_system_python_path',
                         help='Skip global PYTHONPATH.')
+    if len(sys.argv) == 1:
+        return parser.print_help()
     args, pip_args = parser.parse_known_args()
     return create_app(includes=args.includes,
                       cache_path=args.cache_path,
