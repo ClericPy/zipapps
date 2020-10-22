@@ -16,7 +16,7 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
 - [x] Reuse the unzip cache folder for the same zip timestamp. 
   - `zip-timestamp` will play as a `build_id`
 - [x] Use like a `venv` or interpreter with `python3 ./env.pyz script.py`, script.py will enjoy the PYTHONPATH of env.pyz.
-- package without `-m` arg, then run codes in `Popen`.
+  - package without `-m` arg, then run codes in `Popen`.
 - [x] Fix `psutil` ImportError of DLL loading.
   - package with `-ss` to use `Popen` instead of import directly.
 
