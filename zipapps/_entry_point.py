@@ -19,7 +19,8 @@ def main():
         _temp_folder_path = Path(_temp_folder)
         ts_file_name = '_zip_time_{ts}'
         if not (_temp_folder_path / ts_file_name).is_file():
-            # check timestamp different, need to refresh _temp_folder
+            # check timestamp difference by file name, need to refresh _temp_folder
+            # rm the folder
             for _ in range(3):
                 try:
                     if not _temp_folder_path.is_dir():
@@ -47,10 +48,11 @@ def main():
             shell_args = [sys.executable, '-c', '{import_main};{run_main}']
             call(shell_args, shell={shell})
         else:
-            if {ignore_system_python_path}:
+            ignore_system_python_path = {ignore_system_python_path}
+            if ignore_system_python_path:
                 sys.path.clear()
-            for p in python_path_list[::-1]:
-                sys.path.insert(0, p)
+            # let the dir as first
+            sys.path = python_path_list + sys.path
             {import_main}
             {run_main}
     else:
