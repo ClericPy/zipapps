@@ -43,9 +43,9 @@ def main():
     has_main = {has_main}
     if has_main:
         if {main_shell}:
-            from subprocess import Popen
+            from subprocess import call
             shell_args = [sys.executable, '-c', '{import_main};{run_main}']
-            Popen(shell_args, shell={shell}).wait()
+            call(shell_args, shell={shell})
         else:
             if {ignore_system_python_path}:
                 sys.path.clear()
@@ -54,9 +54,9 @@ def main():
             {import_main}
             {run_main}
     else:
-        from subprocess import Popen
+        from subprocess import call
         shell_args = [sys.executable] + sys.argv[1:]
-        Popen(shell_args, shell={shell}).wait()
+        call(shell_args, shell={shell})
 
 
 if __name__ == "__main__":
