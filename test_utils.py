@@ -135,29 +135,21 @@ def test_create_app_function():
     if sys.platform == 'win32':
         mock_main = Path('mock_main.py')
         mock_main.write_text('import psutil;print(psutil.__file__)')
-        app_path = create_app(unzip='psutil',
-                              pip_args=['psutil'],
+        app_path = create_app(pip_args=['psutil'],
                               main='mock_main',
                               includes='mock_main.py')
         _, error = subprocess.Popen(
-            [
-                sys.executable,
-                str(app_path), '-c', 'import bottle;print(bottle.__file__)'
-            ],
+            [sys.executable, str(app_path)],
             stderr=subprocess.PIPE,
             stdout=subprocess.PIPE,
         ).communicate()
-        assert b'ImportError' in error, 'no error now?'
+        assert b'ModuleNotFoundError' in error, 'no error now?'
         app_path = create_app(unzip='psutil',
                               pip_args=['psutil'],
                               main='mock_main',
-                              main_shell=True,
                               includes='mock_main.py')
         _, error = subprocess.Popen(
-            [
-                sys.executable,
-                str(app_path), '-c', 'import bottle;print(bottle.__file__)'
-            ],
+            [sys.executable, str(app_path)],
             stderr=subprocess.PIPE,
             stdout=subprocess.PIPE,
         ).communicate()
