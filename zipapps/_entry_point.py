@@ -15,8 +15,9 @@ def main():
     unzip = r'''{unzip}'''
     if unzip:
         _temp_folder = r'''{unzip_path}'''
-        python_path_list.insert(0, _temp_folder)
         _temp_folder_path = Path(_temp_folder)
+        _temp_folder_abs_path = str(_temp_folder_path.absolute())
+        python_path_list.insert(0, _temp_folder_abs_path)
         ts_file_name = '_zip_time_{ts}'
         if not (_temp_folder_path / ts_file_name).is_file():
             # check timestamp difference by file name, need to refresh _temp_folder
@@ -36,8 +37,7 @@ def main():
                     file_dir_name = os.path.splitext(
                         member.filename.split('/')[0])[0]
                     if unzip == '*' or file_dir_name in _need_unzip_names:
-                        zf.extract(member,
-                                   path=str(_temp_folder_path.absolute()))
+                        zf.extract(member, path=_temp_folder_abs_path)
 
     sep = ';' if sys.platform == 'win32' else ':'
     os.environ['PYTHONPATH'] = sep.join(python_path_list)

@@ -119,4 +119,7 @@ optional arguments:
    1. Hadoop-Streaming's mapper & reducer.
    2. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
    3. Distribute zipapp with embedded python.
-   4. Other usages need to be found, and enjoy yourself.
+   4. Use as a requirements zip path.
+      1. `import sys;sys.path.insert(0, 'app.pyz')` (without .so/.pyd)
+      2. `python3 app.pyz script.py`
+   5. Other usages need to be found, and enjoy yourself.
