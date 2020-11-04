@@ -1,7 +1,9 @@
 # [zipapps](https://github.com/ClericPy/zipapps)
 [![PyPI](https://img.shields.io/pypi/v/zipapps?style=plastic)](https://pypi.org/project/zipapps/)[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/clericpy/zipapps/Python%20package?style=plastic)](https://github.com/ClericPy/zipapps/actions?query=workflow%3A%22Python+package%22)![PyPI - Wheel](https://img.shields.io/pypi/wheel/zipapps?style=plastic)![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zipapps?style=plastic)![PyPI - Downloads](https://img.shields.io/pypi/dm/zipapps?style=plastic)![PyPI - License](https://img.shields.io/pypi/l/zipapps?style=plastic)
 
-Package your code into one zip file, even like the virtual environment usage. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/) also compatible for win32.
+Package your code with requirements into one zip file, even as a zipped virtual environment.
+
+Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), which means also compatible for win32.
 
 Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications easily. Unlike shiv, this lib will not always create new cache folders while running.
 
@@ -105,6 +107,10 @@ optional arguments:
 ```
 
 ### Using as the venv zip file
+
+> As you see, `import ensure_zipapps` only works for packaging with a non-null `unzip` arg.
+> 
+> If you don't need to **unzip** any files/folders, `sys.path.append('app.pyz')` is enough.
 
 ```python
 # zip env as usual: python3 -m zipapps -u bottle bottle
