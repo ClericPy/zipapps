@@ -46,22 +46,24 @@ def prepare_entry(cache_path: Path,
                   ts='None'):
     output_path = output_path or Path(DEFAULT_OUTPUT_PATH)
     output_name = os.path.splitext(Path(output_path).name)[0]
+    module, _, function = main.partition(':')
+    if module and (cache_path / module).is_file():
+        module = os.path.splitext(module)[0]
+    kwargs = {
+        'ts': ts,
+        'shell': shell,
+        'main_shell': main_shell,
+        'unzip': unzip,
+        'unzip_path': unzip_path or UNZIP_CACHE_TEMPLATE % output_name,
+        'ignore_system_python_path': ignore_system_python_path,
+        'has_main': bool(main),
+        'import_main': 'import %s' % module if module else '',
+        'run_main': '%s.%s()' % (module, function) if function else ''
+    }
     with open(Path(__file__).parent / '_entry_point.py', encoding='u8') as f:
-        module, _, function = main.partition(':')
-        if module and (cache_path / module).is_file():
-            module = os.path.splitext(module)[0]
-        kwargs = {
-            'ts': ts,
-            'shell': shell,
-            'main_shell': main_shell,
-            'unzip': unzip,
-            'unzip_path': unzip_path or UNZIP_CACHE_TEMPLATE % output_name,
-            'ignore_system_python_path': ignore_system_python_path,
-            'has_main': bool(main),
-            'import_main': 'import %s' % module if module else '',
-            'run_main': '%s.%s()' % (module, function) if function else ''
-        }
         (cache_path / '__main__.py').write_text(f.read().format(**kwargs))
+    with open(Path(__file__).parent / 'ensure_zipapps.py', encoding='u8') as f:
+        (cache_path / 'ensure_zipapps.py').write_text(f.read().format(**kwargs))
 
 
 def clean_pip_cache(path):

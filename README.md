@@ -19,6 +19,9 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
   - package without `-m` arg, then run codes in `Popen`.
 - [x] Fix `psutil` ImportError of DLL loading.
   - package with `-ss` to use `Popen` instead of import directly.
+- [x] Support import `pyz` as venv zip file.
+  - activate **auto-unzip** by `import ensure_zipapps` after `sys.path.append("app.pyz")`
+  - view the example below.
 
 ## Requirements
 
@@ -99,6 +102,34 @@ optional arguments:
   --main-shell, -ss     Only for `main` is not null, call `main` with subprocess: run `python -c "import a.b;a.b.c()"`. This is used for `psutil` ImportError of DLL load.
   --strict-python-path, -spp
                         Ignore global PYTHONPATH, only use app_unzip_cache and app.pyz.
+```
+
+### Using as the venv zip file
+
+```python
+# zip env as usual: python3 -m zipapps -u bottle bottle
+
+import sys
+
+# add `app.pyz` as import path
+sys.path.append('app.pyz')
+
+# now import bottle to see where it located
+
+import bottle
+print(bottle.__file__)
+# yes, it's in the app.pyz: app.pyz/bottle.py
+
+# now `import ensure_zipapps` to activate the unzip step
+import ensure_zipapps
+
+# reload bottle module to check if the location of bottle changed
+import importlib
+importlib.reload(bottle)
+
+# now import bottle to see where it located
+print(bottle.__file__)
+# yes again, it changed to the unzip path: app_unzip_cache/bottle.py
 ```
 
 

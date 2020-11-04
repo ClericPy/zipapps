@@ -155,6 +155,14 @@ def test_create_app_function():
         ).communicate()
         assert not error, error
 
+    # test ensure path for venv usage
+    create_app(unzip='bottle', pip_args=['bottle'])
+    sys.path.insert(0, 'app.pyz')
+    import ensure_zipapps
+    import bottle
+    # using app unzip cache for `import ensure_zipapps`
+    assert 'app_unzip_cache' in bottle.__file__
+
 
 def test_create_app_command_line():
     """
