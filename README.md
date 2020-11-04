@@ -1,9 +1,9 @@
 # [zipapps](https://github.com/ClericPy/zipapps)
 [![PyPI](https://img.shields.io/pypi/v/zipapps?style=plastic)](https://pypi.org/project/zipapps/)[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/clericpy/zipapps/Python%20package?style=plastic)](https://github.com/ClericPy/zipapps/actions?query=workflow%3A%22Python+package%22)![PyPI - Wheel](https://img.shields.io/pypi/wheel/zipapps?style=plastic)![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zipapps?style=plastic)![PyPI - Downloads](https://img.shields.io/pypi/dm/zipapps?style=plastic)![PyPI - License](https://img.shields.io/pypi/l/zipapps?style=plastic)
 
-Package your code with requirements into one zip file, even as a zipped virtual environment.
+Package your code with requirements into a standalone zip file, even use it as a zipped virtual environment.
 
-Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), which means also compatible for win32.
+Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), which means it is also compatible for win32.
 
 Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications easily. Unlike shiv, this lib will not always create new cache folders while running.
 
