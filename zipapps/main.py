@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import compileall
 import os
 import re
 import shutil
@@ -7,11 +8,19 @@ import subprocess
 import sys
 import tempfile
 import time
+import typing
 import zipapp
 from pathlib import Path
+from warnings import warn
 
-DEFAULT_OUTPUT_PATH = 'app.pyz'
-UNZIP_CACHE_TEMPLATE = '%s_unzip_cache'
+
+class Config:
+    """
+    Default args
+    """
+    DEFAULT_OUTPUT_PATH = 'app.pyz'
+    UNZIP_CACHE_TEMPLATE = '%s_unzip_cache'
+    COMPILE_KWARGS: typing.Dict[str, typing.Any] = {}
 
 
 def refresh_dir(path):
@@ -44,7 +53,7 @@ def prepare_entry(cache_path: Path,
                   ignore_system_python_path=False,
                   main_shell=False,
                   ts='None'):
-    output_path = output_path or Path(DEFAULT_OUTPUT_PATH)
+    output_path = output_path or Path(Config.DEFAULT_OUTPUT_PATH)
     output_name = os.path.splitext(Path(output_path).name)[0]
     module, _, function = main.partition(':')
     if module and (cache_path / module).is_file():
@@ -54,7 +63,7 @@ def prepare_entry(cache_path: Path,
         'shell': shell,
         'main_shell': main_shell,
         'unzip': unzip,
-        'unzip_path': unzip_path or UNZIP_CACHE_TEMPLATE % output_name,
+        'unzip_path': unzip_path or Config.UNZIP_CACHE_TEMPLATE % output_name,
         'ignore_system_python_path': ignore_system_python_path,
         'has_main': bool(main),
         'import_main': 'import %s' % module if module else '',
@@ -108,20 +117,19 @@ def _create_archive(_cache_path, output_path, interpreter, compressed):
                               interpreter=interpreter)
 
 
-def create_app(
-    includes: str = '',
-    cache_path: str = None,
-    main: str = '',
-    output: str = DEFAULT_OUTPUT_PATH,
-    interpreter: str = None,
-    compressed: bool = False,
-    shell: bool = False,
-    unzip: str = '',
-    unzip_path: str = '',
-    ignore_system_python_path=False,
-    main_shell=False,
-    pip_args: list = None,
-):
+def create_app(includes: str = '',
+               cache_path: str = None,
+               main: str = '',
+               output: str = Config.DEFAULT_OUTPUT_PATH,
+               interpreter: str = None,
+               compressed: bool = False,
+               shell: bool = False,
+               unzip: str = '',
+               unzip_path: str = '',
+               ignore_system_python_path=False,
+               main_shell=False,
+               pip_args: list = None,
+               compiled: bool = False):
     tmp_dir: tempfile.TemporaryDirectory = None
     try:
         if cache_path:
@@ -141,6 +149,12 @@ def create_app(
                       ignore_system_python_path=ignore_system_python_path,
                       main_shell=main_shell,
                       ts=set_timestamp(_cache_path))
+        if compiled:
+            if not unzip:
+                warn(
+                    'compiled .pyc files of __pycache__ folder may not work in zipapp, unless you unzip them.'
+                )
+            compileall.compile_dir(_cache_path, **Config.COMPILE_KWARGS)
         _create_archive(_cache_path, output_path, interpreter, compressed)
         return output_path
     finally:

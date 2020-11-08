@@ -24,6 +24,11 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
 - [x] Support import `pyz` as venv zip file.
   - activate **auto-unzip** by `import ensure_zipapps` after `sys.path.append("app.pyz")`
   - view the example below.
+- [x] Support compile to `pyc` for better performance.
+  - activate **compile** by `--compile` or `-cc`.
+  - but `__pycache__` folder in zip file will not work,
+  - so you can unzip them by `--unzip=xxx`,
+  - to check whether `pyc` worked by `import bottle;print(bottle.__cached__)`
 
 ## Requirements
 
