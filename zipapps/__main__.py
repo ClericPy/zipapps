@@ -2,7 +2,7 @@ import argparse
 import sys
 
 from . import __version__
-from .main import DEFAULT_OUTPUT_PATH, create_app
+from .main import Config, create_app
 
 USAGE = r'''
 ===========================================================================
@@ -57,7 +57,7 @@ def main():
     parser.add_argument(
         '--output',
         '-o',
-        default=DEFAULT_OUTPUT_PATH,
+        default=Config.DEFAULT_OUTPUT_PATH,
         help='The name of the output file, defaults to "app.pyz".')
     parser.add_argument('--python',
                         '-p',
@@ -126,6 +126,15 @@ def main():
         action='store_true',
         dest='ignore_system_python_path',
         help='Ignore global PYTHONPATH, only use app_unzip_cache and app.pyz.')
+    parser.add_argument(
+        '-cc',
+        '--pyc',
+        '--compile',
+        '--compiled',
+        action='store_true',
+        dest='compiled',
+        help='Compile .py to .pyc for fast import, but zipapp does'
+        ' not work unless you unzip it.')
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()
@@ -140,7 +149,8 @@ def main():
                       unzip_path=args.unzip_path,
                       ignore_system_python_path=args.ignore_system_python_path,
                       main_shell=args.main_shell,
-                      pip_args=pip_args)
+                      pip_args=pip_args,
+                      compiled=args.compiled)
 
 
 if __name__ == "__main__":

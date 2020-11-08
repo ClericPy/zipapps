@@ -163,6 +163,30 @@ def test_create_app_function():
     # using app unzip cache for `import ensure_zipapps`
     assert 'app_unzip_cache' in bottle.__file__
 
+    # test compiled
+    app_path = create_app(compiled=True, pip_args=['bottle'])
+    output, _ = subprocess.Popen(
+        [
+            sys.executable,
+            str(app_path), '-c', 'import bottle;print(bottle.__cached__)'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    # print(output)
+    assert b'None' in output
+    app_path = create_app(unzip='bottle', compiled=True, pip_args=['bottle'])
+    output, _ = subprocess.Popen(
+        [
+            sys.executable,
+            str(app_path), '-c', 'import bottle;print(bottle.__cached__)'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    # print(output)
+    assert b'.pyc' in output
+
 
 def test_create_app_command_line():
     """
