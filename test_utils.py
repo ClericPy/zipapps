@@ -2,6 +2,7 @@ import atexit
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from zipapps.main import create_app
@@ -9,7 +10,7 @@ from zipapps.main import create_app
 
 @atexit.register
 def _clean_paths():
-    for p in ['mock_main.py', 'app.pyz']:
+    for p in ['mock_main.py', 'app.pyz', '_requirements.txt']:
         try:
             Path(p).unlink()
         except Exception:
@@ -23,6 +24,27 @@ def _clean_paths():
 
 def test_create_app_function():
     # no change args like interpreter, compressed will not test
+
+    # test build_id
+    _clean_paths()
+    mock_requirement = Path('_requirements.txt')
+    mock_requirement.write_text('bottle')
+    old_file = create_app(build_id='_requirements.txt',
+                          pip_args=['-r', '_requirements.txt'])
+    old_size = old_file.stat().st_size
+    # test single file
+    new_file1 = create_app(build_id='_requirements.txt',
+                           pip_args=['-r', '_requirements.txt'])
+    assert old_size == new_file1.stat().st_size, 'same build_id error'
+    # test glob *
+    new_file2 = create_app(build_id='*requirements*',
+                           pip_args=['-r', '_requirements.txt'])
+    assert old_size == new_file2.stat().st_size, 'same build_id error'
+    # test different build_id
+    mock_requirement.write_text('bottle<0.12.18')
+    new_file2 = create_app(build_id='_requirements.txt',
+                           pip_args=['-r', '_requirements.txt'])
+    assert old_size != new_file2.stat().st_size, 'different build_id error'
 
     # test main
     _clean_paths()
@@ -158,8 +180,9 @@ def test_create_app_function():
     # test ensure path for venv usage
     create_app(unzip='bottle', pip_args=['bottle'])
     sys.path.insert(0, 'app.pyz')
-    import ensure_zipapps
     import bottle
+    import ensure_zipapps
+
     # using app unzip cache for `import ensure_zipapps`
     assert 'app_unzip_cache' in bottle.__file__
 

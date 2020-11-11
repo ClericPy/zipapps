@@ -29,6 +29,13 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
   - but `__pycache__` folder in zip file will not work,
   - so you can unzip them by `--unzip=xxx`,
   - to check whether `pyc` worked by `import bottle;print(bottle.__cached__)`
+- [x] Support `build_id` to skip duplicate builds.
+  - using like `python3 -m zipapps -b requirements.txt -r requirements.txt`
+  - `python3 -m zipapps --build-id=a.py,b.py -r requirements.txt`
+  - `python3 -m zipapps --build-id=./*.py -r requirements.txt`
+  - `python3 -m zipapps --build-id=efdd0a5584169cdf791 -r requirements.txt`
+  - `python3 -m zipapps --build-id=version1.0 -r requirements.txt`
+
 
 ## Requirements
 

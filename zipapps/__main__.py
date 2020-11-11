@@ -135,6 +135,18 @@ def main():
         dest='compiled',
         help='Compile .py to .pyc for fast import, but zipapp does'
         ' not work unless you unzip it.')
+    parser.add_argument(
+        '-b',
+        '--build-id',
+        default='',
+        dest='build_id',
+        help='a string to skip duplicate builds,'
+        ' it can be the paths of files/folders which splited by ",", '
+        'then the modify time will be used as build_id. If build_id contains `*`,'
+        ' will use `glob` function to get paths. '
+        'For example, you can set requirements.txt as your build_id by'
+        ' `python3 -m zipapps -b requirements.txt -r requirements.txt` when you use pyz as venv.'
+    )
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()
@@ -150,7 +162,8 @@ def main():
                       ignore_system_python_path=args.ignore_system_python_path,
                       main_shell=args.main_shell,
                       pip_args=pip_args,
-                      compiled=args.compiled)
+                      compiled=args.compiled,
+                      build_id=args.build_id)
 
 
 if __name__ == "__main__":
