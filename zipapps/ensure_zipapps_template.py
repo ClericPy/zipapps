@@ -12,7 +12,8 @@ def prepare_path():
     python_path_list = [zip_file_path]
     unzip = r'''{unzip}'''
     if unzip:
-        _temp_folder = r'''{unzip_path}'''
+        # using env variable first
+        _temp_folder = os.environ.get('UNZIP_PATH') or r'''{unzip_path}'''
         _temp_folder_path = Path(_temp_folder)
         _temp_folder_abs_path = str(_temp_folder_path.absolute())
         python_path_list.insert(0, _temp_folder_abs_path)
