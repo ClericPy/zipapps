@@ -188,7 +188,7 @@ def test_create_app_function():
     import bottle
 
     # using app unzip cache for `import ensure_zipapps`
-    assert 'app_unzip_cache' in bottle.__file__
+    assert 'bottle_env_unzip_cache' in bottle.__file__
 
     # test compiled
     _clean_paths()
