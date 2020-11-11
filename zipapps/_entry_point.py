@@ -2,7 +2,7 @@
 import sys
 from subprocess import call
 
-import ensure_zipapps
+import ensure_zipapps_{output_name}
 
 
 def main():

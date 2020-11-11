@@ -23,7 +23,8 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
   - package with `-ss` to use `Popen` instead of import directly.
 - [x] Support import `pyz` as venv zip file.
   - activate **auto-unzip** by `import ensure_zipapps` after `sys.path.append("app.pyz")`
-  - view the example below.
+    - or active with accurate import `import ensure_zipapps_bottle_env` while activating multiple environments.
+  - view the example below for more infomation.
 - [x] Support compile to `pyc` for better performance.
   - activate **compile** by `--compile` or `-cc`.
   - but `__pycache__` folder in zip file will not work,
@@ -46,6 +47,8 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
 > pip install zipapps -U
 
 ## Usage
+
+### Normal usage
 
 > python3 -m zipapps -h
 
@@ -98,6 +101,7 @@ PS: all the unknown args will be used by "pip install".
 
 optional arguments:
   -h, --help            show this help message and exit
+  --version             show program's version number and exit
   --output OUTPUT, -o OUTPUT
                         The name of the output file, defaults to "app.pyz".
   --python INTERPRETER, -p INTERPRETER
@@ -106,40 +110,53 @@ optional arguments:
   --compress, -c        Compress files with the deflate method, defaults to uncompressed.
   --includes INCLUDES, -a INCLUDES
                         The files/folders of given dir path will be copied into cache-path, which can be import from PYTHONPATH). The path string will be splited by ",".
-  --cache-path CACHE_PATH, -cp CACHE_PATH
+  --cache-path CACHE_PATH, --source-dir CACHE_PATH, -cp CACHE_PATH
                         The cache path of zipapps to store site-packages and `includes` files, which will be treat as PYTHONPATH. If not set, will create and clean-up automately.
   --unzip UNZIP, -u UNZIP
-                        The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of static files. If unzip is *, will unzip all files and folders.
+                        The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of
+                        static files. If unzip is *, will unzip all files and folders.
   --unzip-path UNZIP_PATH, -up UNZIP_PATH
-                        The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of static files. Defaults to $(appname)_unzip_cache
+                        The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of
+                        static files. Defaults to $(appname)_unzip_cache.
   --shell, -s           Only while `main` is not set, used for shell=True in subprocess.Popen.
-  --main-shell, -ss     Only for `main` is not null, call `main` with subprocess: run `python -c "import a.b;a.b.c()"`. This is used for `psutil` ImportError of DLL load.
+  --main-shell, -ss     Only for `main` is not null, call `main` with subprocess.Popen: `python -c "import a.b;a.b.c()"`. This is used for `psutil` ImportError of DLL load.
   --strict-python-path, -spp
                         Ignore global PYTHONPATH, only use app_unzip_cache and app.pyz.
+  -cc, --pyc, --compile, --compiled
+                        Compile .py to .pyc for fast import, but zipapp does not work unless you unzip it.
+  -b BUILD_ID, --build-id BUILD_ID
+                        a string to skip duplicate builds, it can be the paths of files/folders which splited by ",", then the modify time will be used as build_id. If build_id contains
+                        `*`, will use `glob` function to get paths. For example, you can set requirements.txt as your build_id by `python3 -m zipapps -b requirements.txt -r
+                        requirements.txt` when you use pyz as venv.
 ```
 
 ### Using as the venv zip file
 
-> As you see, `import ensure_zipapps` only works for packaging with a non-null `unzip` arg.
+> As you see, `import ensure_zipapps_bottle_env` only works for packaging with a non-null `unzip` arg.
 > 
 > If you don't need to **unzip** any files/folders, `sys.path.append('app.pyz')` is enough.
 
+WARNING: multiple pyz files for venv, you need to ensure each file by special name like `import ensure_zipapps_{file_name}`(such as `import ensure_zipapps_bottle`) instead of `import ensure_zipapps`.
+
 ```python
-# zip env as usual: python3 -m zipapps -u bottle bottle
+'''
+zip env as usual:
+python3 -m zipapps -u bottle -o bottle_env.pyz bottle
+'''
 
 import sys
 
-# add `app.pyz` as import path
-sys.path.append('app.pyz')
+# add `bottle_env.pyz` as import path
+sys.path.append('bottle_env.pyz')
 
 # now import bottle to see where it located
 
 import bottle
 print(bottle.__file__)
-# yes, it's in the app.pyz: app.pyz/bottle.py
+# yes, it's in the bottle_env.pyz: bottle_env.pyz/bottle.py
 
 # now `import ensure_zipapps` to activate the unzip step
-import ensure_zipapps
+import ensure_zipapps_bottle_env
 
 # reload bottle module to check if the location of bottle changed
 import importlib
@@ -147,7 +164,7 @@ importlib.reload(bottle)
 
 # now import bottle to see where it located
 print(bottle.__file__)
-# yes again, it changed to the unzip path: app_unzip_cache/bottle.py
+# yes again, it changed to the unzip path: bottle_env_unzip_cache/bottle.py
 ```
 
 

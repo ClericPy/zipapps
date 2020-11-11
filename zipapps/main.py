@@ -58,6 +58,8 @@ def prepare_entry(cache_path: Path,
                   ts='None'):
     output_path = output_path or Path(Config.DEFAULT_OUTPUT_PATH)
     output_name = os.path.splitext(Path(output_path).name)[0]
+    if not re.match(r'^[0-9a-zA-Z_]+$', output_name):
+        raise ValueError('output_name should match regex: [0-9a-zA-Z_]+')
     module, _, function = main.partition(':')
     if module and (cache_path / module).is_file():
         module = os.path.splitext(module)[0]
@@ -66,6 +68,7 @@ def prepare_entry(cache_path: Path,
         'shell': shell,
         'main_shell': main_shell,
         'unzip': unzip,
+        'output_name': output_name,
         'unzip_path': unzip_path or Config.UNZIP_CACHE_TEMPLATE % output_name,
         'ignore_system_python_path': ignore_system_python_path,
         'has_main': bool(main),
@@ -74,8 +77,12 @@ def prepare_entry(cache_path: Path,
     }
     with open(Path(__file__).parent / '_entry_point.py', encoding='u8') as f:
         (cache_path / '__main__.py').write_text(f.read().format(**kwargs))
-    with open(Path(__file__).parent / 'ensure_zipapps.py', encoding='u8') as f:
-        (cache_path / 'ensure_zipapps.py').write_text(f.read().format(**kwargs))
+    with open(Path(__file__).parent / 'ensure_zipapps_template.py',
+              encoding='u8') as f:
+        (cache_path / f'ensure_zipapps_{output_name}.py').write_text(
+            f.read().format(**kwargs))
+    code = f'import ensure_zipapps_{output_name}'
+    (cache_path / 'ensure_zipapps.py').write_text(code)
 
 
 def clean_pip_cache(path):
@@ -179,8 +186,9 @@ def create_app(includes: str = '',
             _cache_path = Path(tmp_dir.name)
         prepare_includes(includes, _cache_path)
         pip_install(_cache_path, pip_args)
-        # make build_id file
-        (_cache_path / build_id_name).touch()
+        if build_id_name:
+            # make build_id file
+            (_cache_path / build_id_name).touch()
         prepare_entry(_cache_path,
                       shell=shell,
                       main=main,
