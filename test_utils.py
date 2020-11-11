@@ -2,7 +2,6 @@ import atexit
 import shutil
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 from zipapps.main import create_app
@@ -10,12 +9,12 @@ from zipapps.main import create_app
 
 @atexit.register
 def _clean_paths():
-    for p in ['mock_main.py', 'app.pyz', '_requirements.txt']:
+    for p in ['mock_main.py', 'app.pyz', 'bottle.pyz', '_requirements.txt']:
         try:
             Path(p).unlink()
         except Exception:
             pass
-    for d in ['mock_package', 'app_unzip_cache']:
+    for d in ['mock_package', 'app_unzip_cache', 'bottle_unzip_cache']:
         try:
             shutil.rmtree(d)
         except Exception:
@@ -127,6 +126,7 @@ def test_create_app_function():
     assert mock_dir.is_dir(), 'test cache_path failed'
 
     # test unzip
+    _clean_paths()
     app_path = create_app(unzip='bottle', pip_args=['bottle'])
     output, _ = subprocess.Popen(
         [
@@ -141,6 +141,7 @@ def test_create_app_function():
     assert b'app_unzip_cache' in output, 'test unzip failed, app_unzip_cache as sys.path should be priority'
 
     # test unzip *
+    _clean_paths()
     app_path = create_app(unzip='*', pip_args=['bottle'])
     output, _ = subprocess.Popen(
         [
@@ -154,6 +155,7 @@ def test_create_app_function():
     assert file_counts > 4, 'test unzip failed, app_unzip_cache as sys.path should be priority'
 
     # test psutil, only for win32
+    _clean_paths()
     if sys.platform == 'win32':
         mock_main = Path('mock_main.py')
         mock_main.write_text('import psutil;print(psutil.__file__)')
@@ -178,15 +180,18 @@ def test_create_app_function():
         assert not error, error
 
     # test ensure path for venv usage
-    create_app(unzip='bottle', pip_args=['bottle'])
-    sys.path.insert(0, 'app.pyz')
+    _clean_paths()
+    create_app(output='bottle_env.pyz', unzip='bottle', pip_args=['bottle'])
+    sys.path.insert(0, 'bottle_env.pyz')
+    # ! ensure before import for refresh path
+    import ensure_zipapps_bottle_env
     import bottle
-    import ensure_zipapps
 
     # using app unzip cache for `import ensure_zipapps`
     assert 'app_unzip_cache' in bottle.__file__
 
     # test compiled
+    _clean_paths()
     app_path = create_app(compiled=True, pip_args=['bottle'])
     output, _ = subprocess.Popen(
         [
