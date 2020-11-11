@@ -10,8 +10,11 @@ import tempfile
 import time
 import typing
 import zipapp
+from glob import glob
+from hashlib import md5
 from pathlib import Path
 from warnings import warn
+from zipfile import ZipFile
 
 
 class Config:
@@ -117,6 +120,38 @@ def _create_archive(_cache_path, output_path, interpreter, compressed):
                               interpreter=interpreter)
 
 
+def get_build_id_name(build_id: str):
+    if not build_id:
+        return ''
+    build_id_str = ''
+    if '*' in build_id:
+        paths = glob(build_id)
+    else:
+        paths = build_id.split(',')
+    for p in paths:
+        try:
+            path = Path(p)
+            build_id_str += str(path.stat().st_mtime)
+        except FileNotFoundError:
+            pass
+    build_id_str = build_id_str or str(build_id)
+    md5_id = md5(build_id_str.encode('utf-8')).hexdigest()
+    return f'_build_id_{md5_id}'
+
+
+def build_exists(build_id_name: str, output_path: Path):
+    """
+    docstring
+    """
+    if not build_id_name or not output_path.is_file():
+        return False
+    with ZipFile(output_path, "r") as zf:
+        for member in zf.infolist():
+            if member.filename == build_id_name:
+                return True
+    return False
+
+
 def create_app(includes: str = '',
                cache_path: str = None,
                main: str = '',
@@ -129,9 +164,14 @@ def create_app(includes: str = '',
                ignore_system_python_path=False,
                main_shell=False,
                pip_args: list = None,
-               compiled: bool = False):
+               compiled: bool = False,
+               build_id: str = ''):
     tmp_dir: tempfile.TemporaryDirectory = None
     try:
+        output_path = Path(output)
+        build_id_name = get_build_id_name(build_id)
+        if build_exists(build_id_name, output_path=output_path):
+            return output_path
         if cache_path:
             _cache_path = Path(cache_path)
         else:
@@ -139,7 +179,8 @@ def create_app(includes: str = '',
             _cache_path = Path(tmp_dir.name)
         prepare_includes(includes, _cache_path)
         pip_install(_cache_path, pip_args)
-        output_path = Path(output)
+        # make build_id file
+        (_cache_path / build_id_name).touch()
         prepare_entry(_cache_path,
                       shell=shell,
                       main=main,
