@@ -14,7 +14,9 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
 - [x] Zip files/folders by your choice, and unzip which you want.
   - files/libs/folders will be unzip to `-up`/`--unzip-path`, default is `./%s_unzip_cache` while running.
   - or you can **reset a new path with environment variable** `UNZIP_PATH`
-    - have a try: `python3 -m zipapps -u bottle -o bottle_env.pyz bottle&&set UNZIP_PATH=./tmp&&python3 bottle_env.pyz -c "import bottle;print('here is bottle unzip position:', bottle.__file__)"`
+    - have a try:
+      - linux: `python3 -m zipapps -u bottle -o bottle_env.pyz bottle&&export UNZIP_PATH=./tmp&&python3 bottle_env.pyz -c "import bottle;print('here is bottle unzip position:', bottle.__file__)"`
+      - win: `python3 -m zipapps -u bottle -o bottle_env.pyz bottle&&set UNZIP_PATH=./tmp&&python3 bottle_env.pyz -c "import bottle;print('here is bottle unzip position:', bottle.__file__)"`
 - [x] Zip the dynamic modules (.pyd, .so) which [`zipimport`](https://docs.python.org/3/library/zipimport.html) not support.
   - package with `-u` for these libs.
 - [x] Reuse the unzip cache folder for the same zip timestamp. 
