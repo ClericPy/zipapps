@@ -3,18 +3,28 @@ import sys
 from pathlib import Path
 from shutil import rmtree
 from zipfile import ZipFile
+from tempfile import gettempdir
 
 
 def prepare_path():
     """Template code for zipapps entry point. Run with current PYTHONPATH"""
     # PYTHONPATH=./app.pyz
-    zip_file_path = str(Path(__file__).parent.absolute())
-    python_path_list = [zip_file_path]
+    zip_file_path = Path(__file__).parent.absolute()
+    python_path_list = [str(zip_file_path)]
     unzip = r'''{unzip}'''
     if unzip:
         # using env variable first
         _temp_folder = os.environ.get('UNZIP_PATH') or r'''{unzip_path}'''
-        _temp_folder_path = Path(_temp_folder)
+        if _temp_folder.startswith('$HOME'):
+            _temp_folder_path = Path.home() / (_temp_folder[5:].lstrip('/\\'))
+        elif _temp_folder.startswith('$SELF'):
+            _temp_folder_path = zip_file_path.parent / (
+                _temp_folder[5:].lstrip('/\\'))
+        elif _temp_folder.startswith('$TEMP'):
+            _temp_folder_path = Path(
+                gettempdir()) / (_temp_folder[5:].lstrip('/\\'))
+        else:
+            _temp_folder_path = Path(_temp_folder)
         _temp_folder_abs_path = str(_temp_folder_path.absolute())
         python_path_list.insert(0, _temp_folder_abs_path)
         ts_file_name = '_zip_time_{ts}'
@@ -25,10 +35,11 @@ def prepare_path():
                 try:
                     if not _temp_folder_path.is_dir():
                         break
+                    # remove the exist folder
                     rmtree(_temp_folder_path)
                 except FileNotFoundError:
                     break
-            _temp_folder_path.mkdir()
+            _temp_folder_path.mkdir(parents=True)
             _need_unzip_names = unzip.split(',')
             _need_unzip_names.append(ts_file_name)
             with ZipFile(zip_file_path, "r") as zf:

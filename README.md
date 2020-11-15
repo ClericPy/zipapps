@@ -13,6 +13,12 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
   - pure python code will not unzip anything by default.
 - [x] Zip files/folders by your choice, and unzip which you want.
   - files/libs/folders will be unzip to `-up`/`--unzip-path`, default is `./%s_unzip_cache` while running.
+  - `unzip_path` could use the given variable `$HOME` / `$TEMP` / `$SELF`, for example
+    - *$HOME/cache* => *~/cache* folder
+    - *$TEMP/cache* => */tmp/cache* in linux
+      - or *C:\Users\user\AppData\Local\Temp\cache* in win32
+    - *$SELF/cache* => *app.pyz/../cache*
+      - *$SELF* equals to the parent folder of **pyz** file
   - or you can **reset a new path with environment variable** `UNZIP_PATH`
     - have a try:
       - linux: `python3 -m zipapps -u bottle -o bottle_env.pyz bottle&&export UNZIP_PATH=./tmp&&python3 bottle_env.pyz -c "import bottle;print('here is bottle unzip position:', bottle.__file__)"`
@@ -27,7 +33,8 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
   - package with `-ss` to use `Popen` instead of import directly.
 - [x] Support import `pyz` as venv zip file.
   - activate **auto-unzip** by `import ensure_zipapps` after `sys.path.append("app.pyz")`
-    - or active with accurate import `import ensure_zipapps_bottle_env` while activating multiple environments.
+    - or active with accurate import `import ensure_zipapps_bottle_env` while activating multiple environments
+    - or run `python3 ./app.pyz script.py` directly.
   - view the example below for more infomation.
 - [x] Support compile to `pyc` for better performance.
   - activate **compile** by `--compile` or `-cc`.
