@@ -3,18 +3,29 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from getpass import getuser
+from tempfile import gettempdir
 
 from zipapps.main import create_app
 
 
 @atexit.register
 def _clean_paths():
-    for p in ['mock_main.py', 'app.pyz', 'bottle.pyz', '_requirements.txt']:
+    for p in [
+            'mock_main.py', 'app.pyz', 'bottle.pyz', 'bottle_env.pyz',
+            '_requirements.txt'
+    ]:
         try:
             Path(p).unlink()
         except Exception:
             pass
-    for d in ['mock_package', 'app_unzip_cache', 'bottle_unzip_cache']:
+    for d in [
+            'mock_package', 'app_unzip_cache', 'bottle_unzip_cache',
+            'bottle_env_unzip_cache',
+            Path.home() / 'app_cache',
+            Path('./app_cache').absolute(),
+        (Path(gettempdir()) / 'app_cache').absolute()
+    ]:
         try:
             shutil.rmtree(d)
         except Exception:
@@ -214,6 +225,48 @@ def test_create_app_function():
     ).communicate()
     # print(output)
     assert b'.pyc' in output
+
+    # test unzip with $HOME / $SELF / $TEMP
+    _clean_paths()
+    app_path = create_app(unzip='bottle',
+                          pip_args=['bottle'],
+                          unzip_path='$HOME/app_cache')
+    output, _ = subprocess.Popen(
+        [
+            sys.executable,
+            str(app_path), '-c', 'import bottle;print(bottle.__file__)'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    assert getuser() in output.decode()
+
+    app_path = create_app(unzip='bottle',
+                          pip_args=['bottle'],
+                          unzip_path='$SELF/app_cache')
+    output, _ = subprocess.Popen(
+        [
+            sys.executable,
+            str(app_path), '-c', 'import bottle;print(bottle.__file__)'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    # print(output)
+    assert str(Path('./app_cache').absolute()) in output.decode()
+
+    app_path = create_app(unzip='bottle',
+                          pip_args=['bottle'],
+                          unzip_path='$TEMP/app_cache')
+    output, _ = subprocess.Popen(
+        [
+            sys.executable,
+            str(app_path), '-c', 'import bottle;print(bottle.__file__)'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    assert str((Path(gettempdir()) / 'app_cache').absolute()) in output.decode()
 
 
 def test_create_app_command_line():
