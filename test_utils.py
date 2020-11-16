@@ -2,6 +2,7 @@ import atexit
 import shutil
 import subprocess
 import sys
+import os
 from pathlib import Path
 from getpass import getuser
 from tempfile import gettempdir
@@ -226,11 +227,11 @@ def test_create_app_function():
     # print(output)
     assert b'.pyc' in output
 
-    # test unzip with $HOME / $SELF / $TEMP
+    # test unzip with HOME / SELF / TEMP
     _clean_paths()
     app_path = create_app(unzip='bottle',
                           pip_args=['bottle'],
-                          unzip_path='$HOME/app_cache')
+                          unzip_path='HOME/app_cache')
     output, _ = subprocess.Popen(
         [
             sys.executable,
@@ -243,7 +244,7 @@ def test_create_app_function():
 
     app_path = create_app(unzip='bottle',
                           pip_args=['bottle'],
-                          unzip_path='$SELF/app_cache')
+                          unzip_path='SELF/app_cache')
     output, _ = subprocess.Popen(
         [
             sys.executable,
@@ -257,7 +258,7 @@ def test_create_app_function():
 
     app_path = create_app(unzip='bottle',
                           pip_args=['bottle'],
-                          unzip_path='$TEMP/app_cache')
+                          unzip_path='TEMP/app_cache')
     output, _ = subprocess.Popen(
         [
             sys.executable,
@@ -267,6 +268,22 @@ def test_create_app_function():
         stdout=subprocess.PIPE,
     ).communicate()
     assert str((Path(gettempdir()) / 'app_cache').absolute()) in output.decode()
+
+    # test os.environ
+    app_path = create_app(unzip='bottle',
+                          pip_args=['bottle'],
+                          unzip_path='TEMP/app_cache')
+    os.environ['UNZIP_PATH'] = './bottle_env'
+    output, _ = subprocess.Popen(
+        [
+            sys.executable,
+            str(app_path), '-c', 'import bottle;print(bottle.__file__)'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    _output = output.decode()
+    assert 'app_cache' not in _output and 'bottle_env' in _output
 
 
 def test_create_app_command_line():

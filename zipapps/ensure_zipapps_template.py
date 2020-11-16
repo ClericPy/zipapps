@@ -13,18 +13,20 @@ def prepare_path():
     python_path_list = [str(zip_file_path)]
     unzip = r'''{unzip}'''
     if unzip:
-        # using env variable first
         _temp_folder = os.environ.get('UNZIP_PATH') or r'''{unzip_path}'''
-        if _temp_folder.startswith('$HOME'):
-            _temp_folder_path = Path.home() / (_temp_folder[5:].lstrip('/\\'))
-        elif _temp_folder.startswith('$SELF'):
+        if _temp_folder.startswith('HOME'):
+            _temp_folder_path = Path.home() / (
+                _temp_folder[4:].lstrip('/\\'))
+        elif _temp_folder.startswith('SELF'):
             _temp_folder_path = zip_file_path.parent / (
-                _temp_folder[5:].lstrip('/\\'))
-        elif _temp_folder.startswith('$TEMP'):
+                _temp_folder[4:].lstrip('/\\'))
+        elif _temp_folder.startswith('TEMP'):
             _temp_folder_path = Path(
-                gettempdir()) / (_temp_folder[5:].lstrip('/\\'))
+                gettempdir()) / (_temp_folder[4:].lstrip('/\\'))
         else:
             _temp_folder_path = Path(_temp_folder)
+        if 'UNZIP_PATH' in os.environ:
+            _temp_folder_path = Path(_temp_folder) / zip_file_path.name
         _temp_folder_abs_path = str(_temp_folder_path.absolute())
         python_path_list.insert(0, _temp_folder_abs_path)
         ts_file_name = '_zip_time_{ts}'

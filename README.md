@@ -13,12 +13,12 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
   - pure python code will not unzip anything by default.
 - [x] Zip files/folders by your choice, and unzip which you want.
   - files/libs/folders will be unzip to `-up`/`--unzip-path`, default is `./%s_unzip_cache` while running.
-  - `unzip_path` could use the given variable `$HOME` / `$TEMP` / `$SELF`, for example
-    - *$HOME/cache* => *~/cache* folder
-    - *$TEMP/cache* => */tmp/cache* in linux
+  - `unzip_path` could use the given variable `HOME` / `TEMP` / `SELF`, for example
+    - *HOME/cache* => *~/cache* folder
+    - *TEMP/cache* => */tmp/cache* in linux
       - or *C:\Users\user\AppData\Local\Temp\cache* in win32
-    - *$SELF/cache* => *app.pyz/../cache*
-      - *$SELF* equals to the parent folder of **pyz** file
+    - *SELF/cache* => *app.pyz/../cache*
+      - *SELF* equals to the parent folder of **pyz** file
   - or you can **reset a new path with environment variable** `UNZIP_PATH`
     - have a try:
       - linux: `python3 -m zipapps -u bottle -o bottle_env.pyz bottle&&export UNZIP_PATH=./tmp&&python3 bottle_env.pyz -c "import bottle;print('here is bottle unzip position:', bottle.__file__)"`
@@ -128,7 +128,7 @@ optional arguments:
                         static files. If unzip is *, will unzip all files and folders.
   --unzip-path UNZIP_PATH, -up UNZIP_PATH
                         The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of
-                        static files. Defaults to $(appname)_unzip_cache.
+                        static files. Defaults to $(appname)_unzip_cache, support TEMP/HOME/SELF as internal variables. And you can also reset it with os.environ while running.
   --shell, -s           Only while `main` is not set, used for shell=True in subprocess.Popen.
   --main-shell, -ss     Only for `main` is not null, call `main` with subprocess.Popen: `python -c "import a.b;a.b.c()"`. This is used for `psutil` ImportError of DLL load.
   --strict-python-path, -spp
@@ -192,7 +192,13 @@ print(bottle.__file__)
 3. `PYTHONPATH` between zipapps's zip file and global python environment?
    1. If you set `-spp` for strict `PYTHONPATH`, you will not use the global `PYTHONPATH`.
    2. else you will use global libs as a second choice.
-4. Where to Use it?
+4. How to use multiple venv `pyz` files in one script?
+   1. os.environ['UNZIP_PATH'] = '/tmp/unzip_caches'
+   2. sys.path.insert(0, 'PATH_TO_PYZ_1')
+   3. import ensure_zipapps_{output_name_1}
+   4. sys.path.insert(0, 'PATH_TO_PYZ_2')
+   5. import ensure_zipapps_{output_name_2}
+5. Where to Use it?
    1. Hadoop-Streaming's mapper & reducer.
    2. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
    3. Distribute zipapp with embedded python.
