@@ -105,8 +105,9 @@ def main():
         default='',
         help='The names which need to be unzip while running, name without ext. '
         'such as .so/.pyd files(which can not be loaded by zipimport), '
-        'or packages with operations of static files. Defaults to $(appname)_unzip_cache.'
-    )
+        'or packages with operations of static files. Defaults to $(appname)_unzip_cache,'
+        ' support TEMP/HOME/SELF as internal variables. And you can also reset it with os.environ '
+        'while running.')
     parser.add_argument('--shell',
                         '-s',
                         action='store_true',
