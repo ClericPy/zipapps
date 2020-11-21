@@ -54,11 +54,11 @@ PS: all the unknown args will be used by "pip install".
 def main():
     parser = argparse.ArgumentParser(usage=USAGE, prog='Zipapps')
     parser.add_argument('--version', action='version', version=__version__)
-    parser.add_argument(
-        '--output',
-        '-o',
-        default=Config.DEFAULT_OUTPUT_PATH,
-        help='The name of the output file, defaults to "app.pyz".')
+    parser.add_argument('--output',
+                        '-o',
+                        default=Config.DEFAULT_OUTPUT_PATH,
+                        help=f'The name of the output file, '
+                        'defaults to "{Config.DEFAULT_OUTPUT_PATH}".')
     parser.add_argument('--python',
                         '-p',
                         dest='interpreter',
