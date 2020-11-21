@@ -1,7 +1,7 @@
 # [zipapps](https://github.com/ClericPy/zipapps)
 [![PyPI](https://img.shields.io/pypi/v/zipapps?style=plastic)](https://pypi.org/project/zipapps/)[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/clericpy/zipapps/Python%20package?style=plastic)](https://github.com/ClericPy/zipapps/actions?query=workflow%3A%22Python+package%22)![PyPI - Wheel](https://img.shields.io/pypi/wheel/zipapps?style=plastic)![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zipapps?style=plastic)![PyPI - Downloads](https://img.shields.io/pypi/dm/zipapps?style=plastic)![PyPI - License](https://img.shields.io/pypi/l/zipapps?style=plastic)
 
-Package your code with requirements into a standalone zip file(like a `jar`), even you can use it like a zipped virtual environment.
+Package python code with requirements into a standalone zip file(like a `jar`), even you can use it like a zipped virtual environment which contains all the dependencies.
 
 Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), which means it is also compatible for win32.
 
@@ -12,20 +12,20 @@ Inspired by [shiv](https://github.com/linkedin/shiv), to publish applications ea
 - [x] Zip pure python code without cache folder while running.
   - pure python code will not unzip anything by default.
 - [x] Zip files/folders by your choice, and unzip which you want.
-  - files/libs/folders will be unzip to `-up`/`--unzip-path`, default is `./%s_unzip_cache` while running.
+  - files/libs/folders will be unzip to `-up`/`--unzip-path`, default is `./zipapps_cache` while running.
   - `unzip_path` could use the given variable `HOME` / `TEMP` / `SELF`, for example
     - *HOME/cache* => *~/cache* folder
     - *TEMP/cache* => */tmp/cache* in linux
       - or *C:\Users\user\AppData\Local\Temp\cache* in win32
     - *SELF/cache* => *app.pyz/../cache*
       - *SELF* equals to the parent folder of **pyz** file
-  - or you can **reset a new path with environment variable** `UNZIP_PATH`
+  - or you can **reset a new path with environment variable** `UNZIP_PATH` or `ZIPAPPS_PATH`
     - have a try:
       - linux: `python3 -m zipapps -u bottle -o bottle_env.pyz bottle&&export UNZIP_PATH=./tmp&&python3 bottle_env.pyz -c "import bottle;print('here is bottle unzip position:', bottle.__file__)"`
       - win: `python3 -m zipapps -u bottle -o bottle_env.pyz bottle&&set UNZIP_PATH=./tmp&&python3 bottle_env.pyz -c "import bottle;print('here is bottle unzip position:', bottle.__file__)"`
 - [x] Zip the dynamic modules (.pyd, .so) which [`zipimport`](https://docs.python.org/3/library/zipimport.html) not support.
   - package with `-u` for these libs.
-- [x] Reuse the unzip cache folder for the same zip timestamp. 
+- [x] Reuse the unzip cache folder for the same zip timestamp.
   - `zip-timestamp` will play as a `build_id`
 - [x] Use like a `venv` or interpreter with `python3 ./env.pyz script.py`, script.py will enjoy the PYTHONPATH of env.pyz.
   - package without `-m` arg, then run codes in `Popen`.
@@ -128,11 +128,11 @@ optional arguments:
                         static files. If unzip is *, will unzip all files and folders.
   --unzip-path UNZIP_PATH, -up UNZIP_PATH
                         The names which need to be unzip while running, name without ext. such as .so/.pyd files(which can not be loaded by zipimport), or packages with operations of
-                        static files. Defaults to $(appname)_unzip_cache, support TEMP/HOME/SELF as internal variables. And you can also reset it with os.environ while running.
+                        static files. Defaults to `./zipapps_cache`, support TEMP/HOME/SELF as internal variables. And you can also reset it with os.environ while running.
   --shell, -s           Only while `main` is not set, used for shell=True in subprocess.Popen.
   --main-shell, -ss     Only for `main` is not null, call `main` with subprocess.Popen: `python -c "import a.b;a.b.c()"`. This is used for `psutil` ImportError of DLL load.
   --strict-python-path, -spp
-                        Ignore global PYTHONPATH, only use app_unzip_cache and app.pyz.
+                        Ignore global PYTHONPATH, only use ./zipapps_cache and app.pyz.
   -cc, --pyc, --compile, --compiled
                         Compile .py to .pyc for fast import, but zipapp does not work unless you unzip it.
   -b BUILD_ID, --build-id BUILD_ID
@@ -154,7 +154,6 @@ WARNING: multiple pyz files for venv, you need to ensure each file by special na
 zip env as usual:
 python3 -m zipapps -u bottle -o bottle_env.pyz bottle
 '''
-
 import sys
 
 # add `bottle_env.pyz` as import path
@@ -175,7 +174,7 @@ importlib.reload(bottle)
 
 # now import bottle to see where it located
 print(bottle.__file__)
-# yes again, it changed to the unzip path: bottle_env_unzip_cache/bottle.py
+# yes again, it changed to the unzip path: zipapps_cache/bottle_env/bottle.py
 ```
 
 
@@ -194,6 +193,7 @@ print(bottle.__file__)
    2. else you will use global libs as a second choice.
 4. How to use multiple venv `pyz` files in one script?
    1. os.environ['UNZIP_PATH'] = '/tmp/unzip_caches'
+      1. or os.environ['ZIPAPPS_PATH'] = '/tmp/unzip_caches'
    2. sys.path.insert(0, 'PATH_TO_PYZ_1')
    3. import ensure_zipapps_{output_name_1}
    4. sys.path.insert(0, 'PATH_TO_PYZ_2')
@@ -206,3 +206,13 @@ print(bottle.__file__)
       1. `import sys;sys.path.insert(0, 'app.pyz')` (without .so/.pyd)
       2. `python3 app.pyz script.py`
    5. Other usages need to be found, and enjoy yourself.
+
+
+## Changelogs
+
+- 2020.11.21
+  - reset unzip_path as the parent folder to unzip files
+    - so the cache path will be like `./zipapps_cache/app/` for `app.pyz`,
+    - this is different from old versions.
+  - add environment variable `ZIPAPPS_PATH` for arg `unzip_path`
+  - add environment variable `ZIPAPPS_UNZIP` for arg `unzip`

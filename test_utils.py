@@ -21,8 +21,7 @@ def _clean_paths():
         except Exception:
             pass
     for d in [
-            'mock_package', 'app_unzip_cache', 'bottle_unzip_cache',
-            'bottle_env_unzip_cache',
+            'mock_package', 'zipapps_cache', 'bottle_env',
             Path.home() / 'app_cache',
             Path('./app_cache').absolute(),
         (Path(gettempdir()) / 'app_cache').absolute()
@@ -148,9 +147,9 @@ def test_create_app_function():
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
-    file_counts = len(list(Path('app_unzip_cache').glob('**/*')))
-    assert file_counts == 4, file_counts
-    assert b'app_unzip_cache' in output, 'test unzip failed, app_unzip_cache as sys.path should be priority'
+    file_counts = len(list(Path('zipapps_cache').glob('**/*')))
+    assert file_counts == 5, file_counts
+    assert b'zipapps_cache' in output, 'test unzip failed, zipapps_cache as sys.path should be priority'
 
     # test unzip *
     _clean_paths()
@@ -163,8 +162,8 @@ def test_create_app_function():
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
-    file_counts = len(list(Path('app_unzip_cache').glob('**/*')))
-    assert file_counts > 4, 'test unzip failed, app_unzip_cache as sys.path should be priority'
+    file_counts = len(list(Path('zipapps_cache').glob('**/*')))
+    assert file_counts > 4, 'test unzip failed, zipapps_cache as sys.path should be priority'
 
     # test psutil, only for win32
     _clean_paths()
@@ -200,7 +199,7 @@ def test_create_app_function():
     import bottle
 
     # using app unzip cache for `import ensure_zipapps`
-    assert 'bottle_env_unzip_cache' in bottle.__file__
+    assert 'zipapps_cache' in bottle.__file__
 
     # test compiled
     _clean_paths()

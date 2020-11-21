@@ -22,7 +22,7 @@ class Config:
     Default args
     """
     DEFAULT_OUTPUT_PATH = 'app.pyz'
-    UNZIP_CACHE_TEMPLATE = '%s_unzip_cache'
+    DEFAULT_UNZIP_CACHE_PATH = 'zipapps_cache'
     COMPILE_KWARGS: typing.Dict[str, typing.Any] = {}
 
 
@@ -69,7 +69,7 @@ def prepare_entry(cache_path: Path,
         'main_shell': main_shell,
         'unzip': unzip,
         'output_name': output_name,
-        'unzip_path': unzip_path or Config.UNZIP_CACHE_TEMPLATE % output_name,
+        'unzip_path': unzip_path or Config.DEFAULT_UNZIP_CACHE_PATH,
         'ignore_system_python_path': ignore_system_python_path,
         'has_main': bool(main),
         'import_main': 'import %s' % module if module else '',
