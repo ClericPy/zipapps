@@ -1,17 +1,15 @@
 # [zipapps](https://github.com/ClericPy/zipapps)
 [![PyPI](https://img.shields.io/pypi/v/zipapps?style=plastic)](https://pypi.org/project/zipapps/)[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/clericpy/zipapps/Python%20package?style=plastic)](https://github.com/ClericPy/zipapps/actions?query=workflow%3A%22Python+package%22)![PyPI - Wheel](https://img.shields.io/pypi/wheel/zipapps?style=plastic)![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zipapps?style=plastic)![PyPI - Downloads](https://img.shields.io/pypi/dm/zipapps?style=plastic)![PyPI - License](https://img.shields.io/pypi/l/zipapps?style=plastic)
 
-Package your python code(with requirements) into a standalone file (like the `jar`).
+Package your python code(with requirements) into a standalone file (like the `jar`). This is a pure-python library, without 3rd-party dependencies.
 
 Inspired by [shiv](https://github.com/linkedin/shiv). But unlike `shiv`, this lib will not always create new cache folders while running.
 
-# What is `pyz`?
+# What is the `pyz`?
 
 `.pyz` to **Python** is like `.jar` to **Java**. They are both zipped archive files which aggregate many Python packages and associated metadata and resources (text, images, etc.) into one file for distribution. Then you will need only a Python Interpreter as the runtime environment.
 
-This is a pure-python library, with no 3rd-party dependency.
-
-PS: The **pyz** ext could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.par` as you wish. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), then it may be cross-platform as long as written with pure python code.
+PS: The **pyz** ext could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.par` as you wish. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), then the apps may be cross-platform as long as written with pure python code.
 
 # Install
 
