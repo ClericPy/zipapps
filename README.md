@@ -95,7 +95,7 @@ Written with the pure python without any 3rd party libraries.
 ## Scene-5: Package multiple `requirements.txt` files and import them together
 
 ### Package all the requirements.txt
-   1. `python3 -m zipapps -c -o venv1.pyz -p /usr/bin/python3 -r requirements1.txt`
+   1. `python3 -m zipapps -c -o venv1.pyz -p /usr/bin/python3 bottle`
    2. `python3 -m zipapps -c -o venv2.pyz -p /usr/bin/python3 -u psutil psutil`
 
 ### Run script with adding new path to `sys.path`, unzip files/folders if necessary
@@ -109,12 +109,14 @@ os.environ['ZIPAPPS_CACHE'] = 'TEMP/_cache'
 # add new import paths
 sys.path.insert(0, 'venv1.pyz')
 sys.path.insert(0, 'venv2.pyz')
-# unzip psutil for importing
-import ensure_venv2 # or import ensure_zipapps_venv2
 
+import bottle
+# unzip psutil for importing
+import ensure_venv2  # or import ensure_zipapps_venv2
 import psutil
 
-print(psutil.__file__)
+print(bottle.__file__)  # venv1.pyz/bottle.py
+print(psutil.__file__)  # /tmp/_cache/venv2/psutil/__init__.py
 ```
 
 ## View more
