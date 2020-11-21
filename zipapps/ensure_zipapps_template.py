@@ -13,7 +13,7 @@ def prepare_path():
     python_path_list = [str(zip_file_path)]
     unzip = os.environ.get('ZIPAPPS_UNZIP') or r'''{unzip}'''
     if unzip:
-        _temp_folder = os.environ.get('ZIPAPPS_PATH') or os.environ.get(
+        _temp_folder = os.environ.get('ZIPAPPS_CACHE') or os.environ.get(
             'UNZIP_PATH') or r'''{unzip_path}'''
         if _temp_folder.startswith('HOME'):
             _temp_folder_path = Path.home() / (_temp_folder[4:].lstrip('/\\'))

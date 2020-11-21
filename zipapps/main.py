@@ -83,6 +83,7 @@ def prepare_entry(cache_path: Path,
             f.read().format(**kwargs))
     code = f'import ensure_zipapps_{output_name}'
     (cache_path / 'ensure_zipapps.py').write_text(code)
+    (cache_path / f'ensure_{output_name}.py').write_text(code)
 
 
 def clean_pip_cache(path):

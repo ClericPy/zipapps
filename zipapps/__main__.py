@@ -57,31 +57,59 @@ def main():
     parser.add_argument('--output',
                         '-o',
                         default=Config.DEFAULT_OUTPUT_PATH,
-                        help=f'The name of the output file, '
-                        'defaults to "{Config.DEFAULT_OUTPUT_PATH}".')
+                        help='The path of the output file, defaults to'
+                        f' "{Config.DEFAULT_OUTPUT_PATH}".')
     parser.add_argument('--python',
                         '-p',
                         dest='interpreter',
                         default=None,
-                        help='The name of the Python interpreter to use '
+                        help='The path of the Python interpreter to use '
                         '(default: no shebang line).')
     parser.add_argument('--main',
                         '-m',
                         default='',
-                        help='The main function of the application.'
-                        ' Format like package.module:function.')
+                        help='The main function of the application,'
+                        ' such as `package.module:function`')
     parser.add_argument('--compress',
                         '-c',
                         action='store_true',
                         help='Compress files with the deflate method,'
                         ' defaults to uncompressed.')
     parser.add_argument('--includes',
+                        '--add',
                         '-a',
                         default='',
                         help='The files/folders of given dir path'
-                        ' will be copied into cache-path, '
-                        'which can be import from PYTHONPATH).'
+                        ' will be copied to `unzip_path`, '
+                        'which can be import from PYTHONPATH.'
                         ' The path string will be splited by ",".')
+    parser.add_argument(
+        '--unzip',
+        '-u',
+        default='',
+        help='The names (splited by "," without ext) which need to be unzipped '
+        'while running, for `.so/.pyd` files(which can not be loaded by zipimport), '
+        'or packages with operations of static files. Support "*",'
+        'if unzip is set to "*", then will unzip all files and folders.')
+    parser.add_argument(
+        '--unzip-path',
+        '-up',
+        default='',
+        help='If `unzip` arg is not null, cache files will be '
+        f'unzipped to the given path. Defaults to {Config.DEFAULT_UNZIP_CACHE_PATH}, support '
+        'prefix `TEMP/HOME/SELF` as internal variables. And you can also overwrite it'
+        ' with environment variable `ZIPAPPS_CACHE` or `UNZIP_PATH` while running.'
+        ' `TEMP` means `tempfile.gettempdir()`, `HOME` means `Path.home()`, '
+        '`SELF` means `.pyz` file path.')
+    parser.add_argument(
+        '-cc',
+        '--pyc',
+        '--compile',
+        '--compiled',
+        action='store_true',
+        dest='compiled',
+        help='Compile .py to .pyc for fast import, but zipapp does not work '
+        'unless you unzip it.')
     parser.add_argument('--cache-path',
                         '--source-dir',
                         '-cp',
@@ -89,25 +117,8 @@ def main():
                         dest='cache_path',
                         help='The cache path of zipapps to store '
                         'site-packages and `includes` files, '
-                        'which will be treat as PYTHONPATH.'
-                        ' If not set, will create and clean-up automately.')
-    parser.add_argument(
-        '--unzip',
-        '-u',
-        default='',
-        help='The names which need to be unzip while running, name without ext. '
-        'such as .so/.pyd files(which can not be loaded by zipimport), '
-        'or packages with operations of static files. If unzip is *, will unzip all files and folders.'
-    )
-    parser.add_argument(
-        '--unzip-path',
-        '-up',
-        default='',
-        help='The names which need to be unzip while running, name without ext. '
-        'such as .so/.pyd files(which can not be loaded by zipimport), '
-        'or packages with operations of static files. Defaults to ./zipapps_cache,'
-        ' support TEMP/HOME/SELF as internal variables. And you can also reset it with os.environ '
-        'while running.')
+                        'which will be treat as PYTHONPATH. If not set, will '
+                        'create and clean-up in TEMP dir automately.')
     parser.add_argument('--shell',
                         '-s',
                         action='store_true',
@@ -127,15 +138,6 @@ def main():
         action='store_true',
         dest='ignore_system_python_path',
         help='Ignore global PYTHONPATH, only use app_unzip_cache and app.pyz.')
-    parser.add_argument(
-        '-cc',
-        '--pyc',
-        '--compile',
-        '--compiled',
-        action='store_true',
-        dest='compiled',
-        help='Compile .py to .pyc for fast import, but zipapp does'
-        ' not work unless you unzip it.')
     parser.add_argument(
         '-b',
         '--build-id',
