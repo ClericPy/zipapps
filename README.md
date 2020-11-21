@@ -13,9 +13,9 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
 
 # Install
 
-Written with the pure python without any 3rd party libraries.
-
 > pip install zipapps -U
+
+This is a pure-python library, with no 3rd-party dependency.
 
 # Use cases
 
