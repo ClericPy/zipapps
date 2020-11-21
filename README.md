@@ -7,9 +7,19 @@ Inspired by [shiv](https://github.com/linkedin/shiv). But unlike `shiv`, this li
 
 # What is the `pyz`?
 
-`.pyz` to **Python** is like `.jar` to **Java**. They are both zipped archive files which aggregate many Python packages and associated metadata and resources (text, images, etc.) into one file for distribution. Then you will need only a Python Interpreter as the runtime environment.
+`.pyz` to **Python** is like `.jar` to **Java**. They are both zipped archive files which aggregate many packages and associated metadata and resources (text, images, etc.) into one file for distribution. Then what you only need is a Python Interpreter as the runtime environment.
 
 PS: The **pyz** ext could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.par` as you wish. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), then the apps may be cross-platform as long as written with pure python code.
+
+## Where to Use it?
+   1. Hadoop-Streaming's mapper & reducer scripts.
+   2. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
+      1. Easy to uploads and with a clean standalone zipped file.
+   3. Distribute zipapp with embedded python.
+   4. Use as a requirements zip path, or some venv usages.
+      1. `import sys;sys.path.insert(0, 'app.pyz')` (without .so/.pyd)
+      2. `python3 app.pyz script.py`
+   5. Other usages need to be found, and enjoy yourself.
 
 # Install
 
@@ -163,8 +173,8 @@ print(bottle.__file__)
 1. How to zip apps with C-Lib requirements for `zipimport` ingore `.pyd`, `.so` files?
    1. as https://docs.python.org/3/library/zipimport.html
    2. we can unzip those packages in temp dirs with `-u` args
-   3. > python3 -m zipapps -c -u selectolax selectolax
-   4. > python3 app.pyz xxx.py
+   3. > `python3 -m zipapps -c -u selectolax selectolax`
+   4. > `python3 app.pyz xxx.py`
 2. How to avoid  unlimited unzip cachefolder size growth?
    1. There is a null file named like `zip-time` in zip files and unzip folders
    2. The cache with same `zip-time` will not be unzipped duplicately.
@@ -172,20 +182,12 @@ print(bottle.__file__)
    1. If you set `-spp` for strict `PYTHONPATH`, you will not use the global `PYTHONPATH`.
    2. else you will use global libs as a second choice.
 4. How to use multiple venv `pyz` files in one script?
-   1. os.environ['UNZIP_PATH'] = '/tmp/unzip_caches'
-      1. or os.environ['ZIPAPPS_CACHE'] = '/tmp/unzip_caches'
-   2. sys.path.insert(0, 'PATH_TO_PYZ_1')
-   3. import ensure_zipapps_{output_name_1}
-   4. sys.path.insert(0, 'PATH_TO_PYZ_2')
-   5. import ensure_zipapps_{output_name_2}
-5. Where to Use it?
-   1. Hadoop-Streaming's mapper & reducer.
-   2. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
-   3. Distribute zipapp with embedded python.
-   4. Use as a requirements zip path.
-      1. `import sys;sys.path.insert(0, 'app.pyz')` (without .so/.pyd)
-      2. `python3 app.pyz script.py`
-   5. Other usages need to be found, and enjoy yourself.
+   1. `os.environ['UNZIP_PATH'] = '/tmp/unzip_caches'`
+      1. `or os.environ['ZIPAPPS_CACHE'] = '/tmp/unzip_caches'`
+   2. `sys.path.insert(0, 'PATH_TO_PYZ_1')`
+   4. `sys.path.insert(0, 'PATH_TO_PYZ_2')`
+   5. `import ensure_zipapps_{output_name_2}`
+      1. only if app2 needs to unzip files while running
 
 # Todos
 
@@ -227,6 +229,7 @@ print(bottle.__file__)
   - `python3 -m zipapps --build-id=./*.py -r requirements.txt`
   - `python3 -m zipapps --build-id=efdd0a5584169cdf791 -r requirements.txt`
   - `python3 -m zipapps --build-id=version1.0 -r requirements.txt`
+- [ ] A simple way to active multiple zipped venv `pyz` files.
 
 # Changelogs
 
