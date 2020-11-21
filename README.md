@@ -9,13 +9,13 @@ Inspired by [shiv](https://github.com/linkedin/shiv). But unlike `shiv`, this li
 
 `.pyz` to **Python** is like `.jar` to **Java**. They are both zipped archive files which aggregate many Python packages and associated metadata and resources (text, images, etc.) into one file for distribution. Then you will need only a Python Interpreter as the runtime environment.
 
-PS: The **pyz** ext could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.par` as you wish. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), so it may be cross-platform without C-Libs.
+This is a pure-python library, with no 3rd-party dependency.
+
+PS: The **pyz** ext could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.par` as you wish. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), then it may be cross-platform as long as written with pure python code.
 
 # Install
 
 > pip install zipapps -U
-
-This is a pure-python library, with no 3rd-party dependency.
 
 # Use cases
 
