@@ -9,7 +9,7 @@ Inspired by [shiv](https://github.com/linkedin/shiv). But unlike `shiv`, this li
 
 `.pyz` to **Python** is like `.jar` to **Java**. They are both zipped archive files which aggregate many packages and associated metadata and resources (text, images, etc.) into one file for distribution. Then what you only need is a Python Interpreter as the runtime environment.
 
-PS: The **pyz** ext could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.par` as you wish. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), then the apps may be cross-platform as long as written with pure python code.
+PS: The **pyz** ext could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.zip` as you wish. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), then the apps may be cross-platform as long as written with pure python code.
 
 ## Where to Use it?
    1. Hadoop-Streaming's mapper & reducer scripts.
@@ -69,7 +69,7 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
    1. `-u / --unzip`
       1. choose the files/folders to unzip while running,
       2. multiple names can be splited by the ",", like `bottle,dir_name`, this arg support `*` for `glob` usage,
-      3. if you are not sure what to unzip, use `*` for all,
+      3. if you are not sure which to unzip, use `*` for all,
       4. the files/folders will not be unzipped duplicately if there is an old cache contains the same `_zip_time_` file.
 
 ## Scene-3: Package the main package with the `requirements.txt`
@@ -103,11 +103,14 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
 ## Scene-5: Package multiple `requirements.txt` files and import them together
 
 ### Package all the requirements.txt
-   1. `python3 -m zipapps -c -o venv1.pyz -p /usr/bin/python3 bottle`
-   2. `python3 -m zipapps -c -o venv2.pyz -p /usr/bin/python3 -u psutil psutil`
+    python3 -m zipapps -c -o venv1.pyz -p /usr/bin/python3 bottle
+    python3 -m zipapps -c -o venv2.pyz -p /usr/bin/python3 -u psutil psutil
 
 ### Run script with adding new path to `sys.path`, unzip files/folders if necessary
 
+> There are two ways to active `PYTHONPATH` below
+
+1. Activate pyz files if unzip is no null
 ```python
 import os
 import sys
@@ -126,6 +129,27 @@ import psutil
 print(bottle.__file__)  # venv1.pyz/bottle.py
 print(psutil.__file__)  # /tmp/_cache/venv2/psutil/__init__.py
 ```
+2. Use the `activate` function in any `zipapps` zipped file
+   1. or use the `activate` function of `zipapps.activate_zipapps` if zipapps has been installed:
+      1. > `from zipapps import activate`
+```python
+import os
+import sys
+
+# reset the unzip cache path to temp dir
+os.environ['ZIPAPPS_CACHE'] = 'TEMP/_cache'
+print(sys.path)  # old sys.path including cwd path at index 0
+# add PYTHONPATH to import activate_zipapps
+sys.path.insert(0, 'venv1.pyz')
+print(sys.path)  # including `venv1.pyz` at index 0
+from activate_zipapps import activate
+
+activate('venv1.pyz')
+print(sys.path)  # absolute path of `venv1.pyz` has been insert to index 0
+activate('venv2.pyz')
+print(sys.path)  #  $(TEMP)/_cache/venv2 and absolute path of `venv2.pyz` added
+```
+
 
 ## View more
 
@@ -137,7 +161,7 @@ print(psutil.__file__)  # /tmp/_cache/venv2/psutil/__init__.py
 > 
 > If you don't need to **unzip** any files/folders, `sys.path.append('app.pyz')` is enough.
 
-WARNING: multiple pyz files for venv, you need to ensure each file by special name like `import ensure_zipapps_{file_name}`(such as `import ensure_zipapps_bottle`) instead of `import ensure_zipapps`.
+WARNING: multiple pyz files for venv, you need to ensure each file by special name like `import ensure_zipapps_{output_file_name}`(such as `import ensure_zipapps_bottle`) instead of `import ensure_zipapps`.
 
 ```python
 '''
@@ -233,6 +257,8 @@ print(bottle.__file__)
 
 # Changelogs
 
+- 2020.11.23
+  - add `activate_zipapps` to activate zipapps `PYTHONPATH` easily
 - 2020.11.21
   - reset unzip_path as the parent folder to unzip files
     - so the cache path will be like `./zipapps_cache/app/` for `app.pyz`,

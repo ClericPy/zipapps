@@ -79,11 +79,14 @@ def prepare_entry(cache_path: Path,
         (cache_path / '__main__.py').write_text(f.read().format(**kwargs))
     with open(Path(__file__).parent / 'ensure_zipapps_template.py',
               encoding='u8') as f:
-        (cache_path / f'ensure_zipapps_{output_name}.py').write_text(
-            f.read().format(**kwargs))
-    code = f'import ensure_zipapps_{output_name}'
-    (cache_path / 'ensure_zipapps.py').write_text(code)
-    (cache_path / f'ensure_{output_name}.py').write_text(code)
+        (cache_path / 'ensure_zipapps.py').write_text(f.read().format(**kwargs))
+    with open(Path(__file__).parent / 'activate_zipapps.py',
+              encoding='u8') as f:
+        code = f.read()
+        (cache_path / 'activate_zipapps.py').write_text(code)
+        code += '\n\nactivate()'
+        (cache_path / f'ensure_{output_name}.py').write_text(code)
+        (cache_path / f'ensure_zipapps_{output_name}.py').write_text(code)
 
 
 def clean_pip_cache(path):

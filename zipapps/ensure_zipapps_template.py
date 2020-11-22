@@ -2,8 +2,8 @@ import os
 import sys
 from pathlib import Path
 from shutil import rmtree
-from zipfile import ZipFile
 from tempfile import gettempdir
+from zipfile import ZipFile
 
 
 def prepare_path():
@@ -60,7 +60,8 @@ def prepare_path():
         os.environ['PYTHONPATH'] = sep.join(python_path_list) + sep + (
             os.environ.get('PYTHONPATH') or '')
     # let the dir path first
-    sys.path = python_path_list + sys.path
+    paths = [path for path in python_path_list if path not in sys.path]
+    sys.path = paths + sys.path
 
 
 prepare_path()

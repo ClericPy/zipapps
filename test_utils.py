@@ -195,7 +195,7 @@ def test_create_app_function():
     create_app(output='bottle_env.pyz', unzip='bottle', pip_args=['bottle'])
     sys.path.insert(0, 'bottle_env.pyz')
     # ! ensure before import for refresh path
-    import ensure_zipapps_bottle_env
+    import ensure_zipapps_bottle_env as _
     import bottle
 
     # using app unzip cache for `import ensure_zipapps`

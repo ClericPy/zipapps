@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
 from .main import create_app
-
-__all__ = ['create_app']
-__version__ = '2020.11.21'
+from .activate_zipapps import activate
+__all__ = ['create_app', 'activate']
+__version__ = '2020.11.23'
