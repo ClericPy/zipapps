@@ -12,7 +12,6 @@ import typing
 import zipapp
 from glob import glob
 from hashlib import md5
-from itertools import chain
 from pathlib import Path
 from warnings import warn
 from zipfile import ZipFile
@@ -58,13 +57,19 @@ def prepare_entry(cache_path: Path,
                   main_shell=False,
                   ts='None'):
     need_unzip_names = set(unzip.split(',')) if unzip else set()
-    for path in chain(cache_path.glob('**/*.so'), cache_path.glob('**/*.pyd'),
-                      cache_path.glob('**/*.c')):
-        _need_unzip_names = {_parent.name for _parent in path.parents}
-        if not (need_unzip_names & _need_unzip_names):
+    warning_names: typing.Dict[str, dict] = {}
+    for path in cache_path.iterdir():
+        pyd_counts = len(list(path.glob('**/*.pyd')))
+        so_counts = len(list(path.glob('**/*.so')))
+        if (pyd_counts or so_counts) and path.name not in need_unzip_names:
             # warn which libs need to be unzipped
-            msg = f'`.so/.pyd` file found, which should be set unzip to avoid ImportErrors: {path}'
-            warn(msg)
+            if pyd_counts:
+                warning_names.setdefault(path.name, {})['.pyd'] = pyd_counts
+            if so_counts:
+                warning_names.setdefault(path.name, {})['.so'] = so_counts
+    if warning_names:
+        msg = f'.pyd/.so files may not be imported correctly, set `--unzip={",".join(warning_names.keys())}` to avoid it. {warning_names}'
+        warn(msg)
     output_path = output_path or Path(Config.DEFAULT_OUTPUT_PATH)
     output_name = os.path.splitext(Path(output_path).name)[0]
     if not re.match(r'^[0-9a-zA-Z_]+$', output_name):
