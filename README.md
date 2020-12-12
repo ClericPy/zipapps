@@ -25,6 +25,22 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
 
 > pip install zipapps -U
 
+# Quick Start
+
+## zip as the app
+1. zipapps with requirements
+   1. > python3 -m zipapps -u AUTO_UNZIP -a entry.py -m entry:main -o app.pyz aiohttp,psutils
+2. run app.pyz
+   1. > python3 app.pyz
+   2. **cache will be unzipped to `./zipapps_cache/app`**
+
+## zip as the venv
+1. zipapps with requirements
+   1. > python3 -m zipapps -u AUTO_UNZIP -o venv.pyz -r requirements.txt
+2. run entry.py with venv.pyz
+   1. > python3 app.pyz entry.py
+   2. **cache will be unzipped to `./zipapps_cache/venv`**
+
 # Use cases
 
 ## Scene-1: Package your code with requirements as a standalone application.
@@ -253,10 +269,14 @@ print(bottle.__file__)
   - `python3 -m zipapps --build-id=./*.py -r requirements.txt`
   - `python3 -m zipapps --build-id=efdd0a5584169cdf791 -r requirements.txt`
   - `python3 -m zipapps --build-id=version1.0 -r requirements.txt`
-- [ ] A simple way to active multiple zipped venv `pyz` files.
+- [x] A simple way to active multiple zipped venv `pyz` files.
+- [x] Support auto-check `.pyd/.so` to be unzipped.
 
 # Changelogs
 
+- 2020.12.13
+  - `--unzip` support complete path
+  - `--unzip` support **auto-check** by `--unzip=AUTO_UNZIP`
 - 2020.11.23
   - add `activate_zipapps` to activate zipapps `PYTHONPATH` easily
 - 2020.11.21

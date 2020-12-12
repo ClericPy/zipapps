@@ -25,8 +25,7 @@ def prepare_path():
                 gettempdir()) / (_temp_folder[4:].lstrip('/\\'))
         else:
             _temp_folder_path = Path(_temp_folder)
-        _temp_folder_path = _temp_folder_path / os.path.splitext(
-            (zip_file_path.name))[0]
+        _temp_folder_path = _temp_folder_path / zip_file_path.stem
         _temp_folder_abs_path = str(_temp_folder_path.absolute())
         python_path_list.insert(0, _temp_folder_abs_path)
         ts_file_name = '_zip_time_{ts}'
