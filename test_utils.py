@@ -153,7 +153,7 @@ def test_create_app_function():
 
     # test unzip *
     _clean_paths()
-    app_path = create_app(unzip='*', pip_args=['bottle'])
+    app_path = create_app(unzip='ensure_app,bin/bottle.py', pip_args=['bottle'])
     output, _ = subprocess.Popen(
         [
             sys.executable,
@@ -163,7 +163,8 @@ def test_create_app_function():
         stdout=subprocess.PIPE,
     ).communicate()
     file_counts = len(list(Path('zipapps_cache').glob('**/*')))
-    assert file_counts > 4, 'test unzip failed, zipapps_cache as sys.path should be priority'
+    # print(file_counts)
+    assert file_counts == 5, 'test unzip failed, zipapps_cache as sys.path should be priority'
 
     # test psutil, only for win32
     _clean_paths()

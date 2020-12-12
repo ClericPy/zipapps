@@ -88,7 +88,7 @@ def main():
         '-u',
         default='',
         help='The names (splited by `,` without ext like `bottle,aiohttp`, '
-        'or complete path like `bin/bottle.exe,temp.py`)'
+        'or complete path like `bin/bottle.py,temp.py`)'
         ' which need to be unzipped while running, for `.so/.pyd` '
         'files(which can not be loaded by zipimport), '
         'or packages with operations of static files. Support "*",'
