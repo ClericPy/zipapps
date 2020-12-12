@@ -23,6 +23,7 @@ class Config:
     """
     DEFAULT_OUTPUT_PATH = 'app.pyz'
     DEFAULT_UNZIP_CACHE_PATH = 'zipapps_cache'
+    AUTO_FIX_UNZIP = 'AUTO_UNZIP'
     COMPILE_KWARGS: typing.Dict[str, typing.Any] = {}
 
 
@@ -56,27 +57,42 @@ def prepare_entry(cache_path: Path,
                   ignore_system_python_path=False,
                   main_shell=False,
                   ts='None'):
-    need_unzip_names = set(unzip.split(',')) if unzip else set()
+    unzip_names = unzip.split(',') if unzip else []
     warning_names: typing.Dict[str, dict] = {}
     for path in cache_path.iterdir():
-        pyd_counts = len(list(path.glob('**/*.pyd')))
-        so_counts = len(list(path.glob('**/*.so')))
-        if (pyd_counts or so_counts) and path.name not in need_unzip_names:
-            # warn which libs need to be unzipped
-            if pyd_counts:
-                warning_names.setdefault(path.name, {})['.pyd'] = pyd_counts
-            if so_counts:
-                warning_names.setdefault(path.name, {})['.so'] = so_counts
+        _name_not_included = path.name not in unzip_names
+        if path.is_dir():
+            pyd_counts = len(list(path.glob('**/*.pyd')))
+            so_counts = len(list(path.glob('**/*.so')))
+            if (pyd_counts or so_counts) and _name_not_included:
+                # warn which libs need to be unzipped
+                if pyd_counts:
+                    warning_names.setdefault(path.name, {})['.pyd'] = pyd_counts
+                if so_counts:
+                    warning_names.setdefault(path.name, {})['.so'] = so_counts
+        elif path.is_file() and path.suffix in ('.pyd', '.so'):
+            if _name_not_included and path.stem not in unzip_names:
+                warning_names.setdefault(path.name, {})[path.suffix] = 1
     if warning_names:
-        msg = f'.pyd/.so files may not be imported correctly, set `--unzip={",".join(warning_names.keys())}` to avoid it. {warning_names}'
+        if Config.AUTO_FIX_UNZIP in unzip_names:
+            unzip_names.remove(Config.AUTO_FIX_UNZIP)
+            unzip_names.extend(warning_names.keys())
+            new_unzip = ','.join(unzip_names)
+            msg = f'`{unzip}` has been auto fixed => `{new_unzip}`'
+            unzip = new_unzip
+        else:
+            _fix_unzip_names = ",".join(warning_names.keys())
+            msg = f'.pyd/.so files may not be imported correctly, set `--unzip={_fix_unzip_names}` to avoid it. {warning_names}'
         warn(msg)
     output_path = output_path or Path(Config.DEFAULT_OUTPUT_PATH)
-    output_name = os.path.splitext(Path(output_path).name)[0]
+    output_name = Path(output_path).stem
     if not re.match(r'^[0-9a-zA-Z_]+$', output_name):
         raise ValueError('output_name should match regex: [0-9a-zA-Z_]+')
     module, _, function = main.partition(':')
-    if module and (cache_path / module).is_file():
-        module = os.path.splitext(module)[0]
+    if module:
+        module_path = cache_path / module
+        if module_path.is_file():
+            module = module_path.stem
     kwargs = {
         'ts': ts,
         'shell': shell,

@@ -148,10 +148,10 @@ def test_create_app_function():
         stdout=subprocess.PIPE,
     ).communicate()
     file_counts = len(list(Path('zipapps_cache').glob('**/*')))
-    assert file_counts == 5, file_counts
+    assert file_counts >= 5, file_counts
     assert b'zipapps_cache' in output, 'test unzip failed, zipapps_cache as sys.path should be priority'
 
-    # test unzip *
+    # test unzip with complete path
     _clean_paths()
     app_path = create_app(unzip='ensure_app,bin/bottle.py', pip_args=['bottle'])
     output, _ = subprocess.Popen(
@@ -165,6 +165,35 @@ def test_create_app_function():
     file_counts = len(list(Path('zipapps_cache').glob('**/*')))
     # print(file_counts)
     assert file_counts == 5, 'test unzip failed, zipapps_cache as sys.path should be priority'
+
+    # test unzip with `AUTO_UNZIP` and `*`
+    _clean_paths()
+    app_path = create_app(unzip='', pip_args=['aiohttp'])
+    output, _ = subprocess.Popen(
+        [sys.executable, str(app_path), '-V'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    aiohttp_unzipped = bool(list(Path('zipapps_cache').glob('**/aiohttp')))
+    assert not aiohttp_unzipped, 'test unzip failed, aiohttp should not be unzipped'
+    _clean_paths()
+    app_path = create_app(unzip='AUTO_UNZIP', pip_args=['aiohttp'])
+    output, _ = subprocess.Popen(
+        [sys.executable, str(app_path), '-V'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    aiohttp_unzipped = bool(list(Path('zipapps_cache').glob('**/aiohttp')))
+    assert aiohttp_unzipped, 'test unzip failed, aiohttp should be unzipped'
+    _clean_paths()
+    app_path = create_app(unzip='*', pip_args=['aiohttp'])
+    output, _ = subprocess.Popen(
+        [sys.executable, str(app_path), '-V'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    aiohttp_unzipped = bool(list(Path('zipapps_cache').glob('**/aiohttp')))
+    assert aiohttp_unzipped, 'test unzip failed, aiohttp should be unzipped'
 
     # test psutil, only for win32
     _clean_paths()
