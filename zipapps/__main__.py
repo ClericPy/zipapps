@@ -87,8 +87,10 @@ def main():
         '--unzip',
         '-u',
         default='',
-        help='The names (splited by "," without ext) which need to be unzipped '
-        'while running, for `.so/.pyd` files(which can not be loaded by zipimport), '
+        help='The names (splited by `,` without ext like `bottle,aiohttp`, '
+        'or complete path like `bin/bottle.exe,temp.py`)'
+        ' which need to be unzipped while running, for `.so/.pyd` '
+        'files(which can not be loaded by zipimport), '
         'or packages with operations of static files. Support "*",'
         'if unzip is set to "*", then will unzip all files and folders.')
     parser.add_argument(

@@ -48,7 +48,7 @@ def prepare_path():
                 for member in zf.infolist():
                     file_dir_name = os.path.splitext(
                         member.filename.split('/')[0])[0]
-                    if unzip == '*' or file_dir_name in _need_unzip_names:
+                    if unzip == '*' or member.filename in _need_unzip_names or file_dir_name in _need_unzip_names:
                         zf.extract(member, path=_temp_folder_abs_path)
     sep = ';' if sys.platform == 'win32' else ':'
     ignore_system_python_path = {ignore_system_python_path}
