@@ -173,6 +173,7 @@ print(sys.path)  #  $(TEMP)/_cache/venv2 and absolute path of `venv2.pyz` added
 
 <details>
     <summary>Using as the venv zip file example</summary>
+
 > As you see, `import ensure_zipapps_bottle_env` only works for packaging with a non-null `unzip` arg.
 > 
 > If you don't need to **unzip** any files/folders, `sys.path.append('app.pyz')` is enough.
