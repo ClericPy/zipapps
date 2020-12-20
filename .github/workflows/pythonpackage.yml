@@ -5,9 +5,9 @@ on: [push]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, macos-latest, windows-latest]
     strategy:
-      max-parallel: 4
+      max-parallel: 6
       matrix:
         python-version: [3.6, 3.7, 3.8]
 
