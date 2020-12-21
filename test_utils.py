@@ -186,6 +186,15 @@ def test_create_app_function():
     aiohttp_unzipped = bool(list(Path('zipapps_cache').glob('**/aiohttp')))
     assert aiohttp_unzipped, 'test unzip failed, aiohttp should be unzipped'
     _clean_paths()
+    app_path = create_app(unzip='AUTO', pip_args=['aiohttp'])
+    output, _ = subprocess.Popen(
+        [sys.executable, str(app_path), '-V'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    aiohttp_unzipped = bool(list(Path('zipapps_cache').glob('**/aiohttp')))
+    assert aiohttp_unzipped, 'test unzip failed, aiohttp should be unzipped'
+    _clean_paths()
     app_path = create_app(unzip='*', pip_args=['aiohttp'])
     output, _ = subprocess.Popen(
         [sys.executable, str(app_path), '-V'],

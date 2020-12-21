@@ -23,7 +23,7 @@ class Config:
     """
     DEFAULT_OUTPUT_PATH = 'app.pyz'
     DEFAULT_UNZIP_CACHE_PATH = 'zipapps_cache'
-    AUTO_FIX_UNZIP = 'AUTO_UNZIP'
+    AUTO_FIX_UNZIP_KEYS = {'AUTO_UNZIP', 'AUTO'}
     COMPILE_KWARGS: typing.Dict[str, typing.Any] = {}
 
 
@@ -74,16 +74,18 @@ def prepare_entry(cache_path: Path,
             if _name_not_included and path.stem not in unzip_names:
                 warning_names.setdefault(path.name, {})[path.suffix] = 1
     if warning_names:
-        if Config.AUTO_FIX_UNZIP in unzip_names:
-            unzip_names.remove(Config.AUTO_FIX_UNZIP)
+        auto_unzip_keys = Config.AUTO_FIX_UNZIP_KEYS & set(unzip_names)
+        if auto_unzip_keys:
+            for key in auto_unzip_keys:
+                unzip_names.remove(key)
             unzip_names.extend(warning_names.keys())
             new_unzip = ','.join(unzip_names)
-            msg = f'`{unzip}` has been auto fixed => `{new_unzip}`'
+            # msg = f'`{unzip}` has been auto fixed => `{new_unzip}`'
             unzip = new_unzip
         else:
             _fix_unzip_names = ",".join(warning_names.keys())
             msg = f'.pyd/.so files may not be imported correctly, set `--unzip={_fix_unzip_names}` to avoid it. {warning_names}'
-        warn(msg)
+            warn(msg)
     output_path = output_path or Path(Config.DEFAULT_OUTPUT_PATH)
     output_name = Path(output_path).stem
     if not re.match(r'^[0-9a-zA-Z_]+$', output_name):
