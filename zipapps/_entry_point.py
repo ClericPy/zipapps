@@ -30,6 +30,7 @@ def main():
                 sys.argv = [arg1] + args[2:]
                 return exec(source)
             elif arg1 == '-m':
+                sys.argv = args[2:]
                 return run_module(args[2], run_name='__main__')
             else:
                 if Path(arg1).is_file():

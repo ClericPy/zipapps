@@ -275,7 +275,7 @@ print(bottle.__file__)
 
 # Changelogs
 
-- 2020.12.22
+- 2020.12.23
   - `--unzip` support **auto-check** by `-u AUTO`, alias for `--unzip=AUTO_UNZIP`
   - fix `run_module` bug while running `./app.pyz -m module`
 - 2020.12.21
