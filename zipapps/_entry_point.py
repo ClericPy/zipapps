@@ -30,12 +30,7 @@ def main():
                 sys.argv = [arg1] + args[2:]
                 return exec(source)
             elif arg1 == '-m':
-                fp = Path(args[2])
-                if fp.is_dir() and (fp / '__main__.py').is_file():
-                    sys.argv = args[2:]
-                    return run_module(args[2], run_name='__main__')
-                else:
-                    raise RuntimeError('%s should be a folder which includes a __main__.py file.' % fp)
+                return run_module(args[2], run_name='__main__')
             else:
                 if Path(arg1).is_file():
                     return run_path(arg1)

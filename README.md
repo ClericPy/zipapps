@@ -29,14 +29,14 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
 
 ## zip as the app
 1. zipapps with requirements
-   1. > python3 -m zipapps -u AUTO_UNZIP -a entry.py -m entry:main -o app.pyz aiohttp,psutils
+   1. > python3 -m zipapps -u AUTO -a entry.py -m entry:main -o app.pyz aiohttp,psutils
 2. run app.pyz
    1. > python3 app.pyz
    2. **cache will be unzipped to `./zipapps_cache/app`**
 
 ## zip as the venv
 1. zipapps with requirements
-   1. > python3 -m zipapps -u AUTO_UNZIP -o venv.pyz -r requirements.txt
+   1. > python3 -m zipapps -u AUTO -o venv.pyz -r requirements.txt
 2. run entry.py with venv.pyz
    1. > python3 app.pyz entry.py
    2. **cache will be unzipped to `./zipapps_cache/venv`**
@@ -275,6 +275,9 @@ print(bottle.__file__)
 
 # Changelogs
 
+- 2020.12.22
+  - `--unzip` support **auto-check** by `-u AUTO`, alias for `--unzip=AUTO_UNZIP`
+  - fix `run_module` bug while running `./app.pyz -m module`
 - 2020.12.21
   - now will not run a new subprocess in most cases.
     - using `runpy.run_path` and `runpy.run_module`
