@@ -1,13 +1,38 @@
 # -*- coding: utf-8 -*-
 import sys
 from pathlib import Path
-from runpy import run_path, run_module
+from runpy import run_module, run_path
 from subprocess import run
 
-import ensure_zipapps_{output_name}
+from activate_zipapps import activate
+
+
+def activate_envs():
+    activate()
+    HANDLE_OTHER_ENVS_FLAG = "{HANDLE_OTHER_ENVS_FLAG}"
+    try:
+        index = sys.argv.index(HANDLE_OTHER_ENVS_FLAG)
+        sys.argv.pop(index)
+        env_paths = sys.argv.pop(index)
+    except ValueError:
+        env_paths = None
+    if not env_paths:
+        flag = HANDLE_OTHER_ENVS_FLAG + '='
+        index_to_pop = None
+        for index, value in enumerate(sys.argv):
+            if value.startswith(flag):
+                env_paths = value[len(flag):]
+                index_to_pop = index
+                break
+        if index_to_pop is not None:
+            sys.argv.pop(index_to_pop)
+    if env_paths:
+        for env_path in env_paths.split(','):
+            activate(env_path)
 
 
 def main():
+    activate_envs()
     has_main = {has_main}
     if has_main:
         if {main_shell}:

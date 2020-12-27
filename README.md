@@ -120,13 +120,19 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
 
 ### Package all the requirements.txt
     python3 -m zipapps -c -o venv1.pyz -p /usr/bin/python3 bottle
-    python3 -m zipapps -c -o venv2.pyz -p /usr/bin/python3 -u psutil psutil
+    python3 -m zipapps -c -o venv2.pyz -p /usr/bin/python3 -u AUTO psutil
 
 ### Run script with adding new path to `sys.path`, unzip files/folders if necessary
 
-> There are two ways to active `PYTHONPATH` below
+> There are 3 ways to active `PYTHONPATH` below
 
-1. Activate pyz files if unzip is no null
+
+1. [Easy] After `2020.12.27` version, you can use `--zipapps` arg for other `pyz` files.
+
+> `python3 venv1.pyz --zipapps="venv2.pyz" -c "import bottle,psutil;print(bottle.__file__,psutil.__file__)"`
+
+
+2. Activate pyz files if unzip is no null
 ```python
 import os
 import sys
@@ -145,7 +151,7 @@ import psutil
 print(bottle.__file__)  # venv1.pyz/bottle.py
 print(psutil.__file__)  # /tmp/_cache/venv2/psutil/__init__.py
 ```
-2. Use the `activate` function in any `zipapps` zipped file
+3. Use the `activate` function in any `zipapps` zipped file
    1. or use the `activate` function of `zipapps.activate_zipapps` if zipapps has been installed:
       1. > `from zipapps import activate`
 ```python
@@ -272,9 +278,15 @@ print(bottle.__file__)
   - `python3 -m zipapps --build-id=version1.0 -r requirements.txt`
 - [x] A simple way to active multiple zipped venv `pyz` files.
 - [x] Support auto-check `.pyd/.so` to be unzipped.
+- [x] Combile multiple `pyz` files.
 
 # Changelogs
 
+- 2020.12.27
+  - Combile multiple `pyz` files, do like this:
+    - python3 -m zipapps -o six.pyz six
+    - python3 -m zipapps -o psutil.pyz -u AUTO psutil
+    - python3 six.pyz --zipapps=psutil.pyz -c "import six,psutil;print(six.__file__, psutil.__file__)"
 - 2020.12.23
   - `--unzip` support **auto-check** by `-u AUTO`, alias for `--unzip=AUTO_UNZIP`
   - fix `run_module` bug while running `./app.pyz -m module`
