@@ -328,9 +328,9 @@ def test_create_app_function():
 
     # test --zipapps
     _clean_paths()
-    os.system('python3 -m zipapps -o psutil.pyz -u AUTO psutil')
-    os.system('python3 -m zipapps -o six.pyz six')
-    cmd = 'python3 six.pyz --zipapps=psutil.pyz -c "import six,psutil;print(six.__file__, psutil.__file__)"'
+    create_app(unzip='AUTO', output='psutil.pyz', pip_args=['psutil'])
+    create_app(output='six.pyz', pip_args=['six'])
+    cmd = '%s six.pyz --zipapps=psutil.pyz -c "import six,psutil;print(six.__file__, psutil.__file__)"' % sys.executable
     stdout_output = subprocess.check_output(args=cmd, shell=True).decode()
     # print(stdout_output)
     assert re.search(r'six.pyz[\\/]six.py', stdout_output) and re.search(
