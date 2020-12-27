@@ -1,10 +1,11 @@
 import atexit
+import os
+import re
 import shutil
 import subprocess
 import sys
-import os
-from pathlib import Path
 from getpass import getuser
+from pathlib import Path
 from tempfile import gettempdir
 
 from zipapps.main import create_app
@@ -14,7 +15,7 @@ from zipapps.main import create_app
 def _clean_paths():
     for p in [
             'mock_main.py', 'app.pyz', 'bottle.pyz', 'bottle_env.pyz',
-            '_requirements.txt'
+            'psutil.pyz', '_requirements.txt', 'six.pyz'
     ]:
         try:
             Path(p).unlink()
@@ -23,8 +24,9 @@ def _clean_paths():
     for d in [
             'mock_package', 'zipapps_cache', 'bottle_env',
             Path.home() / 'app_cache',
-            Path('./app_cache').absolute(),
-        (Path(gettempdir()) / 'app_cache').absolute()
+            Path('./app_cache'),
+            Path(gettempdir()) / 'app_cache',
+            Path('./zipapps_cache')
     ]:
         try:
             shutil.rmtree(d)
@@ -234,10 +236,11 @@ def test_create_app_function():
     create_app(output='bottle_env.pyz', unzip='bottle', pip_args=['bottle'])
     sys.path.insert(0, 'bottle_env.pyz')
     # ! ensure before import for refresh path
-    import ensure_zipapps_bottle_env as _
+    import ensure_bottle_env as _
     import bottle
 
     # using app unzip cache for `import ensure_zipapps`
+    # print(bottle.__file__)
     assert 'zipapps_cache' in bottle.__file__
 
     # test compiled
@@ -322,6 +325,16 @@ def test_create_app_function():
     ).communicate()
     _output = output.decode()
     assert 'app_cache' not in _output and 'bottle_env' in _output
+
+    # test --zipapps
+    _clean_paths()
+    os.system('python3 -m zipapps -o psutil.pyz -u AUTO psutil')
+    os.system('python3 -m zipapps -o six.pyz six')
+    cmd = 'python3 six.pyz --zipapps=psutil.pyz -c "import six,psutil;print(six.__file__, psutil.__file__)"'
+    stdout_output = subprocess.check_output(args=cmd, shell=True).decode()
+    # print(stdout_output)
+    assert re.search(r'six.pyz[\\/]six.py', stdout_output) and re.search(
+        r'psutil[\\/]psutil[\\/]__init__.py', stdout_output)
 
 
 def test_create_app_command_line():

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import compileall
-import os
 import re
 import shutil
 import subprocess
@@ -25,6 +24,7 @@ class Config:
     DEFAULT_UNZIP_CACHE_PATH = 'zipapps_cache'
     AUTO_FIX_UNZIP_KEYS = {'AUTO_UNZIP', 'AUTO'}
     COMPILE_KWARGS: typing.Dict[str, typing.Any] = {}
+    HANDLE_OTHER_ENVS_FLAG = '--zipapps'
 
 
 def refresh_dir(path):
@@ -105,7 +105,8 @@ def prepare_entry(cache_path: Path,
         'ignore_system_python_path': ignore_system_python_path,
         'has_main': bool(main),
         'import_main': 'import %s' % module if module else '',
-        'run_main': '%s.%s()' % (module, function) if function else ''
+        'run_main': '%s.%s()' % (module, function) if function else '',
+        'HANDLE_OTHER_ENVS_FLAG': Config.HANDLE_OTHER_ENVS_FLAG,
     }
     with open(Path(__file__).parent / '_entry_point.py', encoding='u8') as f:
         (cache_path / '__main__.py').write_text(f.read().format(**kwargs))
