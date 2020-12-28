@@ -76,6 +76,7 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
       3.  `module:function`
       4.  `package`
    2. the `main` arg of `zipapps.create_app`
+   3. WARNING: If the `--main` arg is set, `python3 app.pyz` will not be able to used as venv like `python3 app.pyz xxx.py`
 6. `--compress, -c`
    1. `Boolean` value, compress files with the deflate method or not.
    2. the `compressed` arg of `zipapps.create_app`
