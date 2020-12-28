@@ -59,50 +59,48 @@ def main():
                         default=Config.DEFAULT_OUTPUT_PATH,
                         help='The path of the output file, defaults to'
                         f' "{Config.DEFAULT_OUTPUT_PATH}".')
-    parser.add_argument('--python',
-                        '-p',
-                        dest='interpreter',
-                        default=None,
-                        help='The path of the Python interpreter to use '
-                        '(default: no shebang line).')
-    parser.add_argument('--main',
-                        '-m',
-                        default='',
-                        help='The main function of the application,'
-                        ' such as `package.module:function`')
+    parser.add_argument(
+        '--python',
+        '-p',
+        dest='interpreter',
+        default=None,
+        help='The path of the Python interpreter which will be '
+        'set as the `shebang line`, defaults to `None`. With shebang `/usr/bin/python3` you can run app with `./app.pyz` directly, no need for `python3 app.pyz`'
+    )
+    parser.add_argument(
+        '--main',
+        '-m',
+        default='',
+        help='The entry point function of the application, the '
+        '`valid format` is: `package.module:function` `package.module` `module:function` `package`'
+    )
     parser.add_argument('--compress',
                         '-c',
                         action='store_true',
-                        help='Compress files with the deflate method,'
-                        ' defaults to uncompressed.')
-    parser.add_argument('--includes',
-                        '--add',
-                        '-a',
-                        default='',
-                        help='The files/folders of given dir path'
-                        ' will be copied to `unzip_path`, '
-                        'which can be import from PYTHONPATH.'
-                        ' The path string will be splited by ",".')
+                        help='compress files with the deflate method or not.')
+    parser.add_argument(
+        '--includes',
+        '--add',
+        '-a',
+        default='',
+        help='The given paths will be copied to `cache_path` while packaging, '
+        'which can be used while running. The path strings will be splited by ",". '
+        'such as `my_package_dir,my_module.py,my_config.json`, often used for libs not from `pypi` or some special config files'
+    )
     parser.add_argument(
         '--unzip',
         '-u',
         default='',
-        help='The names (splited by `,` without ext like `bottle,aiohttp`, '
-        'or complete path like `bin/bottle.py,temp.py`)'
-        ' which need to be unzipped while running, for `.so/.pyd` '
-        'files(which can not be loaded by zipimport), '
-        'or packages with operations of static files. Support "*",'
-        'if unzip is set to "*", then will unzip all files and folders.')
+        help='The names which need to be unzipped while running, splited by "," '
+        '`without ext`, such as `bottle,aiohttp`, or the complete path like `bin/bottle.py,temp.py`. For `.so/.pyd` files(which can not be loaded by zipimport), or packages with operations of static files. if unzip is set to "*", then will unzip all files and folders. if unzip is set to **AUTO**, then will add the `.pyd` and `.so` files automatically.'
+    )
     parser.add_argument(
         '--unzip-path',
         '-up',
         default='',
-        help='If `unzip` arg is not null, cache files will be '
-        f'unzipped to the given path. Defaults to {Config.DEFAULT_UNZIP_CACHE_PATH}, support '
-        'prefix `TEMP/HOME/SELF` as internal variables. And you can also overwrite it'
-        ' with environment variable `ZIPAPPS_CACHE` or `UNZIP_PATH` while running.'
-        ' `TEMP` means `tempfile.gettempdir()`, `HOME` means `Path.home()`, '
-        '`SELF` means `.pyz` file path.')
+        help='If `unzip` arg is not null, cache files will be unzipped to the '
+        'given path while running. Defaults to `zipapps_cache`, support some internal variables: `TEMP/HOME/SELF` as internal variables, for example `HOME/zipapps_cache`. `TEMP` means `tempfile.gettempdir()`, `HOME` means `Path.home()`, `SELF` means `.pyz` file path.'
+    )
     parser.add_argument(
         '-cc',
         '--pyc',
@@ -139,7 +137,7 @@ def main():
         '-spp',
         action='store_true',
         dest='ignore_system_python_path',
-        help='Ignore global PYTHONPATH, only use app_unzip_cache and app.pyz.')
+        help='Ignore global PYTHONPATH, only use zipapps_cache and app.pyz.')
     parser.add_argument(
         '-b',
         '--build-id',
