@@ -126,13 +126,14 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
 
 1. `--zipapps`
    1. including some other pyz into PYTHONPATH
-   2. for example
-   3. building
-      1. `python3 -m zipapps -o six.pyz six`
-      2. `python3 -m zipapps -o psutil.pyz -u AUTO psutil`
-      3. `python3 -m zipapps -o bottle.pyz bottle`
-   4. run
-      1. `python3 six.pyz --zipapps=psutil.pyz,bottle.pyz -c "import psutil, bottle"`
+   2. often be used as `multiple venv combination`
+   3. for example
+      1. building
+         1. `python3 -m zipapps -o six.pyz six`
+         2. `python3 -m zipapps -o psutil.pyz -u AUTO psutil`
+         3. `python3 -m zipapps -o bottle.pyz bottle`
+      2. run
+         1. `python3 six.pyz --zipapps=psutil.pyz,bottle.pyz -c "import psutil, bottle"`
 
 
 # Changelogs
