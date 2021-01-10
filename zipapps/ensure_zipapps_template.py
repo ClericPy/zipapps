@@ -13,34 +13,34 @@ def prepare_path():
     python_path_list = [str(zip_file_path)]
     unzip = os.environ.get('ZIPAPPS_UNZIP') or r'''{unzip}'''
     if unzip:
-        _temp_folder = os.environ.get('ZIPAPPS_CACHE') or os.environ.get(
+        _cache_folder = os.environ.get('ZIPAPPS_CACHE') or os.environ.get(
             'UNZIP_PATH') or r'''{unzip_path}'''
-        if _temp_folder.startswith('HOME'):
-            _temp_folder_path = Path.home() / (_temp_folder[4:].lstrip('/\\'))
-        elif _temp_folder.startswith('SELF'):
-            _temp_folder_path = zip_file_path.parent / (
-                _temp_folder[4:].lstrip('/\\'))
-        elif _temp_folder.startswith('TEMP'):
-            _temp_folder_path = Path(
-                gettempdir()) / (_temp_folder[4:].lstrip('/\\'))
+        if _cache_folder.startswith('HOME'):
+            _cache_folder_path = Path.home() / (_cache_folder[4:].lstrip('/\\'))
+        elif _cache_folder.startswith('SELF'):
+            _cache_folder_path = zip_file_path.parent / (
+                _cache_folder[4:].lstrip('/\\'))
+        elif _cache_folder.startswith('TEMP'):
+            _cache_folder_path = Path(
+                gettempdir()) / (_cache_folder[4:].lstrip('/\\'))
         else:
-            _temp_folder_path = Path(_temp_folder)
-        _temp_folder_path = _temp_folder_path / zip_file_path.stem
-        _temp_folder_abs_path = str(_temp_folder_path.absolute())
-        python_path_list.insert(0, _temp_folder_abs_path)
+            _cache_folder_path = Path(_cache_folder)
+        _cache_folder_path = _cache_folder_path / zip_file_path.stem
+        _cache_folder_abs_path = str(_cache_folder_path.absolute())
+        python_path_list.insert(0, _cache_folder_abs_path)
         ts_file_name = '_zip_time_{ts}'
-        if not (_temp_folder_path / ts_file_name).is_file():
-            # check timestamp difference by file name, need to refresh _temp_folder
+        if not (_cache_folder_path / ts_file_name).is_file():
+            # check timestamp difference by file name, need to refresh _cache_folder
             # rm the folder
             for _ in range(3):
                 try:
-                    if not _temp_folder_path.is_dir():
+                    if not _cache_folder_path.is_dir():
                         break
                     # remove the exist folder
-                    rmtree(_temp_folder_path)
+                    rmtree(_cache_folder_path)
                 except FileNotFoundError:
                     break
-            _temp_folder_path.mkdir(parents=True)
+            _cache_folder_path.mkdir(parents=True)
             _need_unzip_names = unzip.split(',')
             _need_unzip_names.append(ts_file_name)
             with ZipFile(zip_file_path, "r") as zf:
@@ -48,7 +48,7 @@ def prepare_path():
                     file_dir_name = os.path.splitext(
                         member.filename.split('/')[0])[0]
                     if unzip == '*' or member.filename in _need_unzip_names or file_dir_name in _need_unzip_names:
-                        zf.extract(member, path=_temp_folder_abs_path)
+                        zf.extract(member, path=_cache_folder_abs_path)
     sep = ';' if sys.platform == 'win32' else ':'
     ignore_system_python_path = {ignore_system_python_path}
     if ignore_system_python_path:
