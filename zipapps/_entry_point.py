@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 from runpy import run_module, run_path
 from subprocess import run
+from tempfile import gettempdir
 
 from activate_zipapps import activate
 
@@ -26,9 +27,27 @@ def activate_envs():
                 break
         if index_to_pop is not None:
             sys.argv.pop(index_to_pop)
+    if not env_paths:
+        env_paths = r'''{env_paths}'''
     if env_paths:
         for env_path in env_paths.split(','):
-            activate(env_path)
+            _env_path = ensure_env_path(env_path)
+            if not _env_path.is_file():
+                raise RuntimeError('%s is not exist.' % _env_path)
+            activate(_env_path)
+
+
+def ensure_env_path(env_path):
+    if env_path.startswith('HOME'):
+        env_path_path = Path.home() / (env_path[4:].lstrip('/\\'))
+    elif env_path.startswith('SELF'):
+        env_path_path = Path(__file__).parent.parent / (
+            env_path[4:].lstrip('/\\'))
+    elif env_path.startswith('TEMP'):
+        env_path_path = Path(gettempdir()) / (env_path[4:].lstrip('/\\'))
+    else:
+        env_path_path = Path(env_path)
+    return env_path_path
 
 
 def main():

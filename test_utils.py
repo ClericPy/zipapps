@@ -15,7 +15,7 @@ from zipapps.main import create_app
 def _clean_paths():
     for p in [
             'mock_main.py', 'app.pyz', 'bottle.pyz', 'bottle_env.pyz',
-            'psutil.pyz', '_requirements.txt', 'six.pyz'
+            'psutil.pyz', '_requirements.txt', 'six.pyz', 'entry_test.py'
     ]:
         try:
             Path(p).unlink()
@@ -35,7 +35,6 @@ def _clean_paths():
 
 
 def test_create_app_function():
-    # no change args like interpreter, compressed will not test
 
     # test build_id
     _clean_paths()
@@ -335,6 +334,69 @@ def test_create_app_function():
     # print(stdout_output)
     assert re.search(r'six.pyz[\\/]six.py', stdout_output) and re.search(
         r'psutil[\\/]psutil[\\/]__init__.py', stdout_output)
+
+    # test --zipapps while building
+    _clean_paths()
+    # test for simple usage
+    create_app(pip_args=['six'], output='six.pyz')
+    Path('./entry_test.py').write_text('import six;print(six.__file__)')
+    _ = subprocess.Popen(
+        [
+            sys.executable, '-m', 'zipapps', '--zipapps', 'six.pyz', '-m',
+            'entry_test', '-a', 'entry_test.py'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    assert not any(_)
+    output, error = subprocess.Popen(
+        [sys.executable, './app.pyz'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    assert not error
+    assert b'six.pyz' in output
+
+    _clean_paths()
+    # test for SELF arg
+    create_app(pip_args=['six'], output='six.pyz')
+    Path('./entry_test.py').write_text('import six;print(six.__file__)')
+    _ = subprocess.Popen(
+        [
+            sys.executable, '-m', 'zipapps', '--zipapps', 'SELF/six.pyz', '-m',
+            'entry_test', '-a', 'entry_test.py'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    assert not any(_)
+    output, error = subprocess.Popen(
+        [sys.executable, './app.pyz'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    assert not error
+    assert b'six.pyz' in output
+
+    _clean_paths()
+    # test for without --zipapps
+    create_app(pip_args=['six'], output='six.pyz')
+    Path('./entry_test.py').write_text('import six;print(six.__file__)')
+    _ = subprocess.Popen(
+        [
+            sys.executable, '-m', 'zipapps', '-m', 'entry_test', '-a',
+            'entry_test.py'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    assert not any(_)
+    output, error = subprocess.Popen(
+        [sys.executable, './app.pyz'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    assert b'six.pyz' not in output
 
 
 def test_create_app_command_line():

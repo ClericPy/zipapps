@@ -6,6 +6,19 @@ from tempfile import gettempdir
 from zipfile import ZipFile
 
 
+def ensure_path(path):
+    if path.startswith('HOME'):
+        _cache_folder_path = Path.home() / (path[4:].lstrip('/\\'))
+    elif path.startswith('SELF'):
+        _cache_folder_path = Path(__file__).parent.parent / (
+            path[4:].lstrip('/\\'))
+    elif path.startswith('TEMP'):
+        _cache_folder_path = Path(gettempdir()) / (path[4:].lstrip('/\\'))
+    else:
+        _cache_folder_path = Path(path)
+    return _cache_folder_path
+
+
 def prepare_path():
     """Template code for zipapps entry point. Run with current PYTHONPATH"""
     # PYTHONPATH=./app.pyz
@@ -15,16 +28,8 @@ def prepare_path():
     if unzip:
         _cache_folder = os.environ.get('ZIPAPPS_CACHE') or os.environ.get(
             'UNZIP_PATH') or r'''{unzip_path}'''
-        if _cache_folder.startswith('HOME'):
-            _cache_folder_path = Path.home() / (_cache_folder[4:].lstrip('/\\'))
-        elif _cache_folder.startswith('SELF'):
-            _cache_folder_path = zip_file_path.parent / (
-                _cache_folder[4:].lstrip('/\\'))
-        elif _cache_folder.startswith('TEMP'):
-            _cache_folder_path = Path(
-                gettempdir()) / (_cache_folder[4:].lstrip('/\\'))
-        else:
-            _cache_folder_path = Path(_cache_folder)
+
+        _cache_folder_path = ensure_path(_cache_folder)
         _cache_folder_path = _cache_folder_path / zip_file_path.stem
         _cache_folder_abs_path = str(_cache_folder_path.absolute())
         python_path_list.insert(0, _cache_folder_abs_path)

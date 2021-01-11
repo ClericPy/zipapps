@@ -56,7 +56,8 @@ def prepare_entry(cache_path: Path,
                   output_path: Path = None,
                   ignore_system_python_path=False,
                   main_shell=False,
-                  ts='None'):
+                  ts='None',
+                  env_paths: str = ''):
     unzip_names = unzip.split(',') if unzip else []
     warning_names: typing.Dict[str, dict] = {}
     for path in cache_path.iterdir():
@@ -107,6 +108,7 @@ def prepare_entry(cache_path: Path,
         'import_main': 'import %s' % module if module else '',
         'run_main': '%s.%s()' % (module, function) if function else '',
         'HANDLE_OTHER_ENVS_FLAG': Config.HANDLE_OTHER_ENVS_FLAG,
+        'env_paths': env_paths,
     }
     with open(Path(__file__).parent / '_entry_point.py', encoding='u8') as f:
         (cache_path / '__main__.py').write_text(f.read().format(**kwargs))
@@ -196,20 +198,23 @@ def build_exists(build_id_name: str, output_path: Path):
     return False
 
 
-def create_app(includes: str = '',
-               cache_path: str = None,
-               main: str = '',
-               output: str = Config.DEFAULT_OUTPUT_PATH,
-               interpreter: str = None,
-               compressed: bool = False,
-               shell: bool = False,
-               unzip: str = '',
-               unzip_path: str = '',
-               ignore_system_python_path=False,
-               main_shell=False,
-               pip_args: list = None,
-               compiled: bool = False,
-               build_id: str = ''):
+def create_app(
+    includes: str = '',
+    cache_path: str = None,
+    main: str = '',
+    output: str = Config.DEFAULT_OUTPUT_PATH,
+    interpreter: str = None,
+    compressed: bool = False,
+    shell: bool = False,
+    unzip: str = '',
+    unzip_path: str = '',
+    ignore_system_python_path=False,
+    main_shell=False,
+    pip_args: list = None,
+    compiled: bool = False,
+    build_id: str = '',
+    env_paths: str = '',
+):
     tmp_dir: tempfile.TemporaryDirectory = None
     try:
         output_path = Path(output)
@@ -226,15 +231,18 @@ def create_app(includes: str = '',
         if build_id_name:
             # make build_id file
             (_cache_path / build_id_name).touch()
-        prepare_entry(_cache_path,
-                      shell=shell,
-                      main=main,
-                      unzip=unzip,
-                      unzip_path=unzip_path,
-                      output_path=output_path,
-                      ignore_system_python_path=ignore_system_python_path,
-                      main_shell=main_shell,
-                      ts=set_timestamp(_cache_path))
+        prepare_entry(
+            _cache_path,
+            shell=shell,
+            main=main,
+            unzip=unzip,
+            unzip_path=unzip_path,
+            output_path=output_path,
+            ignore_system_python_path=ignore_system_python_path,
+            main_shell=main_shell,
+            ts=set_timestamp(_cache_path),
+            env_paths=env_paths,
+        )
         if compiled:
             if not unzip:
                 warn(
