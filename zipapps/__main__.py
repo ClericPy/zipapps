@@ -150,23 +150,34 @@ def main():
         'For example, you can set requirements.txt as your build_id by'
         ' `python3 -m zipapps -b requirements.txt -r requirements.txt` when you use pyz as venv.'
     )
+    parser.add_argument(
+        '--zipapps',
+        '--env-paths',
+        default='',
+        dest='env_paths',
+        help=
+        'Default --zipapps arg if it is not given while running. Support TEMP/HOME/SELF prefix.'
+    )
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()
-    return create_app(includes=args.includes,
-                      cache_path=args.cache_path,
-                      main=args.main,
-                      output=args.output,
-                      interpreter=args.interpreter,
-                      compressed=args.compress,
-                      shell=args.shell,
-                      unzip=args.unzip,
-                      unzip_path=args.unzip_path,
-                      ignore_system_python_path=args.ignore_system_python_path,
-                      main_shell=args.main_shell,
-                      pip_args=pip_args,
-                      compiled=args.compiled,
-                      build_id=args.build_id)
+    return create_app(
+        includes=args.includes,
+        cache_path=args.cache_path,
+        main=args.main,
+        output=args.output,
+        interpreter=args.interpreter,
+        compressed=args.compress,
+        shell=args.shell,
+        unzip=args.unzip,
+        unzip_path=args.unzip_path,
+        ignore_system_python_path=args.ignore_system_python_path,
+        main_shell=args.main_shell,
+        pip_args=pip_args,
+        compiled=args.compiled,
+        build_id=args.build_id,
+        env_paths=args.env_paths,
+    )
 
 
 if __name__ == "__main__":

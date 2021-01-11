@@ -86,8 +86,8 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
       2. if unzip is set to **AUTO**, then will add the `.pyd` and `.so` files automatically.
    2. the `unzip` arg of `zipapps.create_app`
 8. `--unzip-path, -up`
-   1. If `unzip` arg is not null, cache files will be unzipped to the given path while running. Defaults to `zipapps_cache`, support some internal variables:
-      1.  `TEMP/HOME/SELF` as internal variables, for example `HOME/zipapps_cache`
+   1. If `unzip` arg is not null, cache files will be unzipped to the given path while running. Defaults to `zipapps_cache`, support some internal variables as runtime args:
+      1.  `TEMP/HOME/SELF` as prefix, for example `HOME/zipapps_cache`
           1. `TEMP` means `tempfile.gettempdir()`
           2. `HOME` means `Path.home()`
           3. `SELF` means `.pyz` file path.
@@ -138,6 +138,10 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
 
 # Changelogs
 
+- 2021.01.11
+  - add `--zipapps` arg while building pyz files
+    - to activate some venv pyz with given paths while running it
+    - also support `TEMP/HOME/SELF` prefix, these internal variables are still runtime args.
 - 2020.12.27
   - Combile multiple `pyz` files, do like this:
     - python3 -m zipapps -o six.pyz six
