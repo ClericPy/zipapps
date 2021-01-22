@@ -85,6 +85,7 @@ Details:
 ## 2. Package your package folder into one zip file.
 
 2.1 The package `example` and the code of `__main__.py`
+
     └── example
         ├── __init__.py
         └── __main__.py
@@ -118,9 +119,10 @@ Details:
 ## 3. Package your code with requirements (bottle).
 
 3.1 The package `example` and the code of `__main__.py`
-    └── example
-        ├── __init__.py
-        └── __main__.py
+
+        └── example
+            ├── __init__.py
+            └── __main__.py
 
 ```python
 def main():
@@ -152,6 +154,7 @@ Details:
 ## 4. Package your code with the requirements which includes `.pyd/.so` files.
 
 4.1 The package `example` and the code of `__main__.py`
+
     └── example
         ├── __init__.py
         └── __main__.py
