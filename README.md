@@ -365,6 +365,9 @@ Details:
 
 # Changelogs
 
+- 2021.01.28
+  - fix bug: run .py file with run_path failed
+    - `python3 app.pyz xxx.py -a -b -c`
 - 2021.01.11
   - add `--zipapps` arg while building pyz files
     - to activate some venv pyz with given paths while running it
