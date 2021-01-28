@@ -366,8 +366,10 @@ Details:
 # Changelogs
 
 - 2021.01.28
-  - fix bug: run .py file with run_path failed
+  - fix bug: run `.py` file with run_path missing sys.argv
     - `python3 app.pyz xxx.py -a -b -c`
+  - add self pyz to `Release page`
+    - `zipapps.pyz`
 - 2021.01.11
   - add `--zipapps` arg while building pyz files
     - to activate some venv pyz with given paths while running it
