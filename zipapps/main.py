@@ -12,6 +12,7 @@ import zipapp
 from glob import glob
 from hashlib import md5
 from pathlib import Path
+from pkgutil import get_data
 from warnings import warn
 from zipfile import ZipFile
 
@@ -110,18 +111,16 @@ def prepare_entry(cache_path: Path,
         'HANDLE_OTHER_ENVS_FLAG': Config.HANDLE_OTHER_ENVS_FLAG,
         'env_paths': env_paths,
     }
-    with open(Path(__file__).parent / '_entry_point.py', encoding='u8') as f:
-        (cache_path / '__main__.py').write_text(f.read().format(**kwargs))
-    with open(Path(__file__).parent / 'ensure_zipapps_template.py',
-              encoding='u8') as f:
-        (cache_path / 'ensure_zipapps.py').write_text(f.read().format(**kwargs))
-    with open(Path(__file__).parent / 'activate_zipapps.py',
-              encoding='u8') as f:
-        code = f.read()
-        (cache_path / 'activate_zipapps.py').write_text(code)
-        code += '\n\nactivate()'
+    code = get_data('zipapps', '_entry_point.py').decode('u8')
+    (cache_path / '__main__.py').write_text(code.format(**kwargs))
+    code = get_data('zipapps', 'ensure_zipapps_template.py').decode('u8')
+    (cache_path / 'ensure_zipapps.py').write_text(code.format(**kwargs))
+    code = get_data('zipapps', 'activate_zipapps.py').decode('u8')
+    (cache_path / 'activate_zipapps.py').write_text(code)
+    code += '\n\nactivate()'
+    if output_name != 'zipapps':
         (cache_path / f'ensure_{output_name}.py').write_text(code)
-        (cache_path / f'ensure_zipapps_{output_name}.py').write_text(code)
+    (cache_path / f'ensure_zipapps_{output_name}.py').write_text(code)
 
 
 def clean_pip_cache(path):

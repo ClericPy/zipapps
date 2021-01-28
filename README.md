@@ -365,11 +365,13 @@ Details:
 
 # Changelogs
 
+- 2021.01.29
+  - fix packaging zipapps self
+    - `python3 -m zipapps -m zipapps.__main__:main -a zipapps -o zipapps.pyz`
+  - add `zipapps.pyz` to `release` page
 - 2021.01.28
   - fix bug: run `.py` file with run_path missing sys.argv
     - `python3 app.pyz xxx.py -a -b -c`
-  - add self pyz to `Release page`
-    - `zipapps.pyz`
 - 2021.01.11
   - add `--zipapps` arg while building pyz files
     - to activate some venv pyz with given paths while running it
