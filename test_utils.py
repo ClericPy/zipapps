@@ -43,6 +43,7 @@ def test_create_app_function():
     old_file = create_app(build_id='_requirements.txt',
                           pip_args=['-r', '_requirements.txt'])
     old_size = old_file.stat().st_size
+
     # test single file
     new_file1 = create_app(build_id='_requirements.txt',
                            pip_args=['-r', '_requirements.txt'])
@@ -398,12 +399,15 @@ def test_create_app_function():
     ).communicate()
     assert b'six.pyz' not in output
 
-
-def test_create_app_command_line():
-    """
-    TODO
-    """
-    pass
+    # test run_path
+    _clean_paths()
+    create_app(output='app.pyz')
+    Path('mock_main.py').write_text('import sys;print(__name__, sys.argv)')
+    output = subprocess.check_output('%s app.pyz mock_main.py --test-arg' %
+                                     sys.executable,
+                                     shell=True).decode()
+    # print(output)
+    assert '__main__' in output and '--test-arg' in output
 
 
 def main():
