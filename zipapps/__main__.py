@@ -155,9 +155,8 @@ def main():
         '--env-paths',
         default='',
         dest='env_paths',
-        help=
-        'Default --zipapps arg if it is not given while running. Support TEMP/HOME/SELF prefix.'
-    )
+        help='Default --zipapps arg if it is not given while running.'
+        ' Support TEMP/HOME/SELF prefix.')
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()
