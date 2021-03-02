@@ -19,6 +19,17 @@ def ensure_path(path):
     return _cache_folder_path
 
 
+def rm_dir(dir_path: Path):
+    for _ in range(3):
+        try:
+            if not dir_path.is_dir():
+                break
+            # remove the exist folder
+            rmtree(dir_path)
+        except FileNotFoundError:
+            break
+
+
 def prepare_path():
     """Template code for zipapps entry point. Run with current PYTHONPATH"""
     # PYTHONPATH=./app.pyz
@@ -37,14 +48,7 @@ def prepare_path():
         if not (_cache_folder_path / ts_file_name).is_file():
             # check timestamp difference by file name, need to refresh _cache_folder
             # rm the folder
-            for _ in range(3):
-                try:
-                    if not _cache_folder_path.is_dir():
-                        break
-                    # remove the exist folder
-                    rmtree(_cache_folder_path)
-                except FileNotFoundError:
-                    break
+            rm_dir(_cache_folder_path)
             _cache_folder_path.mkdir(parents=True)
             _need_unzip_names = unzip.split(',')
             _need_unzip_names.append(ts_file_name)

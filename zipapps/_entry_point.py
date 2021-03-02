@@ -10,6 +10,7 @@ from activate_zipapps import activate
 
 def activate_envs():
     activate()
+    # try to activate the --zipapps env paths
     HANDLE_OTHER_ENVS_FLAG = "{HANDLE_OTHER_ENVS_FLAG}"
     try:
         index = sys.argv.index(HANDLE_OTHER_ENVS_FLAG)

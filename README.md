@@ -14,6 +14,9 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
 # When to Use it?
    1. Package your code(package or model) into one zipped file. 
       1. sometimes togather with the requirements.
+      2. run from venv without unzip files, like `/venv/bin/python app.pyz`
+         1. which means the requirements(need to be unzipped) is installed in the `venv` folder, not in `pyz` file.
+         2. build your package into one `pyz` file with `-m package.module:function`
    2. Hadoop-Streaming's mapper & reducer scripts.
    3. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
       1. Easy to uploads a clean `standalone` zip file.
@@ -365,6 +368,8 @@ Details:
 
 # Changelogs
 
+- 2021.03.02
+  - fix auto-unzip nonsense folders while `-u AUTO` but no need to unzip any files
 - 2021.01.29
   - fix packaging zipapps self
     - `python3 -m zipapps -m zipapps.__main__:main -a zipapps -o zipapps.pyz`
