@@ -188,6 +188,16 @@ def test_create_app_function():
     aiohttp_unzipped = bool(list(Path('zipapps_cache').glob('**/aiohttp')))
     assert aiohttp_unzipped, 'test unzip failed, aiohttp should be unzipped'
     _clean_paths()
+    # test auto unzip without nonsense folder
+    app_path = create_app(unzip='AUTO_UNZIP')
+    output, _ = subprocess.Popen(
+        [sys.executable, str(app_path), '-V'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    no_cache_dir = not Path('zipapps_cache').is_dir()
+    assert no_cache_dir, 'test unzip failed, should not unzip anything'
+    _clean_paths()
     app_path = create_app(unzip='AUTO', pip_args=['aiohttp'])
     output, _ = subprocess.Popen(
         [sys.executable, str(app_path), '-V'],

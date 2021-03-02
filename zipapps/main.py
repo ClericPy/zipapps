@@ -59,7 +59,7 @@ def prepare_entry(cache_path: Path,
                   main_shell=False,
                   ts='None',
                   env_paths: str = ''):
-    unzip_names = unzip.split(',') if unzip else []
+    unzip_names = set(unzip.split(',')) if unzip else set()
     warning_names: typing.Dict[str, dict] = {}
     for path in cache_path.iterdir():
         _name_not_included = path.name not in unzip_names
@@ -76,12 +76,11 @@ def prepare_entry(cache_path: Path,
             if _name_not_included and path.stem not in unzip_names:
                 warning_names.setdefault(path.name, {})[path.suffix] = 1
     # remove the special keys from unzip_names
-    auto_unzip_keys = Config.AUTO_FIX_UNZIP_KEYS & set(unzip_names)
-    for key in auto_unzip_keys:
-        unzip_names.remove(key)
+    auto_unzip_keys = Config.AUTO_FIX_UNZIP_KEYS & unzip_names
+    unzip_names -= auto_unzip_keys
     if warning_names:
         if auto_unzip_keys:
-            unzip_names.extend(warning_names.keys())
+            unzip_names |= warning_names.keys()
         else:
             _fix_unzip_names = ",".join(warning_names.keys())
             msg = f'.pyd/.so files may not be imported correctly, set `--unzip={_fix_unzip_names}` to avoid it. {warning_names}'
