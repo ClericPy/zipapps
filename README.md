@@ -14,7 +14,7 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
 # When to Use it?
    1. Package your code(package or model) into one zipped file. 
       1. sometimes togather with the requirements.
-   2. Run with python interpreter from venv
+   2. Run with python interpreter from the venv path.
       1. which means the requirements(need to be unzipped) will be installed to the `venv` folder, not in `pyz` file.
       2. **build** your package into one `pyz` file with `-m package.module:function -p /venv/bin/python`.
       3. **run** the `pyz` file with `/venv/bin/python app.pyz` or `./app.pyz`.
