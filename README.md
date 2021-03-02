@@ -14,17 +14,18 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
 # When to Use it?
    1. Package your code(package or model) into one zipped file. 
       1. sometimes togather with the requirements.
-      2. run from venv without unzip files, like `/venv/bin/python app.pyz`
-         1. which means the requirements(need to be unzipped) is installed in the `venv` folder, not in `pyz` file.
-         2. build your package into one `pyz` file with `-m package.module:function`
-   2. Hadoop-Streaming's mapper & reducer scripts.
-   3. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
+   2. Run with python interpreter from venv
+      1. which means the requirements(need to be unzipped) will be installed to the `venv` folder, not in `pyz` file.
+      2. **build** your package into one `pyz` file with `-m package.module:function -p /venv/bin/python`.
+      3. **run** the `pyz` file with `/venv/bin/python app.pyz` or `./app.pyz`.
+   3. Hadoop-Streaming's mapper & reducer scripts.
+   4. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
       1. Easy to uploads a clean `standalone` zip file.
-   4. Distribute `zipapp` with embedded python.
-   5. Use as a requirements zip path, or some `venv` usages.
+   5. Distribute `zipapp` with embedded python.
+   6. Use as a requirements zip path, or some `venv` usages.
       1. `import sys;sys.path.insert(0, 'app.pyz')` (without .so/.pyd)
       2. `python3 app.pyz script.py`
-   6. Other usages need to be found, and enjoy yourself.
+   7. Other usages need to be found, and enjoy yourself.
 
 
 # Install & Quick Start
