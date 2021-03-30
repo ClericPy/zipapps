@@ -13,7 +13,6 @@ from glob import glob
 from hashlib import md5
 from pathlib import Path
 from pkgutil import get_data
-from warnings import warn
 from zipfile import ZipFile
 
 
@@ -26,6 +25,7 @@ class Config:
     AUTO_FIX_UNZIP_KEYS = {'AUTO_UNZIP', 'AUTO'}
     COMPILE_KWARGS: typing.Dict[str, typing.Any] = {}
     HANDLE_OTHER_ENVS_FLAG = '--zipapps'
+    LAZY_PIP_DIR_NAME = '_zipapps_lazy_pip'
 
 
 def refresh_dir(path):
@@ -49,16 +49,19 @@ def prepare_includes(includes, cache_path):
             raise RuntimeError('%s is not exist' % include_path.absolute())
 
 
-def prepare_entry(cache_path: Path,
-                  shell=False,
-                  main='',
-                  unzip='',
-                  unzip_path='',
-                  output_path: Path = None,
-                  ignore_system_python_path=False,
-                  main_shell=False,
-                  ts='None',
-                  env_paths: str = ''):
+def prepare_entry(
+    cache_path: Path,
+    shell=False,
+    main='',
+    unzip='',
+    unzip_path='',
+    output_path: Path = None,
+    ignore_system_python_path=False,
+    main_shell=False,
+    ts='None',
+    env_paths: str = '',
+    pip_args: list = None,
+):
     unzip_names = set(unzip.split(',')) if unzip else set()
     warning_names: typing.Dict[str, dict] = {}
     for path in cache_path.iterdir():
@@ -83,8 +86,8 @@ def prepare_entry(cache_path: Path,
             unzip_names |= warning_names.keys()
         else:
             _fix_unzip_names = ",".join(warning_names.keys())
-            msg = f'.pyd/.so files may not be imported correctly, set `--unzip={_fix_unzip_names}` to avoid it. {warning_names}'
-            warn(msg)
+            msg = f'WARNING: .pyd/.so files may not be imported correctly, set `--unzip={_fix_unzip_names}` to avoid it. {warning_names}\n'
+            sys.stderr.write(msg)
     new_unzip = ','.join(unzip_names)
     unzip = new_unzip
     output_path = output_path or Path(Config.DEFAULT_OUTPUT_PATH)
@@ -109,6 +112,8 @@ def prepare_entry(cache_path: Path,
         'run_main': '%s.%s()' % (module, function) if function else '',
         'HANDLE_OTHER_ENVS_FLAG': Config.HANDLE_OTHER_ENVS_FLAG,
         'env_paths': env_paths,
+        'LAZY_PIP_DIR_NAME': Config.LAZY_PIP_DIR_NAME,
+        'pip_args_repr': repr(pip_args),
     }
     code = get_data('zipapps', '_entry_point.py').decode('u8')
     (cache_path / '__main__.py').write_text(code.format(**kwargs))
@@ -131,17 +136,13 @@ def clean_pip_cache(path):
 
 
 def pip_install(path, pip_args):
-    if pip_args:
-        if '-t' in pip_args or '--target' in pip_args:
-            raise RuntimeError(
-                'target arg can be set with --cache-path to rewrite the zipapps cache path.'
-            )
-        shell_args = [
-            sys.executable, '-m', 'pip', 'install', '--target',
-            str(path.absolute())
-        ] + pip_args
-        subprocess.Popen(shell_args).wait()
-        clean_pip_cache(path)
+    shell_args = [
+        sys.executable, '-m', 'pip', 'install', '--target',
+        str(path.absolute())
+    ] + pip_args
+    with subprocess.Popen(shell_args) as proc:
+        proc.wait()
+    clean_pip_cache(path)
 
 
 def set_timestamp(_cache_path):
@@ -212,6 +213,7 @@ def create_app(
     compiled: bool = False,
     build_id: str = '',
     env_paths: str = '',
+    lazy_install: bool = False,
 ):
     tmp_dir: tempfile.TemporaryDirectory = None
     try:
@@ -225,7 +227,29 @@ def create_app(
             tmp_dir = tempfile.TemporaryDirectory()
             _cache_path = Path(tmp_dir.name)
         prepare_includes(includes, _cache_path)
-        pip_install(_cache_path, pip_args)
+        if pip_args:
+            if '-t' in pip_args or '--target' in pip_args:
+                raise RuntimeError(
+                    'target arg can be set with --cache-path to rewrite the zipapps cache path.'
+                )
+            if lazy_install:
+                sys.stderr.write(
+                    f'WARNING `unzip` arg has been changed from `{unzip}` to `*` while `lazy_install` is True\n'
+                )
+                unzip = '*'
+                # copy files to cache folder
+                _temp_pip_path = _cache_path / Config.LAZY_PIP_DIR_NAME
+                _temp_pip_path.mkdir(parents=True, exist_ok=True)
+                for index, arg in enumerate(pip_args):
+                    path = Path(arg)
+                    if path.is_file():
+                        new_path = _temp_pip_path / path.name
+                        shutil.copyfile(path, new_path)
+                        _r_path = Path(Config.LAZY_PIP_DIR_NAME) / path.name
+                        pip_args[index] = _r_path.as_posix()
+                pip_install(_temp_pip_path, ['pip'])
+            else:
+                pip_install(_cache_path, pip_args)
         if build_id_name:
             # make build_id file
             (_cache_path / build_id_name).touch()
@@ -240,11 +264,12 @@ def create_app(
             main_shell=main_shell,
             ts=set_timestamp(_cache_path),
             env_paths=env_paths,
+            pip_args=pip_args,
         )
         if compiled:
             if not unzip:
-                warn(
-                    'compiled .pyc files of __pycache__ folder may not work in zipapp, unless you unzip them.'
+                sys.stderr.write(
+                    'WARNING compiled .pyc files of __pycache__ folder may not work in zipapp, unless you unzip them.\n'
                 )
             compileall.compile_dir(_cache_path, **Config.COMPILE_KWARGS)
         _create_archive(_cache_path, output_path, interpreter, compressed)

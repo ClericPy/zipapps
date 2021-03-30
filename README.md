@@ -347,7 +347,11 @@ Details:
     1.  The string to skip duplicate builds, it can be the paths of files/folders which splited by ",", then the modify time will be used as build_id. If build_id contains `*`, will use `glob` function to get paths. For example, you can set requirements.txt as your build_id by `python3 -m zipapps -b requirements.txt -r requirements.txt` when you use pyz as venv.
         1.  *very rarely used* too too
     2.  the `build_id` arg of `zipapps.create_app`
-15. all the other (or `unknown`) args will be used by "pip install"
+15. `--zipapps, --env-paths`
+    1.  Default `--zipapps` arg if it is not given while running. Support TEMP/HOME/SELF prefix.
+16. `--delay, -d, --lazy-pip, --lazy-install, --lazy-pip-install`
+    1.  Install packages with pip while first running, which means requirements will not be install into pyz file.
+17. all the other (or `unknown`) args will be used by "pip install"
     1.  such as `-r requirements.txt`
     2.  such as `bottle aiohttp`
     3.  the `pip_args` arg of `zipapps.create_app`
@@ -369,6 +373,12 @@ Details:
 
 # Changelogs
 
+- 2021.03.31
+  - use `sys.stderr.write` instead of `warnings.warn`
+  - support `-d` for lazy pip install
+    - example: `python3 -m zipapps -d bottle -r requirements.txt`
+    - the `bottle` and other packages of `requirements.txt` will be install while first running
+    - this is useful for cross-platform distributions, which means `pyz` file size is much smaller
 - 2021.03.02
   - fix auto-unzip nonsense folders while `-u AUTO` but no need to unzip any files
 - 2021.01.29

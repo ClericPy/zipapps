@@ -1,6 +1,6 @@
 import zipimport
 from pathlib import Path
-from warnings import warn
+from sys import stderr
 
 
 def activate(path=None):
@@ -8,5 +8,5 @@ def activate(path=None):
     try:
         return zipimport.zipimporter(path).load_module("ensure_zipapps")
     except ImportError as err:
-        warn(f'activate failed for {err!r}')
+        stderr.write(f'WARNING: activate failed for {err!r}\n')
         raise err

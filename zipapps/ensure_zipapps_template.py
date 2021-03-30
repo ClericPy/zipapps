@@ -58,6 +58,19 @@ def prepare_path():
                         member.filename.split('/')[0])[0]
                     if unzip == '*' or member.filename in _need_unzip_names or file_dir_name in _need_unzip_names:
                         zf.extract(member, path=_cache_folder_abs_path)
+            # lazy pip install
+            lazy_pip_dir = _cache_folder_path / r'''{LAZY_PIP_DIR_NAME}'''
+            if lazy_pip_dir.is_dir():
+                sys.path.append(str(lazy_pip_dir))
+                import subprocess
+                shell_args = [
+                    sys.executable, '-m', 'pip', 'install', '--target',
+                    _cache_folder_abs_path
+                ] + {pip_args_repr}
+                with subprocess.Popen(shell_args,
+                                      cwd=_cache_folder_abs_path) as proc:
+                    proc.wait()
+                sys.path.remove(str(lazy_pip_dir))
     sep = ';' if sys.platform == 'win32' else ':'
     ignore_system_python_path = {ignore_system_python_path}
     if ignore_system_python_path:

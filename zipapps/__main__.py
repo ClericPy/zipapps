@@ -157,6 +157,16 @@ def main():
         dest='env_paths',
         help='Default --zipapps arg if it is not given while running.'
         ' Support TEMP/HOME/SELF prefix.')
+    parser.add_argument(
+        '--delay',
+        '-d',
+        '--lazy-pip',
+        '--lazy-install',
+        '--lazy-pip-install',
+        action='store_true',
+        dest='lazy_install',
+        help='Install packages with pip while running, which means '
+        'requirements will not be install into pyz file.')
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()
@@ -176,6 +186,7 @@ def main():
         compiled=args.compiled,
         build_id=args.build_id,
         env_paths=args.env_paths,
+        lazy_install=args.lazy_install,
     )
 
 
