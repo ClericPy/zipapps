@@ -345,6 +345,7 @@ def test_create_app_function():
     # print(stdout_output)
     assert re.search(r'six.pyz[\\/]six.py', stdout_output) and re.search(
         r'psutil[\\/]psutil[\\/]__init__.py', stdout_output)
+    os.environ.pop('UNZIP_PATH')
 
     # test --zipapps while building
     _clean_paths()
@@ -418,6 +419,26 @@ def test_create_app_function():
                                      shell=True).decode()
     # print(output)
     assert '__main__' in output and '--test-arg' in output
+
+    # test lazy pip install
+    _clean_paths()
+    mock_requirements = Path('_requirements.txt')
+    mock_requirements.write_text('six')
+    app_path = create_app(lazy_install=True,
+                          pip_args=['bottle', '-r', '_requirements.txt'])
+    stdout_output, stderr_output = subprocess.Popen(
+        [
+            sys.executable,
+            str(app_path), '-c',
+            'import six,bottle;print(six.__file__, bottle.__file__)'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    # print(stdout_output, stderr_output)
+    assert b'Installing collected packages' in stdout_output
+    assert stdout_output.count(b'zipapps_cache') == 2, stdout_output.count(
+        b'zipapps_cache')
 
 
 def main():
