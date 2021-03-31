@@ -234,7 +234,7 @@ def create_app(
                 )
             if lazy_install:
                 sys.stderr.write(
-                    f'WARNING `unzip` arg has been changed from `{unzip}` to `*` while `lazy_install` is True\n'
+                    f'WARNING: `unzip` arg has been changed `{unzip}` => `*` for `lazy_install` is True\n'
                 )
                 unzip = '*'
                 # copy files to cache folder
@@ -247,7 +247,11 @@ def create_app(
                         shutil.copyfile(path, new_path)
                         _r_path = Path(Config.LAZY_PIP_DIR_NAME) / path.name
                         pip_args[index] = _r_path.as_posix()
-                pip_install(_temp_pip_path, ['pip'])
+                if not unzip_path:
+                    sys.stderr.write(
+                        f'WARNING: unzip path has been set to `SELF/{Config.DEFAULT_UNZIP_CACHE_PATH}` by default for `lazy_install` is True.\n'
+                    )
+                    unzip_path = f'SELF/{Config.DEFAULT_UNZIP_CACHE_PATH}'
             else:
                 pip_install(_cache_path, pip_args)
         if build_id_name:
@@ -269,7 +273,7 @@ def create_app(
         if compiled:
             if not unzip:
                 sys.stderr.write(
-                    'WARNING compiled .pyc files of __pycache__ folder may not work in zipapp, unless you unzip them.\n'
+                    'WARNING: compiled .pyc files of __pycache__ folder may not work in zipapp, unless you unzip them.\n'
                 )
             compileall.compile_dir(_cache_path, **Config.COMPILE_KWARGS)
         _create_archive(_cache_path, output_path, interpreter, compressed)
