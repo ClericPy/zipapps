@@ -373,6 +373,9 @@ Details:
 
 # Changelogs
 
+- 2021.04.01
+  - use `ensurepip` instead of install `pip` while running with `lazy-install`
+  - `unzip_path` has been set to `SELF/zipapps_cache` by default when `lazy_install` is `True`
 - 2021.03.31
   - use `sys.stderr.write` instead of `warnings.warn`
   - support `-d` for lazy pip install
