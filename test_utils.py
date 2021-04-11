@@ -440,6 +440,21 @@ def test_create_app_function():
     assert stdout_output.count(b'zipapps_cache') == 2, stdout_output.count(
         b'zipapps_cache')
 
+    # test sys_path
+    _clean_paths()
+    # pip install by given --target
+    args = [
+        sys.executable, '-m', 'pip', 'install', 'bottle', '-t', './bottle_env'
+    ]
+    subprocess.Popen(args=args).wait()
+    mock_requirement = Path('_requirements.txt')
+    mock_requirement.write_text('bottle')
+    old_file = create_app(sys_paths='SELF/bottle_env')
+    output = subprocess.check_output([
+        sys.executable, 'app.pyz', '-c', "import bottle;print(bottle.__file__)"
+    ]).decode()
+    assert 'bottle_env' in output
+
 
 def main():
     """

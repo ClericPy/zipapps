@@ -34,7 +34,7 @@ def prepare_path():
     """Template code for zipapps entry point. Run with current PYTHONPATH"""
     # PYTHONPATH=./app.pyz
     zip_file_path = Path(__file__).parent.absolute()
-    python_path_list = [str(zip_file_path)]
+    _zipapps_python_path_list = [str(zip_file_path)]
     unzip = os.environ.get('ZIPAPPS_UNZIP') or r'''{unzip}'''
     if unzip:
         _cache_folder = os.environ.get('ZIPAPPS_CACHE') or os.environ.get(
@@ -42,8 +42,8 @@ def prepare_path():
 
         _cache_folder_path = ensure_path(_cache_folder)
         _cache_folder_path = _cache_folder_path / zip_file_path.stem
-        _cache_folder_abs_path = str(_cache_folder_path.absolute())
-        python_path_list.insert(0, _cache_folder_abs_path)
+        _cache_folder_path_str = str(_cache_folder_path.absolute())
+        _zipapps_python_path_list.insert(0, _cache_folder_path_str)
         ts_file_name = '_zip_time_{ts}'
         if not (_cache_folder_path / ts_file_name).is_file():
             # check timestamp difference by file name, need to refresh _cache_folder
@@ -57,7 +57,7 @@ def prepare_path():
                     file_dir_name = os.path.splitext(
                         member.filename.split('/')[0])[0]
                     if unzip == '*' or member.filename in _need_unzip_names or file_dir_name in _need_unzip_names:
-                        zf.extract(member, path=_cache_folder_abs_path)
+                        zf.extract(member, path=_cache_folder_path_str)
             # lazy pip install
             lazy_pip_dir = _cache_folder_path / r'''{LAZY_PIP_DIR_NAME}'''
             if lazy_pip_dir.is_dir():
@@ -69,23 +69,31 @@ def prepare_path():
                 import subprocess
                 shell_args = [
                     sys.executable, '-m', 'pip', 'install', '--target',
-                    _cache_folder_abs_path
+                    _cache_folder_path_str
                 ] + {pip_args_repr}
                 with subprocess.Popen(shell_args,
-                                      cwd=_cache_folder_abs_path) as proc:
+                                      cwd=_cache_folder_path_str) as proc:
                     proc.wait()
     sep = ';' if sys.platform == 'win32' else ':'
     ignore_system_python_path = {ignore_system_python_path}
+    _new_sys_paths = r'''{sys_paths}'''.strip()
+    if _new_sys_paths:
+        new_sys_paths = [str(ensure_path(p)) for p in _new_sys_paths.split(',')]
+    else:
+        new_sys_paths = []
     if ignore_system_python_path:
         sys.path.clear()
         # env of Popen is not valid for win32 platform, use os.environ instead.
-        os.environ['PYTHONPATH'] = sep.join(python_path_list)
+        _new_paths = _zipapps_python_path_list + new_sys_paths
     else:
-        os.environ['PYTHONPATH'] = sep.join(python_path_list) + sep + (
-            os.environ.get('PYTHONPATH') or '')
+        _old_path = os.environ.get('PYTHONPATH') or ''
+        _new_paths = _zipapps_python_path_list + [_old_path] + new_sys_paths
+    os.environ['PYTHONPATH'] = sep.join(_new_paths)
     # let the dir path first
-    paths = [path for path in python_path_list if path not in sys.path]
-    sys.path = paths + sys.path
+    zipapps_paths = [
+        path for path in _zipapps_python_path_list if path not in sys.path
+    ]
+    sys.path = zipapps_paths + sys.path + new_sys_paths
 
 
 prepare_path()

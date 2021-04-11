@@ -373,6 +373,11 @@ Details:
 
 # Changelogs
 
+- 2021.04.11
+  - add `--sys-paths` to include new paths of sys.path
+    - support TEMP/HOME/SELF prefix, separated by commas
+    - sometimes be used for separating pyz code from requirements
+      - requirements often be installed by `pip install xxx -t $SOME_PATH`
 - 2021.04.01
   - use `ensurepip` instead of install `pip` while running with `lazy-install`
   - `unzip_path` has been set to `SELF/zipapps_cache` by default when `lazy_install` is `True`
