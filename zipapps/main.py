@@ -61,6 +61,7 @@ def prepare_entry(
     ts='None',
     env_paths: str = '',
     pip_args: list = None,
+    sys_paths: str = '',
 ):
     unzip_names = set(unzip.split(',')) if unzip else set()
     warning_names: typing.Dict[str, dict] = {}
@@ -114,6 +115,7 @@ def prepare_entry(
         'env_paths': env_paths,
         'LAZY_PIP_DIR_NAME': Config.LAZY_PIP_DIR_NAME,
         'pip_args_repr': repr(pip_args),
+        'sys_paths': sys_paths,
     }
     code = get_data('zipapps', '_entry_point.py').decode('u8')
     (cache_path / '__main__.py').write_text(code.format(**kwargs))
@@ -214,6 +216,7 @@ def create_app(
     build_id: str = '',
     env_paths: str = '',
     lazy_install: bool = False,
+    sys_paths: str = '',
 ):
     tmp_dir: tempfile.TemporaryDirectory = None
     try:
@@ -269,6 +272,7 @@ def create_app(
             ts=set_timestamp(_cache_path),
             env_paths=env_paths,
             pip_args=pip_args,
+            sys_paths=sys_paths,
         )
         if compiled:
             if not unzip:
