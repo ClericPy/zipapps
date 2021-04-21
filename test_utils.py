@@ -439,6 +439,19 @@ def test_create_app_function():
     assert b'Installing collected packages' in stdout_output
     assert stdout_output.count(b'zipapps_cache') == 2, stdout_output.count(
         b'zipapps_cache')
+    app_path = create_app(lazy_install=True,
+                          pip_args=['bottle', '-r', '_requirements.txt'])
+    stdout_output, stderr_output = subprocess.Popen(
+        [
+            sys.executable,
+            str(app_path), '-c',
+            'import six,bottle;print(six.__file__, bottle.__file__)'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    # print(stdout_output, stderr_output)
+    assert b'already exists' in stderr_output
 
     # test sys_path
     _clean_paths()
