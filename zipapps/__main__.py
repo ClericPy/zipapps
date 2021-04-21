@@ -167,6 +167,15 @@ def main():
         dest='lazy_install',
         help='Install packages with pip while running, which means '
         'requirements will not be install into pyz file.')
+    parser.add_argument(
+        '-pva',
+        '--python-version-accuracy',
+        '--python-version-slice',
+        default='2',
+        dest='python_version_slice',
+        help='Only work for lazy-install mode, then `pip` target folders differ '
+        'according to sys.version_info[:_slice], defaults to 2, which means '
+        '3.8.3 equals to 3.8.4 for same version accuracy 3.8')
     parser.add_argument('--sys-paths',
                         '--sys-path',
                         '--py-path',
@@ -196,6 +205,7 @@ def main():
         env_paths=args.env_paths,
         lazy_install=args.lazy_install,
         sys_paths=args.sys_paths,
+        python_version_slice=int(args.python_version_slice),
     )
 
 

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 import sys
 from pathlib import Path
@@ -19,15 +21,27 @@ def ensure_path(path):
     return _cache_folder_path
 
 
-def rm_dir(dir_path: Path):
+def rm_dir_and_file(path: Path):
     for _ in range(3):
         try:
-            if not dir_path.is_dir():
+            if path.is_dir():
+                rmtree(str(path.absolute()))
+            elif path.is_file():
+                path.unlink()
+            else:
                 break
-            # remove the exist folder
-            rmtree(dir_path)
         except FileNotFoundError:
             break
+    else:
+        return False
+    return True
+
+
+def clear_old_cache(_cache_folder_path: Path, LAZY_PIP_DIR_NAME=''):
+    for path in _cache_folder_path.glob('*'):
+        if path.name == LAZY_PIP_DIR_NAME:
+            continue
+        rm_dir_and_file(path)
 
 
 def prepare_path():
@@ -42,14 +56,25 @@ def prepare_path():
 
         _cache_folder_path = ensure_path(_cache_folder)
         _cache_folder_path = _cache_folder_path / zip_file_path.stem
+        _cache_folder_path.mkdir(parents=True, exist_ok=True)
         _cache_folder_path_str = str(_cache_folder_path.absolute())
         _zipapps_python_path_list.insert(0, _cache_folder_path_str)
         ts_file_name = '_zip_time_{ts}'
+        LAZY_PIP_DIR_NAME = r'''{LAZY_PIP_DIR_NAME}'''
+        if LAZY_PIP_DIR_NAME:
+            import platform
+            lazy_pip_dir = _cache_folder_path / LAZY_PIP_DIR_NAME
+            # pip target isolation with by python version and platform
+            platform_name = (platform.system() or '-')
+            version_name = '.'.join(
+                map(str, sys.version_info[:{python_version_slice}]))
+            _pip_target = lazy_pip_dir / version_name / platform_name
+            lazy_pip_dir_str = str(_pip_target.absolute())
+            _zipapps_python_path_list.insert(1, lazy_pip_dir_str)
         if not (_cache_folder_path / ts_file_name).is_file():
             # check timestamp difference by file name, need to refresh _cache_folder
             # rm the folder
-            rm_dir(_cache_folder_path)
-            _cache_folder_path.mkdir(parents=True)
+            clear_old_cache(_cache_folder_path, LAZY_PIP_DIR_NAME)
             _need_unzip_names = unzip.split(',')
             _need_unzip_names.append(ts_file_name)
             with ZipFile(zip_file_path, "r") as zf:
@@ -59,8 +84,7 @@ def prepare_path():
                     if unzip == '*' or member.filename in _need_unzip_names or file_dir_name in _need_unzip_names:
                         zf.extract(member, path=_cache_folder_path_str)
             # lazy pip install
-            lazy_pip_dir = _cache_folder_path / r'''{LAZY_PIP_DIR_NAME}'''
-            if lazy_pip_dir.is_dir():
+            if LAZY_PIP_DIR_NAME and lazy_pip_dir.is_dir():
                 try:
                     import pip
                 except ImportError:
@@ -69,7 +93,7 @@ def prepare_path():
                 import subprocess
                 shell_args = [
                     sys.executable, '-m', 'pip', 'install', '--target',
-                    _cache_folder_path_str
+                    lazy_pip_dir_str
                 ] + {pip_args_repr}
                 with subprocess.Popen(shell_args,
                                       cwd=_cache_folder_path_str) as proc:

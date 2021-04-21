@@ -373,6 +373,18 @@ Details:
 
 # Changelogs
 
+- 2021.04.22
+  - update the lazy_install mode (`-d`)
+    - simple use case:
+      - 1. `python -m zipapps -d six`
+      - 2. `python app.pyz -c "import six;print(six.__file__)"`
+    - it will not `rmtree` the `_zipapps_lazy_pip` folder for new build
+      - if you need to upgrade those requirements, use `-U` arg of pip
+      - lazy_install mode will install requirements with `pip install` while first running
+        - so you can just run like this to init its installation(`-m` not set): `python3 app.pyz -V`
+    - for now, `-d` is to server for the cross-platform and cross-python-version app
+      - pip target path is separated from different python version and system platform
+        - python version accurity can be reset with `-pva 5`, defaults to 2, means 3.8.3 and 3.8.4 are same `3.8`
 - 2021.04.11
   - add `--sys-paths` to include new paths of sys.path
     - support TEMP/HOME/SELF prefix, separated by commas

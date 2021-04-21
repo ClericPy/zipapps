@@ -62,6 +62,7 @@ def prepare_entry(
     env_paths: str = '',
     pip_args: list = None,
     sys_paths: str = '',
+    python_version_slice: int = 2,
 ):
     unzip_names = set(unzip.split(',')) if unzip else set()
     warning_names: typing.Dict[str, dict] = {}
@@ -116,6 +117,7 @@ def prepare_entry(
         'LAZY_PIP_DIR_NAME': Config.LAZY_PIP_DIR_NAME,
         'pip_args_repr': repr(pip_args),
         'sys_paths': sys_paths,
+        'python_version_slice': python_version_slice,
     }
     code = get_data('zipapps', '_entry_point.py').decode('u8')
     (cache_path / '__main__.py').write_text(code.format(**kwargs))
@@ -217,6 +219,7 @@ def create_app(
     env_paths: str = '',
     lazy_install: bool = False,
     sys_paths: str = '',
+    python_version_slice: int = 2,
 ):
     tmp_dir: tempfile.TemporaryDirectory = None
     try:
@@ -237,7 +240,7 @@ def create_app(
                 )
             if lazy_install:
                 sys.stderr.write(
-                    f'WARNING: `unzip` arg has been changed `{unzip}` => `*` for `lazy_install` is True\n'
+                    'WARNING: `unzip` has been changed to "*" while `lazy_install` is True.\n'
                 )
                 unzip = '*'
                 # copy files to cache folder
@@ -252,7 +255,7 @@ def create_app(
                         pip_args[index] = _r_path.as_posix()
                 if not unzip_path:
                     sys.stderr.write(
-                        f'WARNING: unzip path has been set to `SELF/{Config.DEFAULT_UNZIP_CACHE_PATH}` by default for `lazy_install` is True.\n'
+                        f'WARNING: unzip path has been set to `SELF/{Config.DEFAULT_UNZIP_CACHE_PATH}` while `lazy_install` is True and `unzip_path` is null.\n'
                     )
                     unzip_path = f'SELF/{Config.DEFAULT_UNZIP_CACHE_PATH}'
             else:
@@ -273,6 +276,7 @@ def create_app(
             env_paths=env_paths,
             pip_args=pip_args,
             sys_paths=sys_paths,
+            python_version_slice=python_version_slice,
         )
         if compiled:
             if not unzip:
