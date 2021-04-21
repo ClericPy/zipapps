@@ -262,6 +262,37 @@ Details:
     --zipapps:
         This arg will help you run some zipapp with given venv.pyz files, the paths is separated by commas.
 
+## 7. Package your code with lazy install mode, for a attempt of cross-platform.
+
+7.1 Here is `script.py` again again
+
+```python
+import six
+print(six.__file__)
+```
+
+6.2 Build the `script.pyz`, this is very fast without downloading and installing 3rd packages.
+
+> python3 -m zipapps -c -o script.pyz -a script.py -m script -d six
+
+6.3 Run this `.pyz` file, and the requirements will be installed while first running.
+
+> python3 script.pyz
+
+Output
+
+    Looking in indexes: https://pypi.xxx.com/simple/
+    Collecting six
+    Using cached https://xxx/packages/ee/ff/xxxx/six-1.15.0-py2.py3-none-any.whl (10 kB)
+    Installing collected packages: six
+    Successfully installed six-1.15.0
+    /tmp/zipapps_cache/script/_zipapps_lazy_pip/3.8/Linux/six.py
+
+Details:
+
+    -d:
+        Lazy install mode is useful for distributing your cross-platform apps.
+
 
 </details>
 
@@ -285,6 +316,8 @@ Details:
   - set the entry point
 - `-p /usr/bin/python3`
   - set the `shebang` line
+- `-d`
+  - lazy install mode, requirements will be installed with `pip` while first running
 
 Details: 
 1. `-h, --help`
