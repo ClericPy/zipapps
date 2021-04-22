@@ -412,6 +412,7 @@ Details:
     - remove repeated installation
       - `pip install` will execute only once for same `pip_args_md5`
       - `pip_args_md5` comes from pip_args string, including bytes of related files(like `requirements.txt`)
+  - logs of `pip install` will be redirected, from `stdout` to `stderr`
 - 2021.04.22
   - update the lazy_install mode (`-d`)
     - simple use case:
