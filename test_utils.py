@@ -437,8 +437,7 @@ def test_create_app_function():
     ).communicate()
     # print(stdout_output, stderr_output)
     assert b'Installing collected packages' in stderr_output, stderr_output
-    assert stderr_output.count(b'zipapps_cache') == 2, stderr_output.count(
-        b'zipapps_cache')
+    assert stdout_output.count(b'_zipapps_lazy_pip') == 2, stdout_output
     app_path = create_app(lazy_install=True,
                           pip_args=['bottle', '-r', '_requirements.txt'])
     stdout_output, stderr_output = subprocess.Popen(
@@ -451,7 +450,7 @@ def test_create_app_function():
         stdout=subprocess.PIPE,
     ).communicate()
     # print(stdout_output, stderr_output)
-    assert b'already exists' in stderr_output
+    assert b'Installing collected packages' not in stderr_output, stderr_output
 
     # test sys_path
     _clean_paths()
