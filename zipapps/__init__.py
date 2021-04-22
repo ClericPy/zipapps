@@ -2,4 +2,4 @@
 from .main import create_app
 from .activate_zipapps import activate
 __all__ = ['create_app', 'activate']
-__version__ = '2021.04.22'
+__version__ = '2021.04.23'
