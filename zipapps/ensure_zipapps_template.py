@@ -21,7 +21,7 @@ def ensure_path(path):
     return _cache_folder_path
 
 
-def rm_dir_and_file(path: Path):
+def rm_dir_or_file(path: Path):
     for _ in range(3):
         try:
             if path.is_dir():
@@ -41,7 +41,7 @@ def clear_old_cache(_cache_folder_path: Path, LAZY_PIP_DIR_NAME=''):
     for path in _cache_folder_path.glob('*'):
         if path.name == LAZY_PIP_DIR_NAME:
             continue
-        rm_dir_and_file(path)
+        rm_dir_or_file(path)
 
 
 def prepare_path():
@@ -61,16 +61,6 @@ def prepare_path():
         _zipapps_python_path_list.insert(0, _cache_folder_path_str)
         ts_file_name = '_zip_time_{ts}'
         LAZY_PIP_DIR_NAME = r'''{LAZY_PIP_DIR_NAME}'''
-        if LAZY_PIP_DIR_NAME:
-            import platform
-            lazy_pip_dir = _cache_folder_path / LAZY_PIP_DIR_NAME
-            # pip target isolation with by python version and platform
-            platform_name = (platform.system() or '-')
-            version_name = '.'.join(
-                map(str, sys.version_info[:{python_version_slice}]))
-            _pip_target = lazy_pip_dir / version_name / platform_name
-            lazy_pip_dir_str = str(_pip_target.absolute())
-            _zipapps_python_path_list.insert(1, lazy_pip_dir_str)
         if not (_cache_folder_path / ts_file_name).is_file():
             # check timestamp difference by file name, need to refresh _cache_folder
             # rm the folder
@@ -83,21 +73,42 @@ def prepare_path():
                         member.filename.split('/')[0])[0]
                     if unzip == '*' or member.filename in _need_unzip_names or file_dir_name in _need_unzip_names:
                         zf.extract(member, path=_cache_folder_path_str)
-            # lazy pip install
-            if LAZY_PIP_DIR_NAME and lazy_pip_dir.is_dir():
-                try:
-                    import pip
-                except ImportError:
-                    import ensurepip
-                    ensurepip.bootstrap()
-                import subprocess
-                shell_args = [
-                    sys.executable, '-m', 'pip', 'install', '--target',
-                    lazy_pip_dir_str
-                ] + {pip_args_repr}
-                with subprocess.Popen(shell_args,
-                                      cwd=_cache_folder_path_str) as proc:
-                    proc.wait()
+        if LAZY_PIP_DIR_NAME:
+            import platform
+
+            pip_args = {pip_args_repr}
+            pip_args_md5 = '{pip_args_md5}'
+            lazy_pip_dir = _cache_folder_path / LAZY_PIP_DIR_NAME
+            if lazy_pip_dir.is_dir():
+                # pip target isolation with by python version and platform
+                platform_name = (platform.system() or '-')
+                py_version = '.'.join(
+                    map(str, sys.version_info[:{python_version_slice}]))
+                target_name = '%s_%s' % (py_version, platform_name)
+                _pip_target = lazy_pip_dir / target_name
+                _pip_target.mkdir(parents=True, exist_ok=True)
+                lazy_pip_dir_str = str(_pip_target.absolute())
+                _zipapps_python_path_list.insert(0, lazy_pip_dir_str)
+                if not (_pip_target / pip_args_md5).is_file():
+                    # rm old requirements
+                    rm_dir_or_file(_pip_target)
+                    _pip_target.mkdir(parents=True, exist_ok=True)
+                    try:
+                        import pip
+                    except ImportError:
+                        import ensurepip
+                        ensurepip.bootstrap()
+                    import subprocess
+                    shell_args = [
+                        sys.executable, '-m', 'pip', 'install', '--target',
+                        lazy_pip_dir_str
+                    ] + pip_args
+                    with subprocess.Popen(shell_args,
+                                          cwd=_cache_folder_path_str,
+                                          stdout=sys.stderr) as proc:
+                        proc.wait()
+                    # avoid duplicated installation
+                    (_pip_target / pip_args_md5).touch()
     sep = ';' if sys.platform == 'win32' else ':'
     ignore_system_python_path = {ignore_system_python_path}
     _new_sys_paths = r'''{sys_paths}'''.strip()
