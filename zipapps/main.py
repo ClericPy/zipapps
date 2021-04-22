@@ -28,6 +28,10 @@ class Config:
     LAZY_PIP_DIR_NAME = '_zipapps_lazy_pip'
 
 
+def _log(text):
+    sys.stderr.write(f'{text}\n')
+
+
 def refresh_dir(path):
     """clean up files in dir path"""
     if path.is_dir():
@@ -63,6 +67,7 @@ def prepare_entry(
     pip_args: list = None,
     sys_paths: str = '',
     python_version_slice: int = 2,
+    pip_args_md5: str = '',
 ):
     unzip_names = set(unzip.split(',')) if unzip else set()
     warning_names: typing.Dict[str, dict] = {}
@@ -88,8 +93,8 @@ def prepare_entry(
             unzip_names |= warning_names.keys()
         else:
             _fix_unzip_names = ",".join(warning_names.keys())
-            msg = f'WARNING: .pyd/.so files may not be imported correctly, set `--unzip={_fix_unzip_names}` to avoid it. {warning_names}\n'
-            sys.stderr.write(msg)
+            msg = f'WARNING: .pyd/.so files may not be imported correctly, set `--unzip={_fix_unzip_names}` to avoid it. {warning_names}'
+            _log(msg)
     new_unzip = ','.join(unzip_names)
     unzip = new_unzip
     output_path = output_path or Path(Config.DEFAULT_OUTPUT_PATH)
@@ -118,6 +123,7 @@ def prepare_entry(
         'pip_args_repr': repr(pip_args),
         'sys_paths': sys_paths,
         'python_version_slice': python_version_slice,
+        'pip_args_md5': pip_args_md5,
     }
     code = get_data('zipapps', '_entry_point.py').decode('u8')
     (cache_path / '__main__.py').write_text(code.format(**kwargs))
@@ -233,29 +239,34 @@ def create_app(
             tmp_dir = tempfile.TemporaryDirectory()
             _cache_path = Path(tmp_dir.name)
         prepare_includes(includes, _cache_path)
+        pip_args_md5 = ''
         if pip_args:
             if '-t' in pip_args or '--target' in pip_args:
                 raise RuntimeError(
                     'target arg can be set with --cache-path to rewrite the zipapps cache path.'
                 )
             if lazy_install:
-                sys.stderr.write(
-                    'WARNING: `unzip` has been changed to "*" while `lazy_install` is True.\n'
+                _log(
+                    'WARNING: `unzip` has been changed to "*" while `lazy_install` is True.'
                 )
                 unzip = '*'
                 # copy files to cache folder
                 _temp_pip_path = _cache_path / Config.LAZY_PIP_DIR_NAME
                 _temp_pip_path.mkdir(parents=True, exist_ok=True)
+                _md5_str = md5(str(pip_args).encode('utf-8')).hexdigest()
                 for index, arg in enumerate(pip_args):
                     path = Path(arg)
                     if path.is_file():
+                        _md5_str += md5(path.read_bytes()).hexdigest()
                         new_path = _temp_pip_path / path.name
                         shutil.copyfile(path, new_path)
                         _r_path = Path(Config.LAZY_PIP_DIR_NAME) / path.name
                         pip_args[index] = _r_path.as_posix()
+                pip_args_md5 = md5(_md5_str.encode('utf-8')).hexdigest()
+                _log(f'pip_args_md5: {pip_args_md5}')
                 if not unzip_path:
-                    sys.stderr.write(
-                        f'WARNING: unzip path has been set to `SELF/{Config.DEFAULT_UNZIP_CACHE_PATH}` while `lazy_install` is True and `unzip_path` is null.\n'
+                    _log(
+                        f'WARNING: unzip path has been set to `SELF/{Config.DEFAULT_UNZIP_CACHE_PATH}` while `lazy_install` is True and `unzip_path` is null.'
                     )
                     unzip_path = f'SELF/{Config.DEFAULT_UNZIP_CACHE_PATH}'
             else:
@@ -277,11 +288,12 @@ def create_app(
             pip_args=pip_args,
             sys_paths=sys_paths,
             python_version_slice=python_version_slice,
+            pip_args_md5=pip_args_md5,
         )
         if compiled:
             if not unzip:
-                sys.stderr.write(
-                    'WARNING: compiled .pyc files of __pycache__ folder may not work in zipapp, unless you unzip them.\n'
+                _log(
+                    'WARNING: compiled .pyc files of __pycache__ folder may not work in zipapp, unless you unzip them.'
                 )
             compileall.compile_dir(_cache_path, **Config.COMPILE_KWARGS)
         _create_archive(_cache_path, output_path, interpreter, compressed)
