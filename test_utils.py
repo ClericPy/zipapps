@@ -436,8 +436,8 @@ def test_create_app_function():
         stdout=subprocess.PIPE,
     ).communicate()
     # print(stdout_output, stderr_output)
-    assert b'Installing collected packages' in stdout_output
-    assert stdout_output.count(b'zipapps_cache') == 2, stdout_output.count(
+    assert b'Installing collected packages' in stderr_output, stderr_output
+    assert stderr_output.count(b'zipapps_cache') == 2, stderr_output.count(
         b'zipapps_cache')
     app_path = create_app(lazy_install=True,
                           pip_args=['bottle', '-r', '_requirements.txt'])
