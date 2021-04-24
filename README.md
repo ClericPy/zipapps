@@ -3,17 +3,25 @@
 
 Package your python code (with requirements) into a standalone zip file (like a `jar`).
 
-`zipapps` is a `pure-python library`, without any 3rd-party dependencies. Inspired by [shiv](https://github.com/linkedin/shiv) but unlike `shiv`, this lib will not always create new cache folders while running, and easy to combine multiple `venv.pyz` files then let them work well together.
+`zipapps` is a `pure-python library`, without any 3rd-party dependencies. Inspired by [shiv](https://github.com/linkedin/shiv) but unlike `shiv`, this lib will not always create new cache folders while running, and easy to combine multiple `venv.pyz` files then let them work well together. The `lazy install` mode will give your code the `cross-platform` and `cross-version` feature.
 
 # What is the `.pyz`?
 
 `.pyz` to **Python** is like `.jar` to **Java**. They are both zip archive files which aggregate many packages and associated metadata and resources (text, images, etc.) into one file for distribution. Then what you only need is a Python Interpreter as the runtime environment.
 
-PS: The **pyz** ext could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.zip` as you wish. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), then the apps may be `cross-platform` as long as written with pure python code without any C++ building processes.
+PS: The **pyz** ext could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.zip` or `app.py` or others as you wish. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/) & [zipimport](https://docs.python.org/3/library/zipimport.html), the apps may be `cross-platform` as long as written with pure python code without any C++ building processes.
 
 # When to Use it?
    1. Package your code(package or model) into one zipped file. 
-      1. sometimes togather with the requirements.
+      1. Pure python code without any 3rd-party dependencies.
+      2. Python code with 3rd-party dependencies installed together.
+         1. Some dependencies need to unzip them into the cache folder for dynamic modules(`.so/.pyd`) files exist, such as `psutil`.
+            1. This type of `pyz` is `NOT cross-platform`.
+         2. Some dependencies need not to unzip them, such as requests / bottle.
+      3. Python code with requirements but not be installed while building. (**Recommended**)
+         1. The `lazy install` mode by the arg `-d`.
+         2. But will need to be install at the first running(only once).
+         3. This is `cross-platform` and `cross-python-version` because of their installation paths is standalone.
    2. Run with python interpreter from the venv path.
       1. which means the requirements(need to be unzipped) will be installed to the `venv` folder, not in `pyz` file.
       2. **build** your package into one `pyz` file with `-m package.module:function -p /venv/bin/python`.
@@ -406,6 +414,16 @@ Details:
 
 # Changelogs
 
+- 2021.04.24
+  - remove conflict command args with `pip`
+    - remove `--compile` arg, it will only work for `pip`
+    - `-c` will not be removed, `pip install -c` could use `pip install --constraint` instead
+  - Refactor for OOP(Object-oriented programming)
+    - Will be used as the **first stable version** and end experimental phase
+    - remove `Config` class
+    - show version info and other logs in stderr
+    - `compiled` should not be True while `unzip` is null
+    - a successful message has been added to the tail of logs: `Successfully built`
 - 2021.04.23
   - lazy install mode:
     - fix bug: python version conflict
