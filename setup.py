@@ -16,7 +16,7 @@ with codecs.open("README.md", encoding="u8") as f:
     long_description = f.read()
 
 here = os.path.abspath(os.path.dirname(__file__))
-with codecs.open(os.path.join(here, 'zipapps', '__init__.py'),
+with codecs.open(os.path.join(here, 'zipapps', 'main.py'),
                  encoding="u8") as f:
     version = re.search(r'''__version__ = ['"](.*?)['"]''', f.read()).group(1)
 desc = "Package your python code into one zip file, even a virtual environment."
