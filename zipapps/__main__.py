@@ -2,7 +2,7 @@ import argparse
 import sys
 
 from . import __version__
-from .main import Config, create_app
+from .main import ZipApp, create_app
 
 USAGE = r'''
 ===========================================================================
@@ -56,9 +56,9 @@ def main():
     parser.add_argument('--version', action='version', version=__version__)
     parser.add_argument('--output',
                         '-o',
-                        default=Config.DEFAULT_OUTPUT_PATH,
+                        default=ZipApp.DEFAULT_OUTPUT_PATH,
                         help='The path of the output file, defaults to'
-                        f' "{Config.DEFAULT_OUTPUT_PATH}".')
+                        f' "{ZipApp.DEFAULT_OUTPUT_PATH}".')
     parser.add_argument(
         '--python',
         '-p',
@@ -104,7 +104,6 @@ def main():
     parser.add_argument(
         '-cc',
         '--pyc',
-        '--compile',
         '--compiled',
         action='store_true',
         dest='compiled',
@@ -144,11 +143,7 @@ def main():
         default='',
         dest='build_id',
         help='a string to skip duplicate builds,'
-        ' it can be the paths of files/folders which splited by ",", '
-        'then the modify time will be used as build_id. If build_id contains `*`,'
-        ' will use `glob` function to get paths. '
-        'For example, you can set requirements.txt as your build_id by'
-        ' `python3 -m zipapps -b requirements.txt -r requirements.txt` when you use pyz as venv.'
+        ' it can be the paths of files/folders which splited by ",", then the modify time will be used as build_id. If build_id contains `*`, will use `glob` function to get paths. For example, you can set requirements.txt as your build_id by `python3 -m zipapps -b requirements.txt -r requirements.txt` when you use pyz as venv.'
     )
     parser.add_argument(
         '--zipapps',
@@ -184,9 +179,20 @@ def main():
                         dest='sys_paths',
                         help='Paths be insert to sys.path[-1] while running.'
                         ' Support TEMP/HOME/SELF prefix, separated by commas.')
+    parser.add_argument(
+        '--activate',
+        default='',
+        dest='activate',
+        help='Activate the given paths of zipapps app, '
+        'only activate them but not run them, separated by commas.')
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()
+    if args.activate:
+        from .activate_zipapps import activate
+        for path in args.activate.split(','):
+            activate(path)
+        return
     return create_app(
         includes=args.includes,
         cache_path=args.cache_path,

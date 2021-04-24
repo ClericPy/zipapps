@@ -255,28 +255,17 @@ def test_create_app_function():
 
     # test compiled
     _clean_paths()
-    app_path = create_app(compiled=True, pip_args=['bottle'])
+    app_path = create_app(unzip='six', compiled=True, pip_args=['six'])
     output, _ = subprocess.Popen(
         [
             sys.executable,
-            str(app_path), '-c', 'import bottle;print(bottle.__cached__)'
+            str(app_path), '-c', 'import six;print(six.__cached__)'
         ],
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
     # print(output)
-    assert b'None' in output
-    app_path = create_app(unzip='bottle', compiled=True, pip_args=['bottle'])
-    output, _ = subprocess.Popen(
-        [
-            sys.executable,
-            str(app_path), '-c', 'import bottle;print(bottle.__cached__)'
-        ],
-        stderr=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-    ).communicate()
-    # print(output)
-    assert b'.pyc' in output
+    assert b'.pyc' in output, output
 
     # test unzip with HOME / SELF / TEMP
     _clean_paths()
@@ -352,7 +341,7 @@ def test_create_app_function():
     # test for simple usage
     create_app(pip_args=['six'], output='six.pyz')
     Path('./entry_test.py').write_text('import six;print(six.__file__)')
-    _ = subprocess.Popen(
+    output, error = subprocess.Popen(
         [
             sys.executable, '-m', 'zipapps', '--zipapps', 'six.pyz', '-m',
             'entry_test', '-a', 'entry_test.py'
@@ -360,7 +349,8 @@ def test_create_app_function():
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
-    assert not any(_)
+    assert not output, output
+    assert b'Successfully built' in error, error
     output, error = subprocess.Popen(
         [sys.executable, './app.pyz'],
         stderr=subprocess.PIPE,
@@ -373,7 +363,7 @@ def test_create_app_function():
     # test for SELF arg
     create_app(pip_args=['six'], output='six.pyz')
     Path('./entry_test.py').write_text('import six;print(six.__file__)')
-    _ = subprocess.Popen(
+    _, error = subprocess.Popen(
         [
             sys.executable, '-m', 'zipapps', '--zipapps', 'SELF/six.pyz', '-m',
             'entry_test', '-a', 'entry_test.py'
@@ -381,7 +371,7 @@ def test_create_app_function():
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
-    assert not any(_)
+    assert b'Successfully built' in error
     output, error = subprocess.Popen(
         [sys.executable, './app.pyz'],
         stderr=subprocess.PIPE,
@@ -394,7 +384,7 @@ def test_create_app_function():
     # test for without --zipapps
     create_app(pip_args=['six'], output='six.pyz')
     Path('./entry_test.py').write_text('import six;print(six.__file__)')
-    _ = subprocess.Popen(
+    _, error = subprocess.Popen(
         [
             sys.executable, '-m', 'zipapps', '-m', 'entry_test', '-a',
             'entry_test.py'
@@ -402,7 +392,7 @@ def test_create_app_function():
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
-    assert not any(_)
+    assert b'Successfully built' in error
     output, error = subprocess.Popen(
         [sys.executable, './app.pyz'],
         stderr=subprocess.PIPE,
@@ -473,6 +463,9 @@ def main():
     test all cases
     """
     test_create_app_function()
+    print('=' * 80)
+    print('All tests finished.')
+    print('=' * 80)
 
 
 if __name__ == "__main__":
