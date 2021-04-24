@@ -9,7 +9,7 @@ Package your python code (with requirements) into a standalone zip file (like a 
 
 `.pyz` to **Python** is like `.jar` to **Java**. They are both zip archive files which aggregate many packages and associated metadata and resources (text, images, etc.) into one file for distribution. Then what you only need is a Python Interpreter as the runtime environment.
 
-PS: The **pyz** ext could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.zip` or `app.py` or others as you wish. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/) & [zipimport](https://docs.python.org/3/library/zipimport.html), the apps may be `cross-platform` as long as written with pure python code without any C++ building processes.
+PS: The **pyz** ext could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.zip` or `app.py` or others as you wish. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/)([zipapp](https://docs.python.org/3/library/zipapp.html)) & [zipimport](https://docs.python.org/3/library/zipimport.html), the apps may be `cross-platform` as long as written with pure python code without any C++ building processes.
 
 # When to Use it?
    1. Package your code(package or model) into one zipped file. 
