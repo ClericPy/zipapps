@@ -71,8 +71,8 @@ def main():
         '--main',
         '-m',
         default='',
-        help='The entry point function of the application, the '
-        '`valid format` is: `package.module:function` `package.module` `module:function` `package`'
+        help='The entry point function of the application, '
+        'the format is: `package` | `package.module` | `package.module:function` | `module:function`'
     )
     parser.add_argument('--compress',
                         '-c',
@@ -161,7 +161,7 @@ def main():
         action='store_true',
         dest='lazy_install',
         help='Install packages with pip while running, which means '
-        'requirements will not be install into pyz file.')
+        'requirements will not be install into pyz file. Default unzip path will be changed to `SELF/zipapps_cache`')
     parser.add_argument(
         '-pva',
         '--python-version-accuracy',
