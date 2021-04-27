@@ -429,4 +429,4 @@ Details:
       2. `python3 app.pyz script.py`
    7. Other usages need to be found, and enjoy yourself.
 
-# [Changelog.md](https://github.com/ClericPy/ichrome/blob/master/changelog.md)
+# [Changelog.md](https://github.com/ClericPy/zipapps/blob/master/changelog.md)
