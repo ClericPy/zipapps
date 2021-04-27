@@ -15,7 +15,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import BadZipFile, ZipFile
 
-__version__ = '2021.04.24'
+__version__ = '2021.04.27'
 
 
 class ZipApp(object):
@@ -158,8 +158,6 @@ class ZipApp(object):
         if self.compiled:
             compileall.compile_dir(self._cache_path, **ZipApp.COMPILE_KWARGS)
         self.create_archive()
-        self._log(
-            f'{"=" * 10} Successfully built `{self._output_path}` {"=" * 10}')
         self._build_success = True
         return self._output_path
 
@@ -357,7 +355,11 @@ class ZipApp(object):
             self._tmp_dir.cleanup()
             self._log(
                 f'[INFO] Temp cache has been cleaned. ({self._tmp_dir!r})')
-        if not self._build_success:
+        if self._build_success:
+            self._log(
+                f'{"=" * 10} Successfully built `{self._output_path}` {"=" * 10}'
+            )
+        else:
             self._log(f'{"=" * 10} Build failed {"=" * 10}')
 
 
