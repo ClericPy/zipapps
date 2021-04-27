@@ -1,40 +1,25 @@
 # [zipapps](https://github.com/ClericPy/zipapps)
 [![PyPI](https://img.shields.io/pypi/v/zipapps?style=plastic)](https://pypi.org/project/zipapps/)[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/clericpy/zipapps/Python%20package?style=plastic)](https://github.com/ClericPy/zipapps/actions?query=workflow%3A%22Python+package%22)![PyPI - Wheel](https://img.shields.io/pypi/wheel/zipapps?style=plastic)![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zipapps?style=plastic)![PyPI - Downloads](https://img.shields.io/pypi/dm/zipapps?style=plastic)![PyPI - License](https://img.shields.io/pypi/l/zipapps?style=plastic)
 
-Package your python code (with requirements) into a standalone zip file (like a `jar`).
+Package your python code (with requirements) into a standalone zip file.
 
-`zipapps` is a `pure-python library`, without any 3rd-party dependencies. Inspired by [shiv](https://github.com/linkedin/shiv) but unlike `shiv`, this lib will not always create new cache folders while running, and easy to combine multiple `venv.pyz` files then let them work well together. The `lazy install` mode will give your code the `cross-platform` and `cross-version` feature.
+`zipapps` is a `pure-python library`, without any 3rd-party dependencies.
+
+Inspired by [shiv](https://github.com/linkedin/shiv) but unlike `shiv`
+
+1. zipapps may not unzip cache when without any C language-based library or dynamic modules(`.so/.pyd`), such as `requests`, `bottle`, or your own pure python code.
+2. cache path to unzip is `./zipapps_cache` by default, not the `HOME` path.
+3. the cache folders will be reused for the same app name, not like shiv to create many new versions and use much disk space.
+4. you can install requirements with `pip` while first running(not packaging) by lazy install mode, for cross-platform publishing and reducing your `.pyz` file size.
+5. combine multiple `venv.pyz` files for your code flexibly.
 
 # What is the `.pyz`?
 
 `.pyz` to **Python** is like `.jar` to **Java**. They are both zip archive files which aggregate many packages and associated metadata and resources (text, images, etc.) into one file for distribution. Then what you only need is a Python Interpreter as the runtime environment.
 
-PS: The **pyz** ext could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.zip` or `app.py` or others as you wish. Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/)([zipapp](https://docs.python.org/3/library/zipapp.html)) & [zipimport](https://docs.python.org/3/library/zipimport.html), the apps may be `cross-platform` as long as written with pure python code without any C++ building processes.
+PS: The extension name **.pyz** could be any other suffixes even without ext names, so you can rename `app.pyz` to `app.zip` or `app.py` or others as you wish.
 
-# When to Use it?
-   1. Package your code(package or model) into one zipped file. 
-      1. Pure python code without any 3rd-party dependencies.
-      2. Python code with 3rd-party dependencies installed together.
-         1. Some dependencies need to unzip them into the cache folder for dynamic modules(`.so/.pyd`) files exist, such as `psutil`.
-            1. This type of `pyz` is `NOT cross-platform`.
-         2. Some dependencies need not to unzip them, such as requests / bottle.
-      3. Python code with requirements but not be installed while building. (**Recommended**)
-         1. The `lazy install` mode by the arg `-d`.
-         2. But will need to be install at the first running(only once).
-         3. This is `cross-platform` and `cross-python-version` because of their installation paths is standalone.
-   2. Run with python interpreter from the venv path.
-      1. which means the requirements(need to be unzipped) will be installed to the `venv` folder, not in `pyz` file.
-      2. **build** your package into one `pyz` file with `-m package.module:function -p /venv/bin/python`.
-      3. **run** the `pyz` file with `/venv/bin/python app.pyz` or `./app.pyz`.
-   3. Hadoop-Streaming's mapper & reducer scripts.
-   4. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
-      1. Easy to uploads a clean `standalone` zip file.
-   5. Distribute `zipapp` with embedded python.
-   6. Use as a requirements zip path, or some `venv` usages.
-      1. `import sys;sys.path.insert(0, 'app.pyz')` (without .so/.pyd)
-      2. `python3 app.pyz script.py`
-   7. Other usages need to be found, and enjoy yourself.
-
+Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), [zipapp](https://docs.python.org/3/library/zipapp.html) & [zipimport](https://docs.python.org/3/library/zipimport.html).
 
 # Install & Quick Start
 
@@ -57,6 +42,7 @@ PS: The **pyz** ext could be any other suffixes even without ext names, so you c
 # How to Use?
 
 <details>
+
 <summary>Advance Usage</summary>
 
 
@@ -306,7 +292,9 @@ Details:
 
 # Command line args
 
-## Packaging args
+![image](https://github.com/ClericPy/zipapps/raw/master/args.png)
+
+## Build args
 
 **most common args:**
 
@@ -326,10 +314,15 @@ Details:
   - set the `shebang` line
 - `-d`
   - lazy install mode, requirements will be installed with `pip` while first running
+  - **Very useful**
+  - zip file size will be very small, and the default unzip path is `SELF/zipapps_cache/`
 
 Details: 
+
+> python3 -m zipapps -h
+
 1. `-h, --help`
-   1. show the simple doc
+   1. **show the simple doc**
 2. `--includes, --add, -a`
    1. The given paths will be copied to `cache_path` while packaging, which can be used while running. The path strings will be splited by ",".
       1. such as `my_package_dir,my_module.py,my_config.json`
@@ -412,86 +405,28 @@ Details:
       2. run
          1. `python3 six.pyz --zipapps=psutil.pyz,bottle.pyz -c "import psutil, bottle"`
 
-# Changelogs
+# When to Use it?
+   1. Package your code(package or model) into one zipped file. 
+      1. Pure python code without any 3rd-party dependencies.
+      2. Python code with 3rd-party dependencies installed together.
+         1. Some dependencies need to unzip them into the cache folder for dynamic modules(`.so/.pyd`) files exist, such as `psutil`.
+            1. This type of `pyz` is `NOT cross-platform`.
+         2. Some dependencies need not to unzip them, such as requests / bottle.
+      3. Python code with requirements but not be installed while building. (**Recommended**)
+         1. The `lazy install` mode by the arg `-d`.
+         2. But will need to be install at the first running(only once).
+         3. This is `cross-platform` and `cross-python-version` because of their installation paths is standalone.
+   2. Run with python interpreter from the venv path.
+      1. which means the requirements(need to be unzipped) will be installed to the `venv` folder, not in `pyz` file.
+      2. **build** your package into one `pyz` file with `-m package.module:function -p /venv/bin/python`.
+      3. **run** the `pyz` file with `/venv/bin/python app.pyz` or `./app.pyz`.
+   3. Hadoop-Streaming's mapper & reducer scripts.
+   4. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
+      1. Easy to uploads a clean `standalone` zip file.
+   5. Distribute `zipapp` with embedded python, or share python programs to your friends (someone with python installed).
+   6. Use as a requirements zip path, or some `venv` usages.
+      1. `import sys;sys.path.insert(0, 'app.pyz')` (without .so/.pyd)
+      2. `python3 app.pyz script.py`
+   7. Other usages need to be found, and enjoy yourself.
 
-- 2021.04.24
-  - remove conflict command args with `pip`
-    - remove `--compile` arg, it will only work for `pip`
-    - `-c` will not be removed, `pip install -c` could use `pip install --constraint` instead
-  - Refactor for OOP(Object-oriented programming)
-    - Will be used as the **first stable version** and end experimental phase
-    - remove `Config` class
-    - show version info and other logs in stderr
-    - `compiled` should not be True while `unzip` is null
-    - a successful message has been added to the tail of logs: `Successfully built`
-- 2021.04.23
-  - lazy install mode:
-    - fix bug: python version conflict
-    - remove repeated installation
-      - `pip install` will execute only once for same `pip_args_md5`
-      - `pip_args_md5` comes from pip_args string, including bytes of related files(like `requirements.txt`)
-  - logs of `pip install` will be redirected, from `stdout` to `stderr`
-- 2021.04.22
-  - update the lazy_install mode (`-d`)
-    - simple use case:
-      - 1. `python -m zipapps -d six`
-      - 2. `python app.pyz -c "import six;print(six.__file__)"`
-    - it will not `rmtree` the `_zipapps_lazy_pip` folder for new build
-      - if you need to upgrade those requirements, use `-U` arg of pip
-      - lazy_install mode will install requirements with `pip install` while first running
-        - so you can just run like this to init its installation(`-m` not set): `python3 app.pyz -V`
-    - for now, `-d` is to server for the cross-platform and cross-python-version app
-      - pip target path is separated from different python version and system platform
-        - python version accurity can be reset with `-pva 5`, defaults to 2, means 3.8.3 and 3.8.4 are same `3.8`
-- 2021.04.11
-  - add `--sys-paths` to include new paths of sys.path
-    - support TEMP/HOME/SELF prefix, separated by commas
-    - sometimes be used for separating pyz code from requirements
-      - requirements often be installed by `pip install xxx -t $SOME_PATH`
-- 2021.04.01
-  - use `ensurepip` instead of install `pip` while running with `lazy-install`
-  - `unzip_path` has been set to `SELF/zipapps_cache` by default when `lazy_install` is `True`
-- 2021.03.31
-  - use `sys.stderr.write` instead of `warnings.warn`
-  - support `-d` for lazy pip install
-    - example: `python3 -m zipapps -d bottle -r requirements.txt`
-    - the `bottle` and other packages of `requirements.txt` will be install while first running
-    - this is useful for cross-platform distributions, which means `pyz` file size is much smaller
-- 2021.03.02
-  - fix auto-unzip nonsense folders while `-u AUTO` but no need to unzip any files
-- 2021.01.29
-  - fix packaging zipapps self
-    - `python3 -m zipapps -m zipapps.__main__:main -a zipapps -o zipapps.pyz`
-  - add `zipapps.pyz` to `release` page
-- 2021.01.28
-  - fix bug: run `.py` file with run_path missing sys.argv
-    - `python3 app.pyz xxx.py -a -b -c`
-- 2021.01.11
-  - add `--zipapps` arg while building pyz files
-    - to activate some venv pyz with given paths while running it
-    - also support `TEMP/HOME/SELF` prefix, these internal variables are still runtime args.
-- 2020.12.27
-  - Combile multiple `pyz` files, do like this:
-    - python3 -m zipapps -o six.pyz six
-    - python3 -m zipapps -o psutil.pyz -u AUTO psutil
-    - python3 six.pyz --zipapps=psutil.pyz -c "import six,psutil;print(six.__file__, psutil.__file__)"
-- 2020.12.23
-  - `--unzip` support **auto-check** by `-u AUTO`, alias for `--unzip=AUTO_UNZIP`
-  - fix `run_module` bug while running `./app.pyz -m module`
-- 2020.12.21
-  - now will not run a new subprocess in most cases.
-    - using `runpy.run_path` and `runpy.run_module`
-    - and using `subprocess.run` instead of `subprocess.call`
-- 2020.12.13
-  - `--unzip` support complete path
-  - `--unzip` support **auto-check** by `--unzip=AUTO_UNZIP`
-- 2020.11.23
-  - add `activate_zipapps` to activate zipapps `PYTHONPATH` easily
-- 2020.11.21
-  - reset unzip_path as the parent folder to unzip files
-    - so the cache path will be like `./zipapps_cache/app/` for `app.pyz`,
-    - this is different from old versions.
-  - add environment variable `ZIPAPPS_CACHE` for arg `unzip_path`
-  - add environment variable `ZIPAPPS_UNZIP` for arg `unzip`
-
-[Old Docs](old_doc.md)
+# [Changelog.md](https://github.com/ClericPy/ichrome/blob/master/changelog.md)
