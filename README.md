@@ -25,19 +25,31 @@ Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), [zipapp](https:/
 
 > pip install zipapps -U
 
-## zip as apps
-1. zipapps with requirements
-   1. > python3 -m zipapps -u AUTO -a entry.py -m entry:main -o app.pyz aiohttp,psutils
+## zip as apps, only code
+1. zipapps in `lazy install` mode
+   1. > python3 -m zipapps -c -d -a entry.py -m entry:main -o app.pyz aiohttp psutils
+      1. the file size of `app.pyz` will be very small for args `-c`(compressed) and `-d`(lazy install mode)
+      2. the requirements will be installed while first running
 2. run app.pyz
    1. > python3 app.pyz
-   2. libs with `.pyd/.so` caches will be unzipped to the `./zipapps_cache/app`
+      1. waiting for `pip install`
+      2. sometimes you need to add `--user` to args or run `chmod` for permission error in a shared environment
+
+## zip as apps, with requirements installed
+1. zipapps with requirements
+   1. > python3 -m zipapps -c -u AUTO -a entry.py -m entry:main -o app.pyz aiohttp psutils
+   2. so you need not to install requirements at running
+      1. but ensure the compatibility of the system environment and python version
+2. run app.pyz
+   1. > python3 app.pyz
+   2. libs with `.pyd/.so` caches will be unzipped to the `./zipapps_cache/app` by `-u AUTO`
 
 ## zip as virtual environments
 1. zipapps with requirements
-   1. > python3 -m zipapps -u AUTO -o venv.pyz -r requirements.txt
+   1. > python3 -m zipapps -c -u AUTO -o venv.pyz -r requirements.txt
 2. run entry.py with venv.pyz
    1. > python3 venv.pyz entry.py
-   2. cache will be unzipped to `./zipapps_cache/venv` if -u is not null
+   2. cache will be unzipped to `./zipapps_cache/venv` for `-u` is not null
 
 # How to Use?
 
