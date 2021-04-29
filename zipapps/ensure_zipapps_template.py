@@ -95,18 +95,29 @@ def prepare_path():
                     _pip_target.mkdir(parents=True, exist_ok=True)
                     try:
                         import pip
+                        shell_args = [
+                            sys.executable, '-m', 'pip', 'install', '--target',
+                            lazy_pip_dir_str
+                        ] + pip_args
+                        import subprocess
+                        with subprocess.Popen(shell_args,
+                                              cwd=_cache_folder_path_str,
+                                              stdout=sys.stderr) as proc:
+                            proc.wait()
                     except ImportError:
+                        # try installing pip
+                        cwd = os.getcwd()
+                        os.chdir(_cache_folder_path_str)
                         import ensurepip
-                        ensurepip.bootstrap()
-                    import subprocess
-                    shell_args = [
-                        sys.executable, '-m', 'pip', 'install', '--target',
-                        lazy_pip_dir_str
-                    ] + pip_args
-                    with subprocess.Popen(shell_args,
-                                          cwd=_cache_folder_path_str,
-                                          stdout=sys.stderr) as proc:
-                        proc.wait()
+                        assert ensurepip._bootstrap(root=lazy_pip_dir_str) == 0
+                        for _path in _pip_target.glob('**/pip/'):
+                            if _path.is_dir():
+                                sys.path.append(str(_path.parent.absolute()))
+                                break
+                        import pip
+                        args = ['install', '-t', lazy_pip_dir_str] + pip_args
+                        pip.main(args)
+                        os.chdir(cwd)
                     # avoid duplicated installation
                     (_pip_target / pip_args_md5).touch()
     sep = ';' if sys.platform == 'win32' else ':'
