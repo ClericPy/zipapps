@@ -7,11 +7,13 @@ Package your python code (with requirements) into a standalone zip file.
 
 Inspired by [shiv](https://github.com/linkedin/shiv) but unlike `shiv`
 
-1. zipapps may not unzip cache when without any C language-based library or dynamic modules(`.so/.pyd`), such as `requests`, `bottle`, or your own pure python code.
-2. cache path to unzip is `./zipapps_cache` by default, not the `HOME` path.
-3. the cache folders will be reused for the same app name, not like shiv to create many new versions and use much disk space.
-4. you can install requirements with `pip` while first running(not packaging) by lazy install mode, for cross-platform publishing and reducing your `.pyz` file size.
-5. combine multiple `venv.pyz` files for your code flexibly.
+1. `zipapps` may not create the cache folder while your package has no C language-based libraries or dynamic modules(`.so/.pyd`), such as `requests`, `bottle` or other pure python codes.
+2. The default cache path is `./zipapps_cache`, but not the `HOME` path.
+3. The cache folders will be reused for the `same app name`, not to create many new versions and use much disk space.
+4. You can install requirements with `pip` while first running(not packaging) by `lazy install` mode, for cross-platform publishing and reducing your `.pyz` file size.
+5. Using multiple `venv.pyz` files together.
+
+[Changelog.md](https://github.com/ClericPy/zipapps/blob/master/changelog.md)
 
 # What is the `.pyz`?
 
@@ -397,7 +399,9 @@ Details:
     1.  Default `--zipapps` arg if it is not given while running. Support TEMP/HOME/SELF prefix.
 16. `--delay, -d, --lazy-pip, --lazy-install, --lazy-pip-install`
     1.  Install packages with pip while first running, which means requirements will not be install into pyz file.
-17. all the other (or `unknown`) args will be used by "pip install"
+17. `--ensure-pip`
+    1.  Add the ensurepip package to your pyz file, works for **embed-python**(windows) or other python versions without `pip` installed but `lazy-install` mode is enabled. [EXPERIMENTAL]
+18. all the other (or `unknown`) args will be used by "pip install"
     1.  such as `-r requirements.txt`
     2.  such as `bottle aiohttp`
     3.  the `pip_args` arg of `zipapps.create_app`
@@ -440,5 +444,3 @@ Details:
       1. `import sys;sys.path.insert(0, 'app.pyz')` (without .so/.pyd)
       2. `python3 app.pyz script.py`
    7. Other usages need to be found, and enjoy yourself.
-
-# [Changelog.md](https://github.com/ClericPy/zipapps/blob/master/changelog.md)

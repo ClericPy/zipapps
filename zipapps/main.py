@@ -15,7 +15,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import BadZipFile, ZipFile
 
-__version__ = '2021.04.27'
+__version__ = '2021.04.29'
 
 
 class ZipApp(object):
@@ -47,6 +47,7 @@ class ZipApp(object):
         lazy_install: bool = False,
         sys_paths: str = '',
         python_version_slice: int = 2,
+        ensure_pip: bool = False,
     ):
         """Zip your code.
 
@@ -86,6 +87,8 @@ class ZipApp(object):
         :type sys_paths: str, optional
         :param python_version_slice: Only work for lazy-install mode, then `pip` target folders differ according to sys.version_info[:_slice], defaults to 2, which means 3.8.3 equals to 3.8.4 for same version accuracy 3.8, defaults to 2
         :type python_version_slice: int, optional
+        :param ensure_pip: Add the ensurepip package to your pyz file, works for embed-python(windows) or other python versions without `pip` installed but `lazy-install` mode is enabled.
+        :type includes: bool, optional
         """
         self.includes = includes
         self.cache_path = cache_path
@@ -106,6 +109,7 @@ class ZipApp(object):
         self.lazy_install = lazy_install
         self.sys_paths = sys_paths
         self.python_version_slice = python_version_slice
+        self.ensure_pip = ensure_pip
 
         self._tmp_dir: tempfile.TemporaryDirectory = None
         self._build_success = False
@@ -142,6 +146,13 @@ class ZipApp(object):
             f'[INFO]: output path is `{self._output_path}`, you can reset it with the arg `output`.'
         )
 
+    def prepare_ensure_pip(self):
+        if self.ensure_pip:
+            import ensurepip
+            ensurepip_dir_path = Path(ensurepip.__file__).parent
+            shutil.copytree(str(ensurepip_dir_path.absolute()),
+                            self._cache_path / ensurepip_dir_path.name)
+
     def build(self):
         self._log(
             f'{"=" * 10} Start building `{self._output_path}` with zipapps version <{__version__}> {"=" * 10}'
@@ -150,6 +161,7 @@ class ZipApp(object):
         if self.build_exists():
             return self._output_path
         self.prepare_includes()
+        self.prepare_ensure_pip()
         self.prepare_pip()
         self.prepare_entry_point()
         if self.build_id_name:

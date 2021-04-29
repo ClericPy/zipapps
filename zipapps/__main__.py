@@ -161,7 +161,8 @@ def main():
         action='store_true',
         dest='lazy_install',
         help='Install packages with pip while running, which means '
-        'requirements will not be install into pyz file. Default unzip path will be changed to `SELF/zipapps_cache`')
+        'requirements will not be install into pyz file. Default unzip path will be changed to `SELF/zipapps_cache`'
+    )
     parser.add_argument(
         '-pva',
         '--python-version-accuracy',
@@ -185,6 +186,13 @@ def main():
         dest='activate',
         help='Activate the given paths of zipapps app, '
         'only activate them but not run them, separated by commas.')
+    parser.add_argument(
+        '--ensure-pip',
+        action='store_true',
+        dest='ensure_pip',
+        help='Add the ensurepip package to your pyz file, works for '
+        'embed-python(windows) or other python versions without `pip`'
+        ' installed but `lazy-install` mode is enabled. [EXPERIMENTAL]')
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()
@@ -212,6 +220,7 @@ def main():
         lazy_install=args.lazy_install,
         sys_paths=args.sys_paths,
         python_version_slice=int(args.python_version_slice),
+        ensure_pip=args.ensure_pip,
     )
 
 

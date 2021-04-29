@@ -1,6 +1,8 @@
 
 # Changelogs
 
+- 2021.04.29
+  - add arg `--ensure-pip` for embed-python(windows) or other python versions which have no `pip` installed but `lazy-install` mode is enabled.
 - 2021.04.24
   - remove conflict command args with `pip`
     - remove `--compile` arg, it will only work for `pip`
