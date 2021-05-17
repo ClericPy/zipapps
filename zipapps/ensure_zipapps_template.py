@@ -89,7 +89,9 @@ def prepare_path():
                 _pip_target.mkdir(parents=True, exist_ok=True)
                 lazy_pip_dir_str = str(_pip_target.absolute())
                 _zipapps_python_path_list.insert(0, lazy_pip_dir_str)
-                if not (_pip_target / pip_args_md5).is_file():
+                _need_reinstall = not (_pip_target / pip_args_md5).is_file(
+                ) or '-U' in pip_args or '--upgrade' in pip_args
+                if _need_reinstall:
                     # rm old requirements
                     rm_dir_or_file(_pip_target)
                     _pip_target.mkdir(parents=True, exist_ok=True)
