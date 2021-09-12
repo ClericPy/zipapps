@@ -15,7 +15,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import BadZipFile, ZipFile
 
-__version__ = '2021.04.29'
+__version__ = '2021.05.17'
 
 
 class ZipApp(object):
