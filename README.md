@@ -41,6 +41,7 @@ Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), [zipapp](https:/
 1. zipapps with requirements
    1. > python3 -m zipapps -c -u AUTO -a entry.py -m entry:main -o app.pyz aiohttp psutils
    2. so you need not to install requirements at running
+      
       1. but ensure the compatibility of the system environment and python version
 2. run app.pyz
    1. > python3 app.pyz
@@ -48,6 +49,7 @@ Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), [zipapp](https:/
 
 ## zip as virtual environments
 1. zipapps with requirements
+   
    1. > python3 -m zipapps -c -u AUTO -o venv.pyz -r requirements.txt
 2. run entry.py with venv.pyz
    1. > python3 venv.pyz entry.py
@@ -232,7 +234,7 @@ Output
 Details:
 
     No `-m` arg here, then the pyz file will do like an interpreter which contains the installed requirements.
-
+    
     So you can use it like this:
     > python3 venv.pyz
     >>> import bottle
@@ -378,8 +380,8 @@ Details:
    1. Compile .py to .pyc for fast import, but zipapp does not work unless you unzip it(so NOT very useful).
    2. the `compiled` arg of `zipapps.create_app`
 10. ` --cache-path, --source-dir, -cp`
-   3. The cache path of zipapps to store site-packages and `includes` files. If not set, will create and clean-up in TEMP dir automately.
-   4. the `cache_path` arg of `zipapps.create_app`
+       3. The cache path of zipapps to store site-packages and `includes` files. If not set, will create and clean-up in TEMP dir automately.
+       2. the `cache_path` arg of `zipapps.create_app`
 11. `--shell, -s`
     1.  Only while `main` is not set, used for shell=True in `subprocess.run`.
         1.  *very rarely used*, because extra sub-process is not welcome
@@ -436,11 +438,12 @@ Details:
       1. which means the requirements(need to be unzipped) will be installed to the `venv` folder, not in `pyz` file.
       2. **build** your package into one `pyz` file with `-m package.module:function -p /venv/bin/python`.
       3. **run** the `pyz` file with `/venv/bin/python app.pyz` or `./app.pyz`.
-   3. Hadoop-Streaming's mapper & reducer scripts.
-   4. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
+   3. `Serverless`'s zipped file for deployment.
+      4. `Hadoop-Streaming`'s mapper & reducer scripts.
+      5. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
       1. Easy to uploads a clean `standalone` zip file.
-   5. Distribute `zipapp` with embedded python, or share python programs to your friends (someone with python installed).
-   6. Use as a requirements zip path, or some `venv` usages.
+      6. Distribute `zipapp` with embedded python, or share python programs to your friends (someone with python installed).
+      7. Use as a requirements zip path, or some `venv` usages.
       1. `import sys;sys.path.insert(0, 'app.pyz')` (without .so/.pyd)
       2. `python3 app.pyz script.py`
-   7. Other usages need to be found, and enjoy yourself.
+      8. Other usages need to be found, and enjoy yourself.
