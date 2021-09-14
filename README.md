@@ -434,16 +434,16 @@ Details:
          1. The `lazy install` mode by the arg `-d`.
          2. But will need to be install at the first running(only once).
          3. This is `cross-platform` and `cross-python-version` because of their installation paths is standalone.
-   2. Run with python interpreter from the venv path.
+   2. Run with python interpreter from the `venv` path.
       1. which means the requirements(need to be unzipped) will be installed to the `venv` folder, not in `pyz` file.
       2. **build** your package into one `pyz` file with `-m package.module:function -p /venv/bin/python`.
       3. **run** the `pyz` file with `/venv/bin/python app.pyz` or `./app.pyz`.
    3. `Serverless`'s zipped file for deployment.
-      4. `Hadoop-Streaming`'s mapper & reducer scripts.
-      5. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
+   4. `Hadoop-Streaming`'s mapper & reducer scripts.
+   5. Simple deployment towards different servers with `jenkins`, or other CI/CD tools.
       1. Easy to uploads a clean `standalone` zip file.
-      6. Distribute `zipapp` with embedded python, or share python programs to your friends (someone with python installed).
-      7. Use as a requirements zip path, or some `venv` usages.
+   6. Distribute `zipapp` with embedded python, or share python programs to your friends (someone with python installed).
+   7. Use as a requirements zip path, or some `venv` usages.
       1. `import sys;sys.path.insert(0, 'app.pyz')` (without .so/.pyd)
       2. `python3 app.pyz script.py`
-      8. Other usages need to be found, and enjoy yourself.
+   8. Other usages need to be found, and enjoy yourself.
