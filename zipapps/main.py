@@ -188,12 +188,12 @@ class ZipApp(object):
         else:
             compression = ZIP_DEFLATED
             compresslevel = 0
-        with ZipFile(self._output_path,
+        with ZipFile(str(self._output_path),
                      mode='w',
                      compression=compression,
                      compresslevel=compresslevel) as zf:
             for f in self._cache_path.glob('**/*'):
-                zf.write(f, f.relative_to(self._cache_path))
+                zf.write(f, str(f.relative_to(self._cache_path)))
 
     def create_archive(self):
         if sys.version_info.minor >= 7:
