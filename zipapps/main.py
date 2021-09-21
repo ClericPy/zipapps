@@ -13,9 +13,9 @@ from glob import glob
 from hashlib import md5
 from pathlib import Path
 from pkgutil import get_data
-from zipfile import BadZipFile, ZipFile
+from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = '2021.05.17'
+__version__ = '2021.09.21'
 
 
 class ZipApp(object):
@@ -48,6 +48,8 @@ class ZipApp(object):
         sys_paths: str = '',
         python_version_slice: int = 2,
         ensure_pip: bool = False,
+        layer_mode: bool = False,
+        layer_mode_prefix: str = 'python',
     ):
         """Zip your code.
 
@@ -110,6 +112,8 @@ class ZipApp(object):
         self.sys_paths = sys_paths
         self.python_version_slice = python_version_slice
         self.ensure_pip = ensure_pip
+        self.layer_mode = layer_mode
+        self.layer_mode_prefix = layer_mode_prefix
 
         self._tmp_dir: tempfile.TemporaryDirectory = None
         self._build_success = False
@@ -117,8 +121,8 @@ class ZipApp(object):
     def ensure_args(self):
         if not self.unzip:
             if self.compiled:
-                raise ValueError(
-                    'The arg `compiled` should not be True while `unzip` is null, because .pyc files of __pycache__ folder may not work in zip file.'
+                self._log(
+                    '[WARN]: The arg `compiled` should not be True while `unzip` is null, because .pyc files of __pycache__ folder may not work in zip file.'
                 )
             if self.lazy_install:
                 self._log(
@@ -163,15 +167,33 @@ class ZipApp(object):
         self.prepare_includes()
         self.prepare_ensure_pip()
         self.prepare_pip()
-        self.prepare_entry_point()
+        if not self.layer_mode:
+            self.prepare_entry_point()
         if self.build_id_name:
             # make build_id file
             (self._cache_path / self.build_id_name).touch()
         if self.compiled:
             compileall.compile_dir(self._cache_path, **ZipApp.COMPILE_KWARGS)
-        self.create_archive()
+        if self.layer_mode:
+            self.create_archive_layer()
+        else:
+            self.create_archive()
         self._build_success = True
         return self._output_path
+
+    def create_archive_layer(self):
+        if self.compressed:
+            compression = ZIP_STORED
+            compresslevel = 9
+        else:
+            compression = ZIP_DEFLATED
+            compresslevel = 0
+        with ZipFile(self._output_path,
+                     mode='w',
+                     compression=compression,
+                     compresslevel=compresslevel) as zf:
+            for f in self._cache_path.glob('**/*'):
+                zf.write(f, f.relative_to(self._cache_path))
 
     def create_archive(self):
         if sys.version_info.minor >= 7:
@@ -187,6 +209,7 @@ class ZipApp(object):
                                   interpreter=self.interpreter)
 
     def prepare_entry_point(self):
+        # reset unzip_names
         unzip_names = set(self.unzip.split(',')) if self.unzip else set()
         warning_names: typing.Dict[str, dict] = {}
         for path in self._cache_path.iterdir():
@@ -221,6 +244,9 @@ class ZipApp(object):
             self._log(
                 f'[INFO]: these names will be unzipped while running: {self.unzip}'
             )
+        self.prepare_active_zipapps()
+
+    def prepare_active_zipapps(self):
         output_name = Path(self._output_path).stem
         if not re.match(r'^[0-9a-zA-Z_]+$', output_name):
             raise ValueError(
@@ -295,18 +321,26 @@ class ZipApp(object):
                 self.pip_install()
 
     def pip_install(self):
+        if self.layer_mode:
+            _target_dir = self._cache_path.absolute() / self.layer_mode_prefix
+            target = str(_target_dir)
+        else:
+            target = str(self._cache_path.absolute())
         shell_args = [
-            sys.executable, '-m', 'pip', 'install', '--target',
-            str(self._cache_path.absolute())
+            sys.executable, '-m', 'pip', 'install', '--target', target
         ] + self.pip_args
         with subprocess.Popen(shell_args) as proc:
             proc.wait()
         self.clean_pip_pycache()
 
     def clean_pip_pycache(self):
-        for dist_path in self._cache_path.glob('*.dist-info'):
+        if self.layer_mode:
+            root = self._cache_path / self.layer_mode_prefix
+        else:
+            root = self._cache_path
+        for dist_path in root.glob('*.dist-info'):
             shutil.rmtree(dist_path)
-        pycache = self._cache_path / '__pycache__'
+        pycache = root / '__pycache__'
         if pycache.is_dir():
             shutil.rmtree(pycache)
 
