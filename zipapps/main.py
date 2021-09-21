@@ -117,6 +117,7 @@ class ZipApp(object):
 
         self._tmp_dir: tempfile.TemporaryDirectory = None
         self._build_success = False
+        self._is_greater_than_python_37 = sys.version_info.minor >= 7 and sys.version_info.major >= 3
 
     def ensure_args(self):
         if not self.unzip:
@@ -188,15 +189,15 @@ class ZipApp(object):
         else:
             compression = ZIP_DEFLATED
             compresslevel = 0
-        with ZipFile(str(self._output_path),
-                     mode='w',
-                     compression=compression,
-                     compresslevel=compresslevel) as zf:
+        _kwargs = dict(mode='w', compression=compression)
+        if self._is_greater_than_python_37:
+            _kwargs['compresslevel'] = compresslevel
+        with ZipFile(str(self._output_path), **_kwargs) as zf:
             for f in self._cache_path.glob('**/*'):
                 zf.write(f, str(f.relative_to(self._cache_path)))
 
     def create_archive(self):
-        if sys.version_info.minor >= 7:
+        if self._is_greater_than_python_37:
             zipapp.create_archive(source=self._cache_path,
                                   target=str(self._output_path.absolute()),
                                   interpreter=self.interpreter,
