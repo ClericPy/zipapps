@@ -122,7 +122,6 @@ def prepare_path():
                         os.chdir(cwd)
                     # avoid duplicated installation
                     (_pip_target / pip_args_md5).touch()
-    sep = ';' if sys.platform == 'win32' else ':'
     ignore_system_python_path = {ignore_system_python_path}
     _new_sys_paths = r'''{sys_paths}'''.strip()
     if _new_sys_paths:
@@ -136,7 +135,7 @@ def prepare_path():
     else:
         _old_path = os.environ.get('PYTHONPATH') or ''
         _new_paths = _zipapps_python_path_list + [_old_path] + new_sys_paths
-    os.environ['PYTHONPATH'] = sep.join(_new_paths)
+    os.environ['PYTHONPATH'] = os.pathsep.join(_new_paths)
     # let the dir path first
     zipapps_paths = [
         path for path in _zipapps_python_path_list if path not in sys.path

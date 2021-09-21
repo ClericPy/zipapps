@@ -457,6 +457,15 @@ def test_create_app_function():
     ]).decode()
     assert 'bottle_env' in output
 
+    # test layer-mode
+    _clean_paths()
+    old_file = create_app(layer_mode=True,
+                          layer_mode_prefix='python3',
+                          pip_args=['six'])
+    from zipfile import ZipFile
+    with ZipFile(old_file) as zf:
+        assert zf.namelist() == ['python3/', 'python3/six.py']
+
 
 def main():
     """
