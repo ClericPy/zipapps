@@ -459,12 +459,14 @@ def test_create_app_function():
 
     # test layer-mode
     _clean_paths()
-    old_file = create_app(layer_mode=True,
+    old_file = create_app(includes='setup.py',
+                          layer_mode=True,
                           layer_mode_prefix='python3',
                           pip_args=['six'])
     from zipfile import ZipFile
     with ZipFile(old_file) as zf:
-        assert zf.namelist() == ['python3/', 'python3/six.py']
+        namelist = {'python3/', 'python3/setup.py', 'python3/six.py'}
+        assert set(zf.namelist()) == namelist, zf.namelist()
 
 
 def main():

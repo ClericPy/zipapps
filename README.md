@@ -403,7 +403,11 @@ Details:
     1.  Install packages with pip while first running, which means requirements will not be install into pyz file.
 17. `--ensure-pip`
     1.  Add the ensurepip package to your pyz file, works for **embed-python**(windows) or other python versions without `pip` installed but `lazy-install` mode is enabled. [EXPERIMENTAL]
-18. all the other (or `unknown`) args will be used by "pip install"
+18. `--layer-mode`
+    1. Layer mode for the `serverless` use case, `__main__.py / ensure_zipapps.py / activate_zipapps.py` files will not be set in this mode.
+    2. `--layer-mode-prefix`
+       1. Only work while `--layer-mode` is set, will move the files in the given prefix folder.
+19. all the other (or `unknown`) args will be used by `pip install`
     1.  such as `-r requirements.txt`
     2.  such as `bottle aiohttp`
     3.  the `pip_args` arg of `zipapps.create_app`

@@ -15,7 +15,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = '2021.09.21'
+__version__ = '2021.09.22'
 
 
 class ZipApp(object):
@@ -91,6 +91,10 @@ class ZipApp(object):
         :type python_version_slice: int, optional
         :param ensure_pip: Add the ensurepip package to your pyz file, works for embed-python(windows) or other python versions without `pip` installed but `lazy-install` mode is enabled.
         :type includes: bool, optional
+        :param layer_mode: Layer mode for the serverless use case, __main__.py / ensure_zipapps.py / activate_zipapps.py files will not be set in this mode, which means it will skip the activative process.
+        :type includes: bool, optional
+        :param layer_mode_prefix: Only work while --layer-mode is set, will move the files in the given prefix folder.
+        :type includes: str, optional
         """
         self.includes = includes
         self.cache_path = cache_path
@@ -348,14 +352,17 @@ class ZipApp(object):
     def prepare_includes(self):
         if not self.includes:
             return
+        if self.layer_mode:
+            _target_dir = self._cache_path.absolute() / self.layer_mode_prefix
+        else:
+            _target_dir = self._cache_path.absolute()
+        _target_dir.mkdir(parents=True, exist_ok=True)
         for _include_path in self.includes.split(self.PATH_SPLIT_TAG):
             include_path = Path(_include_path)
             if include_path.is_dir():
-                shutil.copytree(include_path,
-                                self._cache_path / include_path.name)
+                shutil.copytree(include_path, _target_dir / include_path.name)
             elif include_path.is_file():
-                shutil.copyfile(include_path,
-                                self._cache_path / include_path.name)
+                shutil.copyfile(include_path, _target_dir / include_path.name)
             else:
                 raise RuntimeError('%s is not exist' % include_path.absolute())
 

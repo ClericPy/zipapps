@@ -202,7 +202,7 @@ def main():
         '--layer-mode-prefix',
         default='python',
         dest='layer_mode_prefix',
-        help='Layer mode for the serverless use case, __main__.py / ensure_zipapps.py / activate_zipapps.py files will not be set in this mode.')
+        help='Only work while --layer-mode is set, will move the files in the given prefix folder.')
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()

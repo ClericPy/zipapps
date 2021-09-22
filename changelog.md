@@ -1,6 +1,8 @@
 
 # Changelogs
 
+- 2021.09.22
+  - fix `--layer-mode-prefix` not work for `-a` files
 - 2021.09.21
   - `layer-mode` for serverless layers
     - https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html
