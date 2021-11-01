@@ -241,7 +241,7 @@ class ZipApp(object):
                 unzip_names |= warning_names.keys()
             else:
                 _fix_unzip_names = ",".join(warning_names.keys())
-                msg = f'[WARN]: .pyd/.so files may be imported incorrectly, set `--unzip={_fix_unzip_names}` or `--unzip=AUTO` to fix it. {warning_names}'
+                msg = f'[WARN]: .pyd/.so files may be imported incorrectly, set `--unzip={_fix_unzip_names}` or `--unzip=AUTO` or `--unzip=*` to fix it. {warning_names}'
                 self._log(msg)
         new_unzip = ','.join(unzip_names)
         self.unzip = new_unzip
