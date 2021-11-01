@@ -18,6 +18,7 @@ pip_args = {pip_args_repr}
 pip_args_md5 = '{pip_args_md5}'
 py_version = '.'.join(map(str, sys.version_info[:{python_version_slice}]))
 _new_sys_paths = r'''{sys_paths}'''.strip()
+clear_zipapps_cache = {clear_zipapps_cache}
 
 
 def ensure_path(path):
@@ -37,12 +38,14 @@ def rm_dir_or_file(path: Path):
     for _ in range(3):
         try:
             if path.is_dir():
-                rmtree(str(path.absolute()))
+                rmtree(str(path.absolute()), ignore_errors=True)
             elif path.is_file():
                 path.unlink()
             else:
                 break
         except FileNotFoundError:
+            break
+        except PermissionError:
             break
     else:
         return False
@@ -62,8 +65,18 @@ def prepare_path():
     zip_file_path = Path(__file__).parent.absolute()
     _zipapps_python_path_list = [str(zip_file_path)]
     if unzip:
-        _cache_folder_path = ensure_path(_cache_folder)
-        _cache_folder_path = _cache_folder_path / zip_file_path.stem
+        _cache_folder_path_parent = ensure_path(_cache_folder)
+        _cache_folder_path = _cache_folder_path_parent / zip_file_path.stem
+        if clear_zipapps_cache:
+            import atexit
+
+            def _remove_cache_folder():
+                rm_dir_or_file(_cache_folder_path)
+                if not any(_cache_folder_path_parent.iterdir()):
+                    rm_dir_or_file(_cache_folder_path_parent)
+
+            atexit.register(_remove_cache_folder)
+
         _cache_folder_path.mkdir(parents=True, exist_ok=True)
         _cache_folder_path_str = str(_cache_folder_path.absolute())
         _zipapps_python_path_list.insert(0, _cache_folder_path_str)

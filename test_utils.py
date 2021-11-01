@@ -36,6 +36,18 @@ def _clean_paths():
 
 def test_create_app_function():
 
+    # test -czc
+    _clean_paths()
+    app_path = create_app(clear_zipapps_cache=False, unzip='*')
+    stdout_output, stderr_output = subprocess.Popen(
+        [sys.executable, str(app_path), '-V']).communicate()
+    assert Path('./zipapps_cache').is_dir()
+    _clean_paths()
+    app_path = create_app(clear_zipapps_cache=True, unzip='*')
+    stdout_output, stderr_output = subprocess.Popen(
+        [sys.executable, str(app_path), '-V']).communicate()
+    assert not Path('./zipapps_cache').is_dir()
+
     # test build_id
     _clean_paths()
     mock_requirement = Path('_requirements.txt')

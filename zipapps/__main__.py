@@ -197,12 +197,24 @@ def main():
         '--layer-mode',
         action='store_true',
         dest='layer_mode',
-        help='Layer mode for the serverless use case, __main__.py / ensure_zipapps.py / activate_zipapps.py files will not be set in this mode.')
+        help=
+        'Layer mode for the serverless use case, __main__.py / ensure_zipapps.py / activate_zipapps.py files will not be set in this mode.'
+    )
     parser.add_argument(
         '--layer-mode-prefix',
         default='python',
         dest='layer_mode_prefix',
-        help='Only work while --layer-mode is set, will move the files in the given prefix folder.')
+        help=
+        'Only work while --layer-mode is set, will move the files in the given prefix folder.'
+    )
+    parser.add_argument(
+        '-czc',
+        '--clear-zipapps-cache',
+        action='store_true',
+        dest='clear_zipapps_cache',
+        help=
+        'Clear the zipapps cache folder after running, but maybe failed for .pyd/.so files.',
+    )
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()
@@ -233,6 +245,7 @@ def main():
         ensure_pip=args.ensure_pip,
         layer_mode=args.layer_mode,
         layer_mode_prefix=args.layer_mode_prefix,
+        clear_zipapps_cache=args.clear_zipapps_cache,
     )
 
 

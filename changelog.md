@@ -1,6 +1,11 @@
 
 # Changelogs
 
+
+- 2021.11.01
+  - add `--clear-zipapps-cache` / `-czc` command line arg
+    - Clear the zipapps cache folder after running, but maybe failed for .pyd/.so files.
+  - <refactor> move the `const` to the top of `ensure_zipapps` template.
 - 2021.09.22
   - fix `--layer-mode-prefix` not work for `-a` files
 - 2021.09.21
