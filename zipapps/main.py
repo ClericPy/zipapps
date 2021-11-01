@@ -15,7 +15,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = '2021.09.22'
+__version__ = '2021.11.01'
 
 
 class ZipApp(object):
@@ -50,6 +50,7 @@ class ZipApp(object):
         ensure_pip: bool = False,
         layer_mode: bool = False,
         layer_mode_prefix: str = 'python',
+        clear_zipapps_cache: bool = False,
     ):
         """Zip your code.
 
@@ -95,6 +96,8 @@ class ZipApp(object):
         :type includes: bool, optional
         :param layer_mode_prefix: Only work while --layer-mode is set, will move the files in the given prefix folder.
         :type includes: str, optional
+        :param clear_zipapps_cache: Clear the zipapps cache folder after running, but maybe failed for .pyd/.so files..
+        :type includes: bool, optional
         """
         self.includes = includes
         self.cache_path = cache_path
@@ -118,6 +121,7 @@ class ZipApp(object):
         self.ensure_pip = ensure_pip
         self.layer_mode = layer_mode
         self.layer_mode_prefix = layer_mode_prefix
+        self.clear_zipapps_cache = clear_zipapps_cache
 
         self._tmp_dir: tempfile.TemporaryDirectory = None
         self._build_success = False
@@ -164,7 +168,7 @@ class ZipApp(object):
 
     def build(self):
         self._log(
-            f'{"=" * 10} Start building `{self._output_path}` with zipapps version <{__version__}> {"=" * 10}'
+            f'[INFO]: {"=" * 10} Start building `{self._output_path}` with zipapps version <{__version__}> {"=" * 10}'
         )
         self.ensure_args()
         if self.build_exists():
@@ -237,6 +241,9 @@ class ZipApp(object):
         auto_unzip_keys = ZipApp.AUTO_FIX_UNZIP_KEYS & unzip_names
         unzip_names -= auto_unzip_keys
         if warning_names:
+            if self.clear_zipapps_cache:
+                msg = f'[WARN]: clear_zipapps_cache is True but .pyd/.so files were found {warning_names}'
+                self._log(msg)
             if auto_unzip_keys:
                 unzip_names |= warning_names.keys()
             else:
@@ -279,6 +286,7 @@ class ZipApp(object):
             'sys_paths': self.sys_paths,
             'python_version_slice': self.python_version_slice,
             'pip_args_md5': self.pip_args_md5,
+            'clear_zipapps_cache': repr(self.clear_zipapps_cache),
         }
         code = get_data('zipapps', '_entry_point.py').decode('u8')
         (self._cache_path / '__main__.py').write_text(code.format(**kwargs))
@@ -402,19 +410,19 @@ class ZipApp(object):
 
     @staticmethod
     def _log(text):
-        sys.stderr.write(f'{text}\n')
+        sys.stderr.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} | {text}\n')
 
     def __del__(self):
         if self._tmp_dir:
             self._tmp_dir.cleanup()
             self._log(
-                f'[INFO] Temp cache has been cleaned. ({self._tmp_dir!r})')
+                f'[INFO]: Temp cache has been cleaned. ({self._tmp_dir!r})')
         if self._build_success:
             self._log(
-                f'{"=" * 10} Successfully built `{self._output_path}` {"=" * 10}'
+                f'[INFO]: {"=" * 10} Successfully built `{self._output_path}` {"=" * 10}'
             )
         else:
-            self._log(f'{"=" * 10} Build failed {"=" * 10}')
+            self._log(f'[ERROR]: {"=" * 10} Build failed {"=" * 10}')
 
 
 def create_app(*args, **kwargs):

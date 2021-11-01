@@ -319,19 +319,23 @@ Details:
 - `-a xxx.py`
   - to add some files/folders into the zipped file.
 - `-u=AUTO`
+  - **Recommended**
   - auto unzip the .pyd / .so files
+    - or `-u=*` to unzip all the files
 - `-r requirements.txt`
   - install requirements with `pip install`
 - `-o my_app.pyz`
   - output the zipped file as given path
 - `-m app.__main__:main`
-  - set the entry point
+  - entry point
 - `-p /usr/bin/python3`
   - set the `shebang` line
 - `-d`
+  - **Recommended**
   - lazy install mode, requirements will be installed with `pip` while first running
-  - **Very useful**
   - zip file size will be very small, and the default unzip path is `SELF/zipapps_cache/`
+- `--clear-zipapps-cache`, `-czc`
+  - Clear the zipapps cache folder after running, but maybe failed for .pyd/.so files.
 
 Details: 
 
@@ -380,7 +384,7 @@ Details:
    1. Compile .py to .pyc for fast import, but zipapp does not work unless you unzip it(so NOT very useful).
    2. the `compiled` arg of `zipapps.create_app`
 10. ` --cache-path, --source-dir, -cp`
-       3. The cache path of zipapps to store site-packages and `includes` files. If not set, will create and clean-up in TEMP dir automately.
+       1. The cache path of zipapps to store site-packages and `includes` files. If not set, will create and clean-up in TEMP dir automately.
        2. the `cache_path` arg of `zipapps.create_app`
 11. `--shell, -s`
     1.  Only while `main` is not set, used for shell=True in `subprocess.run`.
@@ -407,7 +411,9 @@ Details:
     1. Layer mode for the `serverless` use case, `__main__.py / ensure_zipapps.py / activate_zipapps.py` files will not be set in this mode.
     2. `--layer-mode-prefix`
        1. Only work while `--layer-mode` is set, will move the files in the given prefix folder.
-19. all the other (or `unknown`) args will be used by `pip install`
+19. `--clear-zipapps-cache, -czc`
+    1.  Clear the zipapps cache folder after running, but maybe failed for .pyd/.so files.
+20. all the other (or `unknown`) args will be used by `pip install`
     1.  such as `-r requirements.txt`
     2.  such as `bottle aiohttp`
     3.  the `pip_args` arg of `zipapps.create_app`
