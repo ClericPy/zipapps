@@ -7,6 +7,18 @@ from shutil import rmtree
 from tempfile import gettempdir
 from zipfile import ZipFile
 
+# const
+ignore_system_python_path = {ignore_system_python_path}
+unzip = os.environ.get('ZIPAPPS_UNZIP') or r'''{unzip}'''
+_cache_folder = os.environ.get('ZIPAPPS_CACHE') or os.environ.get(
+    'UNZIP_PATH') or r'''{unzip_path}'''
+ts_file_name = '_zip_time_{ts}'
+LAZY_PIP_DIR_NAME = r'''{LAZY_PIP_DIR_NAME}'''
+pip_args = {pip_args_repr}
+pip_args_md5 = '{pip_args_md5}'
+py_version = '.'.join(map(str, sys.version_info[:{python_version_slice}]))
+_new_sys_paths = r'''{sys_paths}'''.strip()
+
 
 def ensure_path(path):
     if path.startswith('HOME'):
@@ -49,18 +61,12 @@ def prepare_path():
     # PYTHONPATH=./app.pyz
     zip_file_path = Path(__file__).parent.absolute()
     _zipapps_python_path_list = [str(zip_file_path)]
-    unzip = os.environ.get('ZIPAPPS_UNZIP') or r'''{unzip}'''
     if unzip:
-        _cache_folder = os.environ.get('ZIPAPPS_CACHE') or os.environ.get(
-            'UNZIP_PATH') or r'''{unzip_path}'''
-
         _cache_folder_path = ensure_path(_cache_folder)
         _cache_folder_path = _cache_folder_path / zip_file_path.stem
         _cache_folder_path.mkdir(parents=True, exist_ok=True)
         _cache_folder_path_str = str(_cache_folder_path.absolute())
         _zipapps_python_path_list.insert(0, _cache_folder_path_str)
-        ts_file_name = '_zip_time_{ts}'
-        LAZY_PIP_DIR_NAME = r'''{LAZY_PIP_DIR_NAME}'''
         if not (_cache_folder_path / ts_file_name).is_file():
             # check timestamp difference by file name, need to refresh _cache_folder
             # rm the folder
@@ -76,14 +82,10 @@ def prepare_path():
         if LAZY_PIP_DIR_NAME:
             import platform
 
-            pip_args = {pip_args_repr}
-            pip_args_md5 = '{pip_args_md5}'
             lazy_pip_dir = _cache_folder_path / LAZY_PIP_DIR_NAME
             if lazy_pip_dir.is_dir():
                 # pip target isolation with by python version and platform
                 platform_name = (platform.system() or '-')
-                py_version = '.'.join(
-                    map(str, sys.version_info[:{python_version_slice}]))
                 target_name = '%s_%s' % (py_version, platform_name)
                 _pip_target = lazy_pip_dir / target_name
                 _pip_target.mkdir(parents=True, exist_ok=True)
@@ -122,8 +124,6 @@ def prepare_path():
                         os.chdir(cwd)
                     # avoid duplicated installation
                     (_pip_target / pip_args_md5).touch()
-    ignore_system_python_path = {ignore_system_python_path}
-    _new_sys_paths = r'''{sys_paths}'''.strip()
     if _new_sys_paths:
         new_sys_paths = [str(ensure_path(p)) for p in _new_sys_paths.split(',')]
     else:
