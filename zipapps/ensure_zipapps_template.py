@@ -110,27 +110,23 @@ def prepare_path():
                     # rm old requirements
                     rm_dir_or_file(_pip_target)
                     _pip_target.mkdir(parents=True, exist_ok=True)
+                    _pip_args = ['install', '-t', lazy_pip_dir_str] + pip_args
+                    cwd = os.getcwd()
+                    os.chdir(_cache_folder_path_str)
                     try:
-                        import pip
-                        shell_args = [
-                            'install',
-                            '--target',
-                            lazy_pip_dir_str,
-                        ] + pip_args
-                        pip.main(shell_args)
+                        from pip._internal.cli.main import main as _main
+                        _main(_pip_args)
                     except ImportError:
                         # try installing pip
-                        cwd = os.getcwd()
-                        os.chdir(_cache_folder_path_str)
                         import ensurepip
                         assert ensurepip._bootstrap(root=lazy_pip_dir_str) == 0
                         for _path in _pip_target.glob('**/pip/'):
                             if _path.is_dir():
                                 sys.path.append(str(_path.parent.absolute()))
                                 break
-                        import pip
-                        args = ['install', '-t', lazy_pip_dir_str] + pip_args
-                        pip.main(args)
+                        from pip._internal.cli.main import main as _main
+                        _main(_pip_args)
+                    finally:
                         os.chdir(cwd)
                     # avoid duplicated installation
                     (_pip_target / pip_args_md5).touch()
