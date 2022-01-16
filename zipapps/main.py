@@ -26,6 +26,7 @@ class ZipApp(object):
     HANDLE_OTHER_ENVS_FLAG = '--zipapps'
     LAZY_PIP_DIR_NAME = '_zipapps_lazy_pip'
     PATH_SPLIT_TAG = ','
+    HANDLE_ACTIVATE_ZIPAPPS = '--activate-zipapps'
 
     def __init__(
         self,
@@ -287,6 +288,7 @@ class ZipApp(object):
             'python_version_slice': self.python_version_slice,
             'pip_args_md5': self.pip_args_md5,
             'clear_zipapps_cache': repr(self.clear_zipapps_cache),
+            'HANDLE_ACTIVATE_ZIPAPPS': self.HANDLE_ACTIVATE_ZIPAPPS,
         }
         code = get_data('zipapps', '_entry_point.py').decode('u8')
         (self._cache_path / '__main__.py').write_text(code.format(**kwargs))
