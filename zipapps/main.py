@@ -340,9 +340,7 @@ class ZipApp(object):
             target = str(_target_dir)
         else:
             target = str(self._cache_path.absolute())
-        _pip_args = [
-            sys.executable, '-m', 'pip', 'install', '--target', target
-        ] + self.pip_args
+        _pip_args = ['install', '--target', target] + self.pip_args
         from pip._internal.cli.main import main as _main
         _main(_pip_args)
         self.clean_pip_pycache()
