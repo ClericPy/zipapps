@@ -432,6 +432,8 @@ Details:
          3. `python3 -m zipapps -o bottle.pyz bottle`
       2. run
          1. `python3 six.pyz --zipapps=psutil.pyz,bottle.pyz -c "import psutil, bottle"`
+2. `--activate-zipapps`
+   1. to ensure the zipapps_cache folder but do nothing
 
 # When to Use it?
    1. Package your code(package or model) into one zipped file. 

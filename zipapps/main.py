@@ -15,7 +15,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = '2021.11.01'
+__version__ = '2021.01.17'
 
 
 class ZipApp(object):
