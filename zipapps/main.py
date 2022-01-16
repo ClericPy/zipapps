@@ -3,7 +3,6 @@
 import compileall
 import re
 import shutil
-import subprocess
 import sys
 import tempfile
 import time
@@ -341,11 +340,11 @@ class ZipApp(object):
             target = str(_target_dir)
         else:
             target = str(self._cache_path.absolute())
-        shell_args = [
+        _pip_args = [
             sys.executable, '-m', 'pip', 'install', '--target', target
         ] + self.pip_args
-        with subprocess.Popen(shell_args) as proc:
-            proc.wait()
+        from pip._internal.cli.main import main as _main
+        _main(_pip_args)
         self.clean_pip_pycache()
 
     def clean_pip_pycache(self):
