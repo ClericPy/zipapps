@@ -113,14 +113,11 @@ def prepare_path():
                     try:
                         import pip
                         shell_args = [
-                            sys.executable, '-m', 'pip', 'install', '--target',
-                            lazy_pip_dir_str
+                            'install',
+                            '--target',
+                            lazy_pip_dir_str,
                         ] + pip_args
-                        import subprocess
-                        with subprocess.Popen(shell_args,
-                                              cwd=_cache_folder_path_str,
-                                              stdout=sys.stderr) as proc:
-                            proc.wait()
+                        pip.main(shell_args)
                     except ImportError:
                         # try installing pip
                         cwd = os.getcwd()
