@@ -2,6 +2,11 @@
 # Changelogs
 
 
+- 2021.01.17
+  - add runtime arg `--activate-zipapps` to ensure cache folder and do nothing
+  - fix pip install for `-d` (lazy install mode) with `pip.main` function instead of subprocess
+  - tell how to use `zipapps` with `nuitka`
+    - https://github.com/ClericPy/zipapps/issues/11
 - 2021.11.01
   - add `--clear-zipapps-cache` / `-czc` command line arg
     - Clear the zipapps cache folder after running, but maybe failed for .pyd/.so files.

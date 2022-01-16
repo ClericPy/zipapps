@@ -54,7 +54,7 @@ def ensure_env_path(env_path):
 def main():
     activate_envs()
     args = sys.argv
-    if len(args) > 1 and args[1] == {HANDLE_ACTIVATE_ZIPAPPS}:
+    if len(args) > 1 and args[1] == '{HANDLE_ACTIVATE_ZIPAPPS}':
         return
     has_main = {has_main}
     if has_main:
