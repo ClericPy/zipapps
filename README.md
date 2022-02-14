@@ -59,7 +59,7 @@ Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/), [zipapp](https:/
 
 <details>
 
-<summary>Advance Usage</summary>
+<summary>Advance Usage (click)</summary>
 
 
 ## 1. Package your script file with only built-ins functions.
@@ -161,7 +161,7 @@ Output
 Details:
 
     bottle:
-        all the unhandled args like `bottle` will be used to `pip install`, so you can write `bottle` in requirements.txt and use like `-r requirements.txt`
+        all the unhandled args (like `bottle`) will be used to `pip install`, so you can write `bottle` in requirements.txt and use like `-r requirements.txt`
 
 **WARNING**: if the requirements have `.pyd/.so` files, you should unzip them while running, and the pure python libs like `bottle` or `requests`  no need to unzip anything. Read the 4th paragraph for more info.
 
@@ -215,6 +215,8 @@ print(bottle.__version__, requests.__version__)
 
 > python3 -m zipapps -c -o venv.pyz -p /usr/bin/python3 bottle requests
 
+5.3 Some use cases
+
 5.3.1 use the `venv.pyz` like a middleware
 
 > python3 venv.pyz script.py
@@ -226,6 +228,40 @@ print(bottle.__version__, requests.__version__)
 even like is also valid
 
 > `python3 venv.pyz -c "import bottle,requests;print(bottle.__version__, requests.__version__)"`
+
+5.3.3 use the `bottle` lib of `venv.pyz` in your normal code
+
+```python
+import sys
+sys.path.append('path_to_venv/venv.pyz')
+import bottle
+
+print(bottle.__file__)
+```
+
+5.3.3 use the `pstuil` lib of `venv.pyz` in other normal code
+
+> python3 -m zipapps -c -o venv.pyz psutil
+
+```python
+import sys
+sys.path.append('path_to_venv/psutil_venv.pyz')
+# need to activate the unzip action, there are 2 ways for the `.so/.pyd` libs
+# 1. use the default activate name
+import activate_zipapps
+# 2. use a distinct lib name with file name for another venv file
+sys.path.append('path_to_venv/lxml_venv.pyz')
+import ensure_lxml_venv
+# 2.1 or the old name
+# import ensure_zipapps_lxml_venv
+
+
+import psutil
+import lxml
+
+print(psutil.__file__)
+print(lxml.__file__)
+```
 
 Output
 
@@ -274,18 +310,18 @@ Details:
 
 ## 7. Package your code with lazy install mode, for a attempt of cross-platform.
 
-7.1 Here is `script.py` again again
+7.1 Here is `script.py` again
 
 ```python
 import six
 print(six.__file__)
 ```
 
-6.2 Build the `script.pyz`, this is very fast without downloading and installing 3rd packages.
+7.2 Build the `script.pyz`, this is very fast without downloading and installing 3rd packages.
 
 > python3 -m zipapps -c -o script.pyz -a script.py -m script -d six
 
-6.3 Run this `.pyz` file, and the requirements will be installed while first running.
+7.3 Run this `.pyz` file, and the requirements will be installed while first running.
 
 > python3 script.pyz
 
