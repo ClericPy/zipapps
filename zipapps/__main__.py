@@ -92,7 +92,15 @@ def main():
         '-u',
         default='',
         help='The names which need to be unzipped while running, splited by "," '
-        '`without ext`, such as `bottle,aiohttp`, or the complete path like `bin/bottle.py,temp.py`. For `.so/.pyd` files(which can not be loaded by zipimport), or packages with operations of static files. if unzip is set to "*", then will unzip all files and folders. if unzip is set to **AUTO**, then will add the `.pyd` and `.so` files automatically.'
+        '`without ext`, such as `bottle,aiohttp`, or the complete path like `bin/bottle.py,temp.py`. For `.so/.pyd` files(which can not be loaded by zipimport), or packages with operations of static files. if unzip is set to "*", then will unzip all files and folders. if unzip is set to **AUTO**, then will add the `.pyd` and `.so` files automatically. Can be overwrite with environment variable `ZIPAPPS_UNZIP`'
+    )
+    parser.add_argument(
+        '--unzip-exclude',
+        '-ue',
+        default='',
+        dest='unzip_exclude',
+        help='The opposite of `--unzip` / `-u` which will not be unzipped, '
+        'should be used with `--unzip` / `-u`. Can be overwrite with environment variable `ZIPAPPS_UNZIP_EXCLUDE`'
     )
     parser.add_argument(
         '--unzip-path',
@@ -246,6 +254,7 @@ def main():
         layer_mode=args.layer_mode,
         layer_mode_prefix=args.layer_mode_prefix,
         clear_zipapps_cache=args.clear_zipapps_cache,
+        unzip_exclude=args.unzip_exclude,
     )
 
 
