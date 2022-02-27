@@ -406,50 +406,54 @@ Details:
    1. The names which need to be unzipped while running, splited by "," `without ext`, such as `bottle,aiohttp`, or the complete path like `bin/bottle.py,temp.py`. For `.so/.pyd` files(which can not be loaded by zipimport), or packages with operations of static files.
       1. if unzip is set to "*", then will unzip all files and folders.
       2. if unzip is set to **AUTO**, then will add the `.pyd` and `.so` files automatically.
-   2. the `unzip` arg of `zipapps.create_app`
-8. `--unzip-path, -up`
-   1. If `unzip` arg is not null, cache files will be unzipped to the given path while running. Defaults to `zipapps_cache`, support some internal variables as runtime args:
+   2. Can be overwrite with environment variable `ZIPAPPS_UNZIP`
+   3. the `unzip` arg of `zipapps.create_app`
+8. `--unzip-exclude, -ue`
+   1. The opposite of `--unzip` / `-u` which will not be unzipped, should be used with `--unzip` / `-u`.
+   2. Can be overwrite with environment variable `ZIPAPPS_UNZIP_EXCLUDE`
+9.  `--unzip-path, -up`
+   3. If `unzip` arg is not null, cache files will be unzipped to the given path while running. Defaults to `zipapps_cache`, support some internal variables as runtime args:
       1.  `TEMP/HOME/SELF` as prefix, for example `HOME/zipapps_cache`
           1. `TEMP` means `tempfile.gettempdir()`
           2. `HOME` means `Path.home()`
           3. `SELF` means `.pyz` file path.
       2. And you can also **overwrite** it with environment variables:
          1. `ZIPAPPS_CACHE` or `UNZIP_PATH`
-   2. the `unzip_path` arg of `zipapps.create_app`
-9. `-cc, --pyc, --compile, --compiled`
-   1. Compile .py to .pyc for fast import, but zipapp does not work unless you unzip it(so NOT very useful).
-   2. the `compiled` arg of `zipapps.create_app`
-10. ` --cache-path, --source-dir, -cp`
+   4. the `unzip_path` arg of `zipapps.create_app`
+10. `-cc, --pyc, --compile, --compiled`
+   5. Compile .py to .pyc for fast import, but zipapp does not work unless you unzip it(so NOT very useful).
+   6. the `compiled` arg of `zipapps.create_app`
+11. ` --cache-path, --source-dir, -cp`
        1. The cache path of zipapps to store site-packages and `includes` files. If not set, will create and clean-up in TEMP dir automately.
        2. the `cache_path` arg of `zipapps.create_app`
-11. `--shell, -s`
+12. `--shell, -s`
     1.  Only while `main` is not set, used for shell=True in `subprocess.run`.
         1.  *very rarely used*, because extra sub-process is not welcome
     2.  the `shell` arg of `zipapps.create_app`
-12. `--main-shell, -ss`
+13. `--main-shell, -ss`
     1.  Only for `main` is not null, call `main` with `subprocess.Popen`: `python -c "import a.b;a.b.c()"`. This is used for `psutil` ImportError of DLL load.
         1.  *very rarely used* too
     2.  the `main_shell` arg of `zipapps.create_app`
-13. `--strict-python-path, -spp`
+14. `--strict-python-path, -spp`
     1.  `Boolean` value. Ignore global PYTHONPATH, only use `zipapps_cache` and `app.pyz`.
     2.  the `ignore_system_python_path` arg of `zipapps.create_app`
-14. `-b, --build-id`
+15. `-b, --build-id`
     1.  The string to skip duplicate builds, it can be the paths of files/folders which splited by ",", then the modify time will be used as build_id. If build_id contains `*`, will use `glob` function to get paths. For example, you can set requirements.txt as your build_id by `python3 -m zipapps -b requirements.txt -r requirements.txt` when you use pyz as venv.
         1.  *very rarely used* too too
     2.  the `build_id` arg of `zipapps.create_app`
-15. `--zipapps, --env-paths`
+16. `--zipapps, --env-paths`
     1.  Default `--zipapps` arg if it is not given while running. Support TEMP/HOME/SELF prefix.
-16. `--delay, -d, --lazy-pip, --lazy-install, --lazy-pip-install`
+17. `--delay, -d, --lazy-pip, --lazy-install, --lazy-pip-install`
     1.  Install packages with pip while first running, which means requirements will not be install into pyz file.
-17. `--ensure-pip`
+18. `--ensure-pip`
     1.  Add the ensurepip package to your pyz file, works for **embed-python**(windows) or other python versions without `pip` installed but `lazy-install` mode is enabled. [EXPERIMENTAL]
-18. `--layer-mode`
+19. `--layer-mode`
     1. Layer mode for the `serverless` use case, `__main__.py / ensure_zipapps.py / activate_zipapps.py` files will not be set in this mode.
     2. `--layer-mode-prefix`
        1. Only work while `--layer-mode` is set, will move the files in the given prefix folder.
-19. `--clear-zipapps-cache, -czc`
+20. `--clear-zipapps-cache, -czc`
     1.  Clear the zipapps cache folder after running, but maybe failed for .pyd/.so files.
-20. all the other (or `unknown`) args will be used by `pip install`
+21. all the other (or `unknown`) args will be used by `pip install`
     1.  such as `-r requirements.txt`
     2.  such as `bottle aiohttp`
     3.  the `pip_args` arg of `zipapps.create_app`

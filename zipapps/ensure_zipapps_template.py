@@ -10,6 +10,8 @@ from zipfile import ZipFile
 # const
 ignore_system_python_path = {ignore_system_python_path}
 unzip = os.environ.get('ZIPAPPS_UNZIP') or r'''{unzip}'''
+unzip_exclude = os.environ.get(
+    'ZIPAPPS_UNZIP_EXCLUDE') or r'''{unzip_exclude}'''
 _cache_folder = os.environ.get('ZIPAPPS_CACHE') or os.environ.get(
     'UNZIP_PATH') or r'''{unzip_path}'''
 ts_file_name = '_zip_time_{ts}'
@@ -85,12 +87,18 @@ def prepare_path():
             # rm the folder
             clear_old_cache(_cache_folder_path, LAZY_PIP_DIR_NAME)
             _need_unzip_names = unzip.split(',')
+            if unzip_exclude:
+                _exclude_unzip_names = set(unzip_exclude.split(','))
+            else:
+                _exclude_unzip_names = set()
             _need_unzip_names.append(ts_file_name)
             with ZipFile(zip_file_path, "r") as zf:
                 for member in zf.infolist():
                     file_dir_name = os.path.splitext(
                         member.filename.split('/')[0])[0]
-                    if unzip == '*' or member.filename in _need_unzip_names or file_dir_name in _need_unzip_names:
+                    allow_unzip = unzip == '*' or member.filename in _need_unzip_names or file_dir_name in _need_unzip_names
+                    exclude_unzip = member.filename in _exclude_unzip_names or file_dir_name in _exclude_unzip_names
+                    if allow_unzip and not exclude_unzip:
                         zf.extract(member, path=_cache_folder_path_str)
         if LAZY_PIP_DIR_NAME:
             import platform

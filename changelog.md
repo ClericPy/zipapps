@@ -2,6 +2,10 @@
 # Changelogs
 
 
+- 2021.02.27
+  - add `--unzip-exclude, -ue`
+    - The opposite of `--unzip` / `-u` which will not be unzipped, should be used with `--unzip` / `-u`.
+    - Can be overwrite with environment variable `ZIPAPPS_UNZIP_EXCLUDE`
 - 2021.01.17
   - add runtime arg `--activate-zipapps` to ensure cache folder and do nothing
   - fix pip install for `-d` (lazy install mode) with `pip.main` function instead of subprocess

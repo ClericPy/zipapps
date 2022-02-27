@@ -14,7 +14,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = '2021.01.17'
+__version__ = '2021.02.27'
 
 
 class ZipApp(object):
@@ -51,6 +51,7 @@ class ZipApp(object):
         layer_mode: bool = False,
         layer_mode_prefix: str = 'python',
         clear_zipapps_cache: bool = False,
+        unzip_exclude: str = '',
     ):
         """Zip your code.
 
@@ -68,7 +69,7 @@ class ZipApp(object):
         :type compressed: bool, optional
         :param shell: whether run python in subprocess, or use runpy if shell is False, defaults to False
         :type shell: bool, optional
-        :param unzip: names to be unzip, using `AUTO` is a better choice, defaults to ''
+        :param unzip: names to be unzip, using `AUTO` is a better choice, defaults to ''. Can be overwrite with environment variable `ZIPAPPS_UNZIP`
         :type unzip: str, optional
         :param unzip_path: If `unzip` arg is not null, cache files will be unzipped to the given path while running. Defaults to `zipapps_cache`, support some internal variables: `TEMP/HOME/SELF` as internal variables, for example `HOME/zipapps_cache`. `TEMP` means `tempfile.gettempdir()`, `HOME` means `Path.home()`, `SELF` means `.pyz` file path, defaults to ''
         :type unzip_path: str, optional
@@ -98,6 +99,8 @@ class ZipApp(object):
         :type includes: str, optional
         :param clear_zipapps_cache: Clear the zipapps cache folder after running, but maybe failed for .pyd/.so files..
         :type includes: bool, optional
+        :param unzip_exclude: names not to be unzip, defaults to '', should be used with unzip. Can be overwrite with environment variable `ZIPAPPS_UNZIP_EXCLUDE`
+        :type unzip_exclude: str, optional
         """
         self.includes = includes
         self.cache_path = cache_path
@@ -108,6 +111,7 @@ class ZipApp(object):
         self.compressed = compressed
         self.shell = shell
         self.unzip = unzip
+        self.unzip_exclude = unzip_exclude
         self.unzip_path = unzip_path
         self.ignore_system_python_path = ignore_system_python_path
         self.main_shell = main_shell
@@ -129,6 +133,10 @@ class ZipApp(object):
 
     def ensure_args(self):
         if not self.unzip:
+            if self.unzip_exclude:
+                self._log(
+                    '[WARN]: The arg `unzip_exclude` should not be with `unzip` but `unzip` is null.'
+                )
             if self.compiled:
                 self._log(
                     '[WARN]: The arg `compiled` should not be True while `unzip` is null, because .pyc files of __pycache__ folder may not work in zip file.'
@@ -273,6 +281,7 @@ class ZipApp(object):
             'shell': self.shell,
             'main_shell': self.main_shell,
             'unzip': self.unzip,
+            'unzip_exclude': self.unzip_exclude,
             'output_name': output_name,
             'unzip_path': self.unzip_path,
             'ignore_system_python_path': self.ignore_system_python_path,

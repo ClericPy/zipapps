@@ -36,6 +36,18 @@ def _clean_paths():
 
 def test_create_app_function():
 
+    # test unzip_exclude
+    _clean_paths()
+    app_path = create_app(unzip='*', pip_args=['six'], unzip_exclude='')
+    stdout_output, stderr_output = subprocess.Popen(
+        [sys.executable, str(app_path), '--activate-zipapps']).communicate()
+    assert Path('./zipapps_cache/app/six.py').is_file()
+    _clean_paths()
+    app_path = create_app(unzip='*', pip_args=['six'], unzip_exclude='six')
+    stdout_output, stderr_output = subprocess.Popen(
+        [sys.executable, str(app_path), '--activate-zipapps']).communicate()
+    assert not Path('./zipapps_cache/app/six.py').is_file()
+
     # test -czc
     _clean_paths()
     app_path = create_app(clear_zipapps_cache=False, unzip='*')
