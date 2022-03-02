@@ -433,8 +433,57 @@ class ZipApp(object):
         return f'_build_id_{md5_id}'
 
     @classmethod
-    def create_app(cls, *args, **kwargs):
-        app = cls(*args, **kwargs)
+    def create_app(
+        cls,
+        includes: str = '',
+        cache_path: str = None,
+        main: str = '',
+        output: str = None,
+        interpreter: str = None,
+        compressed: bool = False,
+        shell: bool = False,
+        unzip: str = '',
+        unzip_path: str = '',
+        ignore_system_python_path=False,
+        main_shell=False,
+        pip_args: list = None,
+        compiled: bool = False,
+        build_id: str = '',
+        env_paths: str = '',
+        lazy_install: bool = False,
+        sys_paths: str = '',
+        python_version_slice: int = 2,
+        ensure_pip: bool = False,
+        layer_mode: bool = False,
+        layer_mode_prefix: str = 'python',
+        clear_zipapps_cache: bool = False,
+        unzip_exclude: str = '',
+    ):
+        app = cls(
+            includes=includes,
+            cache_path=cache_path,
+            main=main,
+            output=output,
+            interpreter=interpreter,
+            compressed=compressed,
+            shell=shell,
+            unzip=unzip,
+            unzip_path=unzip_path,
+            ignore_system_python_path=ignore_system_python_path,
+            main_shell=main_shell,
+            pip_args=pip_args,
+            compiled=compiled,
+            build_id=build_id,
+            env_paths=env_paths,
+            lazy_install=lazy_install,
+            sys_paths=sys_paths,
+            python_version_slice=python_version_slice,
+            ensure_pip=ensure_pip,
+            layer_mode=layer_mode,
+            layer_mode_prefix=layer_mode_prefix,
+            clear_zipapps_cache=clear_zipapps_cache,
+            unzip_exclude=unzip_exclude,
+        )
         return app.build()
 
     @classmethod
@@ -455,5 +504,4 @@ class ZipApp(object):
             self._log(f'[ERROR]: {"=" * 10} Build failed {"=" * 10}')
 
 
-def create_app(*args, **kwargs):
-    return ZipApp.create_app(*args, **kwargs)
+create_app = ZipApp.create_app

@@ -20,9 +20,7 @@ pip_args = {pip_args_repr}
 pip_args_md5 = '{pip_args_md5}'
 py_version = '.'.join(map(str, sys.version_info[:{python_version_slice}]))
 _new_sys_paths = r'''{sys_paths}'''.strip()
-clear_zipapps_cache = os.environ.get('CLEAR_ZIPAPPS_CACHE') or {
-    clear_zipapps_cache
-}
+clear_zipapps_cache = os.environ.get('CLEAR_ZIPAPPS_CACHE') or {clear_zipapps_cache}
 
 
 def ensure_path(path):

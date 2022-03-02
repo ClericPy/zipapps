@@ -2,6 +2,10 @@
 # Changelogs
 
 
+- 2021.03.02
+  - fix #16 pip import at old version
+  - add environment variable `CLEAR_ZIPAPPS_CACHE` for arg `clear_zipapps_cache`
+  - `zipapps.create_app` now has the exact parameters
 - 2021.02.27
   - add `--unzip-exclude, -ue`
     - The opposite of `--unzip` / `-u` which will not be unzipped, should be used with `--unzip` / `-u`.
