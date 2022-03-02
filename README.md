@@ -275,7 +275,7 @@ Inspired by [shiv](https://github.com/linkedin/shiv) and with the differences.
 
 <details>
 
-<summary> Click to read more </summary>
+<summary> <b>Click to read more</b> </summary>
 
 ## 1. Package your script file with only built-ins functions.
 

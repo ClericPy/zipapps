@@ -14,7 +14,26 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = '2022.02.27'
+__version__ = '2022.03.02'
+
+
+def get_pip_main(ensurepip_root=None):
+    try:
+        import pip
+    except ImportError:
+        import ensurepip
+        assert ensurepip._bootstrap(root=ensurepip_root) == 0
+        if ensurepip_root:
+            for _path in Path(ensurepip_root).glob('**/pip/'):
+                if _path.is_dir():
+                    sys.path.append(str(_path.parent.absolute()))
+                    break
+        import pip
+    pip_main = getattr(pip, 'main', None)
+    if pip_main:
+        return pip_main
+    from pip._internal import main as pip_main
+    return pip_main
 
 
 class ZipApp(object):
@@ -26,6 +45,8 @@ class ZipApp(object):
     LAZY_PIP_DIR_NAME = '_zipapps_lazy_pip'
     PATH_SPLIT_TAG = ','
     HANDLE_ACTIVATE_ZIPAPPS = '--activate-zipapps'
+
+    LOGGING = True
 
     def __init__(
         self,
@@ -350,8 +371,8 @@ class ZipApp(object):
         else:
             target = str(self._cache_path.absolute())
         _pip_args = ['install', '--target', target] + self.pip_args
-        from pip._internal.cli.main import main as _main
-        _main(_pip_args)
+        pip_main = get_pip_main()
+        pip_main(_pip_args)
         self.clean_pip_pycache()
 
     def clean_pip_pycache(self):
@@ -416,9 +437,10 @@ class ZipApp(object):
         app = cls(*args, **kwargs)
         return app.build()
 
-    @staticmethod
-    def _log(text):
-        sys.stderr.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} | {text}\n')
+    @classmethod
+    def _log(cls, text):
+        if cls.LOGGING:
+            sys.stderr.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} | {text}\n')
 
     def __del__(self):
         if self._tmp_dir:

@@ -61,6 +61,25 @@ def clear_old_cache(_cache_folder_path: Path, LAZY_PIP_DIR_NAME=''):
         rm_dir_or_file(path)
 
 
+def get_pip_main(ensurepip_root=None):
+    try:
+        import pip
+    except ImportError:
+        import ensurepip
+        assert ensurepip._bootstrap(root=ensurepip_root) == 0
+        if ensurepip_root:
+            for _path in Path(ensurepip_root).glob('**/pip/'):
+                if _path.is_dir():
+                    sys.path.append(str(_path.parent.absolute()))
+                    break
+        import pip
+    pip_main = getattr(pip, 'main', None)
+    if pip_main:
+        return pip_main
+    from pip._internal import main as pip_main
+    return pip_main
+
+
 def prepare_path():
     """Template code for zipapps entry point. Run with current PYTHONPATH"""
     # PYTHONPATH=./app.pyz
@@ -122,18 +141,8 @@ def prepare_path():
                     cwd = os.getcwd()
                     os.chdir(_cache_folder_path_str)
                     try:
-                        from pip._internal.cli.main import main as _main
-                        _main(_pip_args)
-                    except ImportError:
-                        # try installing pip
-                        import ensurepip
-                        assert ensurepip._bootstrap(root=lazy_pip_dir_str) == 0
-                        for _path in _pip_target.glob('**/pip/'):
-                            if _path.is_dir():
-                                sys.path.append(str(_path.parent.absolute()))
-                                break
-                        from pip._internal.cli.main import main as _main
-                        _main(_pip_args)
+                        pip_main = get_pip_main(ensurepip_root=lazy_pip_dir_str)
+                        pip_main(_pip_args)
                     finally:
                         os.chdir(cwd)
                     # avoid duplicated installation
