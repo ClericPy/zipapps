@@ -14,7 +14,14 @@ Depends on [PEP441](https://www.python.org/dev/peps/pep-0441/) + [zipapp](https:
 
 They are both zip archive files which aggregate many packages and associated metadata and resources (text, images, etc.) into one file for distribution.
 
-So you only need a Python Interpreter as the runtime environment.
+All you need is the **Python Interpreter** as the runtime environment.
+
+So, what could `zipapps` be?
+
+1. a `packaging tool`
+2. a `single-file virtual environment`
+3. a `dependences installer`
+4. a `set of import-path`
 
 > PS: The pyz extension can be modified to any character you want, such as `.py`.
 
@@ -38,6 +45,7 @@ So you only need a Python Interpreter as the runtime environment.
    1. > python3 -m zipapps -c -a entry.py -m entry:main -o app.pyz bottle
       1. `bottle` is a pure-python lib which may not be unzipped
          1. sometimes `-u AUTO` or `-u=*` should be added for some `.so/.pyd` libs like `psutil`
+            1. notice that the `-u=*` != `-u *`
    2. you need not to install requirements at running
       
       1. ensure the compatibility of the system environment and python version
