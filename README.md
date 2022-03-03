@@ -44,13 +44,14 @@ So, what could `zipapps` be?
    
    1. > python3 -m zipapps -c -a entry.py -m entry:main -o app.pyz bottle
       1. `bottle` is a pure-python lib which may not be unzipped
-         1. sometimes `-u AUTO` or `-u=*` should be added for some `.so/.pyd` libs like `psutil`
-            1. notice that the `-u=*` != `-u *`
-   2. you need not to install requirements at running
-      
+         1. `-u AUTO` or `-u=*` should be set for some `.so/.pyd` libs
+            1. such as `psutil`
+            2. notice that the `-u=*` != `-u *`
+   2. you don't need to install requirements at running
+
       1. ensure the compatibility of the system environment and python version
-      2. or add `-d` of `lazy install` mode to solve this compatibility problem
-         1. but will add a long-time `pip install` process at the first running.
+      2. or add `-d` of `lazy install` mode to skip the compatibility problem
+         1. but comes a long-time `pip install` process at the first running.
 
 2. run app.pyz
    
