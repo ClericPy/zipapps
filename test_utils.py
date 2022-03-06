@@ -133,7 +133,7 @@ def test_create_app_function():
     # files not be set by includes arg
     assert b'Traceback' in stderr_output, 'test includes failed'
     app_path = create_app(
-        includes='./zipapps/_entry_point.py,./zipapps/main.py')
+        includes='./zipapps/_entry_point.py.template,./zipapps/main.py')
     _, stderr_output = subprocess.Popen(
         [sys.executable, str(app_path), '-c', 'import main'],
         stderr=subprocess.PIPE,
