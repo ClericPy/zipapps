@@ -69,6 +69,15 @@ So, what could `zipapps` be?
    1. > python3 venv.pyz entry.py
    2. the cache will be unzipped to `./zipapps_cache/venv` for `-u` is not null
 
+## 4. Activate the `.pyz` environment
+
+1. `import zipimport; zipimport.zipimporter('bottle.pyz').load_module("ensure_zipapps")`
+   1. automatically unzip cache, and add the path to sys.path
+   2. it can be run multiple times
+2. if they are all pure-python code
+   1. `impory sys; sys.path.insert(0, "bottle.pyz")`
+
+
 # Command line usage
 
 ![image](https://github.com/ClericPy/zipapps/raw/master/args.png)
