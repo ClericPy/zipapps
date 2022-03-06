@@ -14,7 +14,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = '2022.03.03'
+__version__ = '2022.03.06'
 
 
 def get_pip_main(ensurepip_root=None):
@@ -319,14 +319,17 @@ class ZipApp(object):
             'clear_zipapps_cache': repr(self.clear_zipapps_cache),
             'HANDLE_ACTIVATE_ZIPAPPS': self.HANDLE_ACTIVATE_ZIPAPPS,
         }
-        code = get_data('zipapps', '_entry_point.py').decode('u8')
+        code = get_data('zipapps', '_entry_point.py.template').decode('u8')
         (self._cache_path / '__main__.py').write_text(code.format(**kwargs))
-        code = get_data('zipapps', 'ensure_zipapps_template.py').decode('u8')
+
+        code = get_data('zipapps', 'ensure_zipapps.py.template').decode('u8')
         (self._cache_path / 'ensure_zipapps.py').write_text(
             code.format(**kwargs))
+
         code = get_data('zipapps', 'activate_zipapps.py').decode('u8')
         (self._cache_path / 'activate_zipapps.py').write_text(code)
         code += '\n\nactivate()'
+
         if output_name != 'zipapps':
             (self._cache_path / f'ensure_{output_name}.py').write_text(code)
         (self._cache_path / f'ensure_zipapps_{output_name}.py').write_text(code)

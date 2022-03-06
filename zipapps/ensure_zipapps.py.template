@@ -20,7 +20,10 @@ pip_args = {pip_args_repr}
 pip_args_md5 = '{pip_args_md5}'
 py_version = '.'.join(map(str, sys.version_info[:{python_version_slice}]))
 _new_sys_paths = r'''{sys_paths}'''.strip()
-clear_zipapps_cache = os.environ.get('CLEAR_ZIPAPPS_CACHE') or {clear_zipapps_cache}
+if os.environ.get('CLEAR_ZIPAPPS_CACHE'):
+    clear_zipapps_cache = True
+else:
+    clear_zipapps_cache = {clear_zipapps_cache}
 
 
 def ensure_path(path):
@@ -85,7 +88,7 @@ def prepare_path():
     # PYTHONPATH=./app.pyz
     zip_file_path = Path(__file__).parent.absolute()
     _zipapps_python_path_list = [str(zip_file_path)]
-    if unzip:
+    if unzip and zip_file_path.is_file():
         _cache_folder_path_parent = ensure_path(_cache_folder)
         _cache_folder_path = _cache_folder_path_parent / zip_file_path.stem
         if clear_zipapps_cache:
@@ -163,7 +166,13 @@ def prepare_path():
     zipapps_paths = [
         path for path in _zipapps_python_path_list if path not in sys.path
     ]
-    sys.path = zipapps_paths + sys.path + new_sys_paths
+    seen_path = set()
+    result = []
+    for path in zipapps_paths + sys.path + new_sys_paths:
+        if path not in seen_path:
+            seen_path.add(path)
+            result.append(path)
+    sys.path = result
 
 
 prepare_path()
