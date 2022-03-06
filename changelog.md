@@ -2,6 +2,10 @@
 # Changelogs
 
 
+- 2022.03.06
+  - rename some template files
+  - remove duplicated sys.path
+  - only activate zipped file, ingore the folders path
 - 2022.03.02
   - fix #16 pip import at old version
   - add environment variable `CLEAR_ZIPAPPS_CACHE` for arg `clear_zipapps_cache`
