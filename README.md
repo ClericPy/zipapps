@@ -74,7 +74,7 @@ So, what could `zipapps` be?
 1. `import zipimport; zipimport.zipimporter('bottle.pyz').load_module("ensure_zipapps")`
    1. automatically unzip cache, and add the path to sys.path
    2. it can be run multiple times
-2. if they are all pure-python code
+2. if they are all pure-python code and **no need to decompress**
    1. `impory sys; sys.path.insert(0, "bottle.pyz")`
 
 
