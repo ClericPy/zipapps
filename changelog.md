@@ -2,6 +2,9 @@
 # Changelogs
 
 
+- 2022.03.07
+  - fix bug of version `2022.03.06`
+    - file xxx.template not found
 - 2022.03.06
   - rename some template files
   - remove duplicated sys.path
