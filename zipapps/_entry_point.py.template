@@ -80,8 +80,12 @@ def main():
                 sys.argv = args[2:]
                 return run_module(args[2], run_name='__main__')
             else:
-                if Path(arg1).is_file():
+                arg1_path = Path(arg1)
+                if arg1_path.is_file():
                     sys.argv = args[1:]
+                    dir_path = arg1_path.parent
+                    if dir_path.is_dir():
+                        sys.path.insert(0, dir_path.absolute().as_posix())
                     return run_path(arg1, run_name='__main__')
                 else:
                     # python [-bBdEhiIOqsSuvVWx?]

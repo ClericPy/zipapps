@@ -2,6 +2,8 @@
 # Changelogs
 
 
+- 2022.03.10
+  - fix bug of `sys.path` missing the parent of `__file__` while running `python venv.pyz xx.py`
 - 2022.03.07
   - fix bug of version `2022.03.06`
     - file xxx.template not found
