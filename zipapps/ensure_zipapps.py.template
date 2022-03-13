@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from genericpath import isfile
 import os
 import sys
 from pathlib import Path
 from shutil import rmtree
 from tempfile import gettempdir
 from zipfile import ZipFile
+
+from genericpath import isfile
 
 # const
 ignore_system_python_path = {ignore_system_python_path}
@@ -140,10 +141,10 @@ def prepare_path():
                         zf.extract(member, path=_cache_folder_path_str)
             ensure_chmod(_cache_folder_path)
         if LAZY_PIP_DIR_NAME:
-            import platform
-
             lazy_pip_dir = _cache_folder_path / LAZY_PIP_DIR_NAME
             if lazy_pip_dir.is_dir():
+                import platform
+
                 # pip target isolation with by python version and platform
                 platform_name = (platform.system() or '-')
                 target_name = '%s_%s' % (py_version, platform_name)
