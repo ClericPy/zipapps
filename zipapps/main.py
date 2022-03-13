@@ -73,6 +73,7 @@ class ZipApp(object):
         layer_mode_prefix: str = 'python',
         clear_zipapps_cache: bool = False,
         unzip_exclude: str = '',
+        chmod: str = '',
     ):
         """Zip your code.
 
@@ -122,6 +123,8 @@ class ZipApp(object):
         :type includes: bool, optional
         :param unzip_exclude: names not to be unzip, defaults to '', should be used with unzip. Can be overwrite with environment variable `ZIPAPPS_UNZIP_EXCLUDE`
         :type unzip_exclude: str, optional
+        :param chmod: os.chmod(int(chmod, 8)) for unzip files with `--chmod=777`, unix-like system only
+        :type chmod: str, optional
         """
         self.includes = includes
         self.cache_path = cache_path
@@ -147,6 +150,7 @@ class ZipApp(object):
         self.layer_mode = layer_mode
         self.layer_mode_prefix = layer_mode_prefix
         self.clear_zipapps_cache = clear_zipapps_cache
+        self.chmod = chmod
 
         self._tmp_dir: tempfile.TemporaryDirectory = None
         self._build_success = False
@@ -318,6 +322,7 @@ class ZipApp(object):
             'pip_args_md5': self.pip_args_md5,
             'clear_zipapps_cache': repr(self.clear_zipapps_cache),
             'HANDLE_ACTIVATE_ZIPAPPS': self.HANDLE_ACTIVATE_ZIPAPPS,
+            'chmod': self.chmod,
         }
         code = get_data('zipapps', '_entry_point.py.template').decode('u8')
         (self._cache_path / '__main__.py').write_text(code.format(**kwargs))
@@ -461,6 +466,7 @@ class ZipApp(object):
         layer_mode_prefix: str = 'python',
         clear_zipapps_cache: bool = False,
         unzip_exclude: str = '',
+        chmod: str = '',
     ):
         app = cls(
             includes=includes,
@@ -486,6 +492,7 @@ class ZipApp(object):
             layer_mode_prefix=layer_mode_prefix,
             clear_zipapps_cache=clear_zipapps_cache,
             unzip_exclude=unzip_exclude,
+            chmod=chmod,
         )
         return app.build()
 

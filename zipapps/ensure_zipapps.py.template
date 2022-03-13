@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from genericpath import isfile
 import os
 import sys
 from pathlib import Path
@@ -24,6 +25,7 @@ if os.environ.get('CLEAR_ZIPAPPS_CACHE'):
     clear_zipapps_cache = True
 else:
     clear_zipapps_cache = {clear_zipapps_cache}
+unzip_chmod = '{chmod}'
 
 
 def ensure_path(path):
@@ -83,6 +85,19 @@ def get_pip_main(ensurepip_root=None):
     return pip_main
 
 
+def ensure_chmod(path: Path):
+    if unzip_chmod:
+        if os.name == 'nt':
+            return
+        else:
+            mode = int(unzip_chmod, 8)
+            if path.is_dir():
+                for _path in path.rglob('*'):
+                    _path.chmod(mode=mode)
+            elif path.is_file():
+                path.chmod(mode=mode)
+
+
 def prepare_path():
     """Template code for zipapps entry point. Run with current PYTHONPATH"""
     # PYTHONPATH=./app.pyz
@@ -123,6 +138,7 @@ def prepare_path():
                     exclude_unzip = member.filename in _exclude_unzip_names or file_dir_name in _exclude_unzip_names
                     if allow_unzip and not exclude_unzip:
                         zf.extract(member, path=_cache_folder_path_str)
+            ensure_chmod(_cache_folder_path)
         if LAZY_PIP_DIR_NAME:
             import platform
 
@@ -151,6 +167,7 @@ def prepare_path():
                         os.chdir(cwd)
                     # avoid duplicated installation
                     (_pip_target / pip_args_md5).touch()
+                    ensure_chmod(lazy_pip_dir)
     if _new_sys_paths:
         new_sys_paths = [str(ensure_path(p)) for p in _new_sys_paths.split(',')]
     else:
