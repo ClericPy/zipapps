@@ -108,12 +108,13 @@ def prepare_path():
             # check timestamp difference by file name, need to refresh _cache_folder
             # rm the folder
             clear_old_cache(_cache_folder_path, LAZY_PIP_DIR_NAME)
-            _need_unzip_names = unzip.split(',')
+            _need_unzip_names = set(unzip.split(','))
             if unzip_exclude:
                 _exclude_unzip_names = set(unzip_exclude.split(','))
             else:
                 _exclude_unzip_names = set()
-            _need_unzip_names.append(ts_file_name)
+            _need_unzip_names.add(ts_file_name)
+            _need_unzip_names.add(LAZY_PIP_DIR_NAME)
             with ZipFile(zip_file_path, "r") as zf:
                 for member in zf.infolist():
                     file_dir_name = os.path.splitext(
