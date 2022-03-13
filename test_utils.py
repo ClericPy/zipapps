@@ -495,7 +495,8 @@ def test_create_app_function():
         # test --chmod
         _clean_paths()
         app_path = create_app(unzip='*', pip_args=['six'], lazy_install=True)
-        zipimport.zipimporter(app_path).load_module("ensure_zipapps")
+        subprocess.Popen([sys.executable,
+                          str(app_path), '--activate-zipapps']).wait()
         for _path in Path('zipapps_cache/app').rglob('*'):
             if _path.name == 'six.py':
                 assert _path.stat().st_mode != 33279, _path.stat().st_mode
@@ -506,7 +507,8 @@ def test_create_app_function():
                               pip_args=['six'],
                               lazy_install=True,
                               chmod='777')
-        zipimport.zipimporter(app_path).load_module("ensure_zipapps")
+        subprocess.Popen([sys.executable,
+                          str(app_path), '--activate-zipapps']).wait()
         for _path in Path('zipapps_cache/app').rglob('*'):
             if _path.name == 'six.py':
                 assert _path.stat().st_mode == 33279, _path.stat().st_mode
