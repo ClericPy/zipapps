@@ -502,7 +502,10 @@ def test_create_app_function():
                 break
         _clean_paths()
         # path = Path().stat().st_mode == 33279
-        app_path = create_app(unzip='*', pip_args=['six'], lazy_install=True)
+        app_path = create_app(unzip='*',
+                              pip_args=['six'],
+                              lazy_install=True,
+                              chmod=777)
         zipimport.zipimporter(app_path).load_module("ensure_zipapps")
         for _path in Path('zipapps_cache/app').rglob('*'):
             if _path.name == 'six.py':
