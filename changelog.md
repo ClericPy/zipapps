@@ -2,6 +2,9 @@
 # Changelogs
 
 
+- 2022.03.13
+  - check is_zipfile before activate
+  - `--ensure-zipapps` as the alias of `--activate-zipapps`
 - 2022.03.10
   - fix bug of `sys.path` missing the parent of `__file__` while running `python venv.pyz xx.py`
 - 2022.03.07
