@@ -9,33 +9,31 @@ from activate_zipapps import activate
 
 
 def activate_envs():
-    activate()
     # try to activate the --zipapps env paths
     HANDLE_OTHER_ENVS_FLAG = "{HANDLE_OTHER_ENVS_FLAG}"
-    try:
-        index = sys.argv.index(HANDLE_OTHER_ENVS_FLAG)
-        sys.argv.pop(index)
-        env_paths = sys.argv.pop(index)
-    except ValueError:
-        env_paths = None
-    if not env_paths:
-        flag = HANDLE_OTHER_ENVS_FLAG + '='
-        index_to_pop = None
-        for index, value in enumerate(sys.argv):
-            if value.startswith(flag):
-                env_paths = value[len(flag):]
-                index_to_pop = index
-                break
-        if index_to_pop is not None:
-            sys.argv.pop(index_to_pop)
-    if not env_paths:
-        env_paths = r'''{env_paths}'''
-    if env_paths:
-        for env_path in env_paths.split(','):
-            _env_path = ensure_env_path(env_path)
-            if not _env_path.is_file():
-                raise RuntimeError('%s is not exist.' % _env_path)
-            activate(_env_path)
+    build_env_paths = r'''{env_paths}'''
+    todo_paths = build_env_paths.split(',') if build_env_paths else []
+    ignore_indexes = set()
+    for index, arg in enumerate(sys.argv):
+        if arg.startswith(HANDLE_OTHER_ENVS_FLAG):
+            ignore_indexes.add(index)
+            if '=' in arg:
+                paths = arg[len(HANDLE_OTHER_ENVS_FLAG) + 1:]
+            else:
+                ignore_indexes.add(index + 1)
+                paths = sys.argv[index + 1]
+            for _path in paths.split(','):
+                todo_paths.append(_path)
+    if ignore_indexes:
+        sys.argv = [
+            arg for index, arg in enumerate(sys.argv)
+            if index not in ignore_indexes
+        ]
+    for env_path in todo_paths:
+        _env_path = ensure_env_path(env_path)
+        if not _env_path.is_file():
+            raise RuntimeError('%s is not exist.' % _env_path)
+        activate(_env_path)
 
 
 def ensure_env_path(env_path):
@@ -52,11 +50,12 @@ def ensure_env_path(env_path):
 
 
 def main():
+    activate()
     activate_envs()
     args = sys.argv
     if len(args) == 2:
         arg1 = args[1]
-        if arg1 == {HANDLE_ACTIVATE_ZIPAPPS} or arg1 == '--ensure-zipapps':
+        if arg1 == '{HANDLE_ACTIVATE_ZIPAPPS}' or arg1 == '--ensure-zipapps':
             return
     has_main = {has_main}
     if has_main:
