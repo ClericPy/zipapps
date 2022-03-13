@@ -6,6 +6,7 @@
   - check is_zipfile before activate
   - `--ensure-zipapps` as the alias of `--activate-zipapps`
   - fix the conflict between `-d` mode and `-u`
+  - add `--chmod` for unzipped files, fix #17
 - 2022.03.10
   - fix bug of `sys.path` missing the parent of `__file__` while running `python venv.pyz xx.py`
 - 2022.03.07

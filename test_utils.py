@@ -7,7 +7,7 @@ import sys
 from getpass import getuser
 from pathlib import Path
 from tempfile import gettempdir
-
+import zipimport
 from zipapps.main import create_app
 
 
@@ -489,6 +489,25 @@ def test_create_app_function():
     with ZipFile(old_file) as zf:
         namelist = {'python3/', 'python3/setup.py', 'python3/six.py'}
         assert set(zf.namelist()) == namelist, zf.namelist()
+
+    if os.name != 'nt':
+        # posix only
+        # test --chmod
+        _clean_paths()
+        app_path = create_app(unzip='*', pip_args=['six'], lazy_install=True)
+        zipimport.zipimporter(app_path).load_module("ensure_zipapps")
+        for _path in Path('zipapps_cache/app').rglob('*'):
+            if _path.name == 'six.py':
+                assert _path.stat().st_mode != 33279, _path.stat().st_mode
+                break
+        _clean_paths()
+        # path = Path().stat().st_mode == 33279
+        app_path = create_app(unzip='*', pip_args=['six'], lazy_install=True)
+        zipimport.zipimporter(app_path).load_module("ensure_zipapps")
+        for _path in Path('zipapps_cache/app').rglob('*'):
+            if _path.name == 'six.py':
+                assert _path.stat().st_mode == 33279, _path.stat().st_mode
+                break
 
 
 def main():
