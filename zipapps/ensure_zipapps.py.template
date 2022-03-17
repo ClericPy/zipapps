@@ -27,6 +27,7 @@ if os.environ.get('CLEAR_ZIPAPPS_CACHE'):
 else:
     clear_zipapps_cache = {clear_zipapps_cache}
 unzip_chmod = '{chmod}'
+mode = int(unzip_chmod, 8)
 
 
 def ensure_path(path):
@@ -86,15 +87,16 @@ def get_pip_main(ensurepip_root=None):
     return pip_main
 
 
-def ensure_chmod(path: Path):
+def ensure_chmod(path: Path, recursion=True):
     if unzip_chmod:
         if os.name == 'nt':
             return
         else:
-            mode = int(unzip_chmod, 8)
             if path.is_dir():
-                for _path in path.rglob('*'):
-                    _path.chmod(mode=mode)
+                path.chmod(mode=mode)
+                if recursion:
+                    for _path in path.rglob('*'):
+                        _path.chmod(mode=mode)
             elif path.is_file():
                 path.chmod(mode=mode)
 
@@ -106,6 +108,7 @@ def prepare_path():
     _zipapps_python_path_list = [str(zip_file_path)]
     if unzip and zip_file_path.is_file():
         _cache_folder_path_parent = ensure_path(_cache_folder)
+        _cache_folder_path_parent.mkdir(parents=True, exist_ok=True)
         _cache_folder_path = _cache_folder_path_parent / zip_file_path.stem
         if clear_zipapps_cache:
             import atexit
@@ -139,7 +142,10 @@ def prepare_path():
                     exclude_unzip = member.filename in _exclude_unzip_names or file_dir_name in _exclude_unzip_names
                     if allow_unzip and not exclude_unzip:
                         zf.extract(member, path=_cache_folder_path_str)
-            ensure_chmod(_cache_folder_path)
+            if unzip_chmod:
+                ensure_chmod(zip_file_path, False)
+                ensure_chmod(_cache_folder_path_parent, False)
+                ensure_chmod(_cache_folder_path)
         if LAZY_PIP_DIR_NAME:
             lazy_pip_dir = _cache_folder_path / LAZY_PIP_DIR_NAME
             if lazy_pip_dir.is_dir():

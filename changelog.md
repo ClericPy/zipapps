@@ -2,6 +2,8 @@
 # Changelogs
 
 
+- 2022.03.17
+  - fix `--chmod` forget the parent folder and `.pyz` self
 - 2022.03.13
   - check is_zipfile before activate
   - `--ensure-zipapps` as the alias of `--activate-zipapps`
