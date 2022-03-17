@@ -27,7 +27,7 @@ if os.environ.get('CLEAR_ZIPAPPS_CACHE'):
 else:
     clear_zipapps_cache = {clear_zipapps_cache}
 unzip_chmod = '{chmod}'
-mode = int(unzip_chmod, 8)
+mode = int(unzip_chmod, 8) if unzip_chmod else 0
 
 
 def ensure_path(path):
