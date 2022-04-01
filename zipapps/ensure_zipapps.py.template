@@ -88,10 +88,8 @@ def get_pip_main(ensurepip_root=None):
 
 
 def ensure_chmod(path: Path, recursion=True):
-    if unzip_chmod:
-        if os.name == 'nt':
-            return
-        else:
+    if unzip_chmod and os.name != 'nt':
+        try:
             if path.is_dir():
                 path.chmod(mode=mode)
                 if recursion:
@@ -99,6 +97,8 @@ def ensure_chmod(path: Path, recursion=True):
                         _path.chmod(mode=mode)
             elif path.is_file():
                 path.chmod(mode=mode)
+        except PermissionError:
+            pass
 
 
 def prepare_path():
