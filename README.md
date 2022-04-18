@@ -19,7 +19,7 @@ All you need is the **Python Interpreter** as the runtime environment.
 So, what could `zipapps` be?
 
 1. a `packaging tool`
-2. a `single-file virtual environment`
+2. a `single-file virtual environment`(portable site-packages)
 3. a `dependences installer`
 4. a `set of import-path`
 
@@ -208,7 +208,7 @@ Details:
          3. `python3 -m zipapps -o bottle.pyz bottle`
       2. run
          1. `python3 six.pyz --zipapps=psutil.pyz,bottle.pyz -c "import psutil, bottle"`
-2. `--activate-zipapps`
+2. `--activate-zipapps` / `--ensure-zipapps`
    1. to ensure the zipapps_cache folder but do nothing
 
 # When to Use it?
