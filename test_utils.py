@@ -7,6 +7,7 @@ import sys
 from getpass import getuser
 from pathlib import Path
 from tempfile import gettempdir
+
 from zipapps.main import create_app
 
 
@@ -278,8 +279,7 @@ def test_create_app_function():
     create_app(output='bottle_env.pyz', unzip='bottle', pip_args=['bottle'])
     sys.path.insert(0, 'bottle_env.pyz')
     # ! ensure before import for refresh path
-    import ensure_bottle_env as _
-    import bottle
+    import ensure_bottle_env as _;import bottle
 
     # using app unzip cache for `import ensure_zipapps`
     # print(bottle.__file__)
@@ -299,11 +299,11 @@ def test_create_app_function():
     # print(output)
     assert b'.pyc' in output, output
 
-    # test unzip with HOME / SELF / TEMP
+    # test unzip with $HOME / $SELF / $TEMP
     _clean_paths()
     app_path = create_app(unzip='bottle',
                           pip_args=['bottle'],
-                          unzip_path='HOME/app_cache')
+                          unzip_path='$HOME/app_cache')
     output, _ = subprocess.Popen(
         [
             sys.executable,
@@ -316,7 +316,7 @@ def test_create_app_function():
 
     app_path = create_app(unzip='bottle',
                           pip_args=['bottle'],
-                          unzip_path='SELF/app_cache')
+                          unzip_path='$SELF/app_cache')
     output, _ = subprocess.Popen(
         [
             sys.executable,
@@ -330,7 +330,7 @@ def test_create_app_function():
 
     app_path = create_app(unzip='bottle',
                           pip_args=['bottle'],
-                          unzip_path='TEMP/app_cache')
+                          unzip_path='$TEMP/app_cache')
     output, _ = subprocess.Popen(
         [
             sys.executable,
@@ -344,7 +344,7 @@ def test_create_app_function():
     # test os.environ
     app_path = create_app(unzip='bottle',
                           pip_args=['bottle'],
-                          unzip_path='TEMP/app_cache')
+                          unzip_path='$TEMP/app_cache')
     os.environ['UNZIP_PATH'] = './bottle_env'
     output, _ = subprocess.Popen(
         [
@@ -392,12 +392,12 @@ def test_create_app_function():
     assert b'six.pyz' in output
 
     _clean_paths()
-    # test for SELF arg
+    # test for $SELF arg
     create_app(pip_args=['six'], output='six.pyz')
     Path('./entry_test.py').write_text('import six;print(six.__file__)')
     _, error = subprocess.Popen(
         [
-            sys.executable, '-m', 'zipapps', '--zipapps', 'SELF/six.pyz', '-m',
+            sys.executable, '-m', 'zipapps', '--zipapps', '$SELF/six.pyz', '-m',
             'entry_test', '-a', 'entry_test.py'
         ],
         stderr=subprocess.PIPE,
@@ -481,7 +481,7 @@ def test_create_app_function():
     subprocess.Popen(args=args).wait()
     mock_requirement = Path('_requirements.txt')
     mock_requirement.write_text('bottle')
-    old_file = create_app(sys_paths='SELF/bottle_env')
+    old_file = create_app(sys_paths='$SELF/bottle_env')
     output = subprocess.check_output([
         sys.executable, 'app.pyz', '-c', "import bottle;print(bottle.__file__)"
     ]).decode()

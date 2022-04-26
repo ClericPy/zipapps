@@ -5,6 +5,11 @@
 - 2022.04.26
   - handle PermissionError for chmod
   - support clear self pyz after running fix #21
+  - refactor environment variables template and interval variables(with string.Template) #23
+    - change TEMP/HOME/SELF prefixes with $TEMP/$HOME/$SELF
+      - backward compatibility is preserved
+    - support $PID, $CWD
+    - 
 - 2022.03.17
   - fix `--chmod` forget the parent folder and `.pyz` self
 - 2022.03.13

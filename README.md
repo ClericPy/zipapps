@@ -149,16 +149,18 @@ Details:
    2. Can be overwrite with environment variable `ZIPAPPS_UNZIP_EXCLUDE`
 9. `--unzip-path, -up`
    3. If `unzip` arg is not null, cache files will be unzipped to the given path while running. Defaults to `zipapps_cache`, support some internal variables as runtime args:
-      1. `TEMP/HOME/SELF` as prefix, for example `HOME/zipapps_cache`
+      1. `$TEMP/$HOME/$SELF/$PID/$CWD` as prefix, for example `$HOME/zipapps_cache`
          1. `TEMP` means `tempfile.gettempdir()`
          2. `HOME` means `Path.home()`
          3. `SELF` means `.pyz` file path.
+         4. `$PID` means `os.getpid()`
+         5. `$CWD` means `Path.cwd()`
       2. And you can also **overwrite** it with environment variables:
          1. `ZIPAPPS_CACHE` or `UNZIP_PATH`
    4. the `unzip_path` arg of `zipapps.create_app`
 10. `-cc, --pyc, --compile, --compiled`
-    5. Compile .py to .pyc for fast import, but zipapp does not work unless you unzip it(so NOT very useful).
-    6. the `compiled` arg of `zipapps.create_app`
+    1. Compile .py to .pyc for fast import, but zipapp does not work unless you unzip it(so NOT very useful).
+    2. the `compiled` arg of `zipapps.create_app`
 11. ` --cache-path, --source-dir, -cp`
     1. The cache path of zipapps to store site-packages and `includes` files. If not set, will create and clean-up in TEMP dir automately.
     2. the `cache_path` arg of `zipapps.create_app`
@@ -178,7 +180,7 @@ Details:
        1. *very rarely used* too too
     2. the `build_id` arg of `zipapps.create_app`
 16. `--zipapps, --env-paths`
-    1. Default `--zipapps` arg if it is not given while running. Support TEMP/HOME/SELF prefix.
+    1. Default `--zipapps` arg if it is not given while running. Support $TEMP/$HOME/$SELF/$PID/$CWD prefix.
 17. `--delay, -d, --lazy-pip, --lazy-install, --lazy-pip-install`
     1. Install packages with pip while first running, which means requirements will not be install into pyz file.
 18. `--ensure-pip`
@@ -433,7 +435,7 @@ Details:
     -u:
         means the file or folder names you want to unzip while running. Here is the `AUTO`, will unzip the psutil package because of its .pyd or .so files included.
     -up:
-        the unzip path of cache folder. TEMP / HOME / SELF are the built-in runtime args, but for the stable usage you can ignore this arg then use `./zipapps_cache/example`. The cache will be refreshed while you rebuild this pyz.
+        the unzip path of cache folder. $TEMP/$HOME/$SELF/$PID/$CWD are the built-in runtime args, but for the stable usage you can ignore this arg then use `./zipapps_cache/example`. The cache will be refreshed while you rebuild this pyz.
 
 WARNING: unzip path can be overwrited by `export ZIPAPPS_CACHE=./xxx` or `export UNZIP_PATH=./xxx` while running.
 
