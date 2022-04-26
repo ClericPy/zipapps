@@ -107,7 +107,7 @@ def main():
         '-up',
         default='',
         help='If `unzip` arg is not null, cache files will be unzipped to the '
-        'given path while running. Defaults to `zipapps_cache`, support some internal variables: `TEMP/HOME/SELF` as internal variables, for example `HOME/zipapps_cache`. `TEMP` means `tempfile.gettempdir()`, `HOME` means `Path.home()`, `SELF` means `.pyz` file path.'
+        'given path while running. Defaults to `zipapps_cache`, support some internal variables: `$TEMP/$HOME/$SELF/$PID/$CWD` as internal variables, for example `$HOME/zipapps_cache`. `$TEMP` means `tempfile.gettempdir()`, `$HOME` means `Path.home()`, `$SELF` means `.pyz` file path, `$PID` means `os.getpid()`, `$CWD` means `Path.cwd()`.'
     )
     parser.add_argument(
         '-cc',
@@ -159,7 +159,7 @@ def main():
         default='',
         dest='env_paths',
         help='Default --zipapps arg if it is not given while running.'
-        ' Support TEMP/HOME/SELF prefix, separated by commas.')
+        ' Also support $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas.')
     parser.add_argument(
         '--delay',
         '-d',
@@ -187,7 +187,7 @@ def main():
                         default='',
                         dest='sys_paths',
                         help='Paths be insert to sys.path[-1] while running.'
-                        ' Support TEMP/HOME/SELF prefix, separated by commas.')
+                        ' Support $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas.')
     parser.add_argument(
         '--activate',
         default='',

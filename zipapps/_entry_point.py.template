@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import os
 import sys
 from pathlib import Path
 from runpy import run_module, run_path
+from string import Template
 from subprocess import run
 from tempfile import gettempdir
 
@@ -11,7 +13,7 @@ from activate_zipapps import activate
 def activate_envs():
     # try to activate the --zipapps env paths
     HANDLE_OTHER_ENVS_FLAG = "{HANDLE_OTHER_ENVS_FLAG}"
-    build_env_paths = r'''{env_paths}'''
+    build_env_paths = {env_paths}
     todo_paths = build_env_paths.split(',') if build_env_paths else []
     ignore_indexes = set()
     for index, arg in enumerate(sys.argv):
@@ -37,16 +39,20 @@ def activate_envs():
 
 
 def ensure_env_path(env_path):
-    if env_path.startswith('HOME'):
-        env_path_path = Path.home() / (env_path[4:].lstrip('/\\'))
-    elif env_path.startswith('SELF'):
-        env_path_path = Path(__file__).parent.parent / (
-            env_path[4:].lstrip('/\\'))
-    elif env_path.startswith('TEMP'):
-        env_path_path = Path(gettempdir()) / (env_path[4:].lstrip('/\\'))
-    else:
-        env_path_path = Path(env_path)
-    return env_path_path
+    # backward compatibility
+    if env_path.startswith(('HOME', 'SELF', 'TEMP')):
+        env_path = '$' + env_path
+    kwargs = {{
+        'SELF': str(Path(__file__).parent.parent.absolute()),
+        'TEMP': str(Path(gettempdir()).absolute()),
+        'PID': str(os.getpid()),
+        'CWD': str(Path.cwd().absolute()),
+    }}
+    try:
+        kwargs['HOME'] = str(Path.home().absolute())
+    except (RuntimeError, OSError):
+        pass
+    return Path(Template(env_path).safe_substitute(kwargs))
 
 
 def main():

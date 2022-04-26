@@ -94,7 +94,7 @@ class ZipApp(object):
         :type shell: bool, optional
         :param unzip: names to be unzip, using `AUTO` is a better choice, defaults to ''. Can be overwrite with environment variable `ZIPAPPS_UNZIP`
         :type unzip: str, optional
-        :param unzip_path: If `unzip` arg is not null, cache files will be unzipped to the given path while running. Defaults to `zipapps_cache`, support some internal variables: `TEMP/HOME/SELF` as internal variables, for example `HOME/zipapps_cache`. `TEMP` means `tempfile.gettempdir()`, `HOME` means `Path.home()`, `SELF` means `.pyz` file path, defaults to ''
+        :param unzip_path: If `unzip` arg is not null, cache files will be unzipped to the given path while running. Defaults to `zipapps_cache`, support some internal variables: `$TEMP` means `tempfile.gettempdir()`, `$HOME` means `Path.home()`, `$SELF` means `.pyz` file path, `$PID` means `os.getpid()`, `$CWD` means `Path.cwd()`, defaults to ''
         :type unzip_path: str, optional
         :param ignore_system_python_path: Ignore global PYTHONPATH, only use zipapps_cache and app.pyz, defaults to False
         :type ignore_system_python_path: bool, optional
@@ -106,11 +106,11 @@ class ZipApp(object):
         :type compiled: bool, optional
         :param build_id: a string to skip duplicate builds, it can be the paths of files/folders which splited by ",", then the modify time will be used as build_id. If build_id contains `*`, will use `glob` function to get paths. For example, you can set requirements.txt as your build_id by `python3 -m zipapps -b requirements.txt -r requirements.txt` when you use pyz as venv, defaults to ''
         :type build_id: str, optional
-        :param env_paths: Default --zipapps arg if it is not given while running. Support TEMP/HOME/SELF prefix, separated by commas, defaults to ''
+        :param env_paths: Default --zipapps arg if it is not given while running. Support $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas, defaults to ''
         :type env_paths: str, optional
         :param lazy_install: Install packages with pip while running, which means requirements will not be install into pyz file, defaults to False
         :type lazy_install: bool, optional
-        :param sys_paths: Paths be insert to sys.path[-1] while running. Support TEMP/HOME/SELF prefix, separated by commas, defaults to ''
+        :param sys_paths: Paths be insert to sys.path[-1] while running. Support $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas, defaults to ''
         :type sys_paths: str, optional
         :param python_version_slice: Only work for lazy-install mode, then `pip` target folders differ according to sys.version_info[:_slice], defaults to 2, which means 3.8.3 equals to 3.8.4 for same version accuracy 3.8, defaults to 2
         :type python_version_slice: int, optional
@@ -309,19 +309,19 @@ class ZipApp(object):
             'ts': self.setup_timestamp_file(),
             'shell': self.shell,
             'main_shell': self.main_shell,
-            'unzip': self.unzip,
-            'unzip_exclude': self.unzip_exclude,
+            'unzip': repr(self.unzip),
+            'unzip_exclude': repr(self.unzip_exclude),
             'output_name': output_name,
-            'unzip_path': self.unzip_path,
+            'unzip_path': repr(self.unzip_path),
             'ignore_system_python_path': self.ignore_system_python_path,
             'has_main': bool(self.main),
             'import_main': 'import %s' % module if module else '',
             'run_main': '%s.%s()' % (module, function) if function else '',
             'HANDLE_OTHER_ENVS_FLAG': self.HANDLE_OTHER_ENVS_FLAG,
-            'env_paths': self.env_paths,
-            'LAZY_PIP_DIR_NAME': self.LAZY_PIP_DIR_NAME,
+            'env_paths': repr(self.env_paths),
+            'LAZY_PIP_DIR_NAME': repr(self.LAZY_PIP_DIR_NAME),
             'pip_args_repr': repr(self.pip_args),
-            'sys_paths': self.sys_paths,
+            'sys_paths': repr(self.sys_paths),
             'python_version_slice': self.python_version_slice,
             'pip_args_md5': self.pip_args_md5,
             'clear_zipapps_cache': repr(self.clear_zipapps_cache),
