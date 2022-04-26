@@ -14,7 +14,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = '2022.03.17'
+__version__ = '2022.04.26'
 
 
 def get_pip_main(ensurepip_root=None):
@@ -74,6 +74,7 @@ class ZipApp(object):
         clear_zipapps_cache: bool = False,
         unzip_exclude: str = '',
         chmod: str = '',
+        clear_zipapps_self: bool = False,
     ):
         """Zip your code.
 
@@ -119,12 +120,14 @@ class ZipApp(object):
         :type includes: bool, optional
         :param layer_mode_prefix: Only work while --layer-mode is set, will move the files in the given prefix folder.
         :type includes: str, optional
-        :param clear_zipapps_cache: Clear the zipapps cache folder after running, but maybe failed for .pyd/.so files..
+        :param clear_zipapps_cache: Clear the zipapps cache folder after running, but maybe failed for .pyd/.so files.
         :type includes: bool, optional
         :param unzip_exclude: names not to be unzip, defaults to '', should be used with unzip. Can be overwrite with environment variable `ZIPAPPS_UNZIP_EXCLUDE`
         :type unzip_exclude: str, optional
         :param chmod: os.chmod(int(chmod, 8)) for unzip files with `--chmod=777`, unix-like system only
         :type chmod: str, optional
+        :param clear_zipapps_self: Clear the zipapps pyz file after running.
+        :type includes: bool, optional
         """
         self.includes = includes
         self.cache_path = cache_path
@@ -150,6 +153,7 @@ class ZipApp(object):
         self.layer_mode = layer_mode
         self.layer_mode_prefix = layer_mode_prefix
         self.clear_zipapps_cache = clear_zipapps_cache
+        self.clear_zipapps_self = clear_zipapps_self
         self.chmod = chmod
 
         self._tmp_dir: tempfile.TemporaryDirectory = None
@@ -323,6 +327,7 @@ class ZipApp(object):
             'clear_zipapps_cache': repr(self.clear_zipapps_cache),
             'HANDLE_ACTIVATE_ZIPAPPS': self.HANDLE_ACTIVATE_ZIPAPPS,
             'chmod': self.chmod,
+            'clear_zipapps_self': repr(self.clear_zipapps_self),
         }
         code = get_data('zipapps', '_entry_point.py.template').decode('u8')
         (self._cache_path / '__main__.py').write_text(code.format(**kwargs))
@@ -467,6 +472,7 @@ class ZipApp(object):
         clear_zipapps_cache: bool = False,
         unzip_exclude: str = '',
         chmod: str = '',
+        clear_zipapps_self: bool = False,
     ):
         app = cls(
             includes=includes,
@@ -493,6 +499,7 @@ class ZipApp(object):
             clear_zipapps_cache=clear_zipapps_cache,
             unzip_exclude=unzip_exclude,
             chmod=chmod,
+            clear_zipapps_self=clear_zipapps_self,
         )
         return app.build()
 

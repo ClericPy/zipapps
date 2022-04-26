@@ -222,6 +222,13 @@ def main():
         'but maybe failed for .pyd/.so files.',
     )
     parser.add_argument(
+        '-czs',
+        '--clear-zipapps-self',
+        action='store_true',
+        dest='clear_zipapps_self',
+        help='Clear the zipapps pyz file self after running.',
+    )
+    parser.add_argument(
         '--chmod',
         default='',
         dest='chmod',
@@ -261,6 +268,7 @@ def main():
         clear_zipapps_cache=args.clear_zipapps_cache,
         unzip_exclude=args.unzip_exclude,
         chmod=args.chmod,
+        clear_zipapps_self=args.clear_zipapps_self,
     )
 
 
