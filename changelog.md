@@ -2,6 +2,9 @@
 # Changelogs
 
 
+- 2022.04.26
+  - handle PermissionError for chmod
+  - support clear self pyz after running fix #21
 - 2022.03.17
   - fix `--chmod` forget the parent folder and `.pyz` self
 - 2022.03.13

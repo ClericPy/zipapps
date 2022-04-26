@@ -7,7 +7,6 @@ import sys
 from getpass import getuser
 from pathlib import Path
 from tempfile import gettempdir
-import zipimport
 from zipapps.main import create_app
 
 
@@ -35,6 +34,15 @@ def _clean_paths():
 
 
 def test_create_app_function():
+
+    # test clear_zipapps_self
+    _clean_paths()
+    assert not Path('app.pyz').is_file()
+    app_path = create_app(clear_zipapps_self=True)
+    assert Path('app.pyz').is_file()
+    stdout_output, stderr_output = subprocess.Popen(
+        [sys.executable, str(app_path), '--activate-zipapps']).communicate()
+    assert not Path('app.pyz').is_file()
 
     # test unzip_exclude
     _clean_paths()

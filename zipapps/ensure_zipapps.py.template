@@ -26,6 +26,7 @@ if os.environ.get('CLEAR_ZIPAPPS_CACHE'):
     clear_zipapps_cache = True
 else:
     clear_zipapps_cache = {clear_zipapps_cache}
+clear_zipapps_self = {clear_zipapps_self}
 unzip_chmod = '{chmod}'
 mode = int(unzip_chmod, 8) if unzip_chmod else 0
 
@@ -110,6 +111,10 @@ def prepare_path():
     # PYTHONPATH=./app.pyz
     zip_file_path = Path(__file__).parent.absolute()
     _zipapps_python_path_list = [str(zip_file_path)]
+    if clear_zipapps_self:
+        import atexit
+
+        atexit.register(rm_dir_or_file, zip_file_path)
     if unzip and zip_file_path.is_file():
         _cache_folder_path_parent = ensure_path(_cache_folder)
         _cache_folder_path_parent.mkdir(parents=True, exist_ok=True)
