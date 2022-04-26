@@ -36,6 +36,43 @@ def _clean_paths():
 
 def test_create_app_function():
 
+    # test os.environ
+    app_path = create_app(unzip='*', unzip_path='app_cache')
+    os.environ['CLEAR_ZIPAPPS_CACHE'] = '1'
+    os.environ['CLEAR_ZIPAPPS_SELF'] = '1'
+    subprocess.Popen(
+        [sys.executable,
+         str(app_path), '--activate-zipapps'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).wait()
+    os.environ.pop('CLEAR_ZIPAPPS_CACHE')
+    os.environ.pop('CLEAR_ZIPAPPS_SELF')
+    assert not Path('app_cache').is_dir()
+    assert not Path('app.pyz').is_file()
+    app_path = create_app(unzip='*', unzip_path='app_cache')
+    subprocess.Popen(
+        [sys.executable,
+         str(app_path), '--activate-zipapps'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).wait()
+    assert Path('app_cache').is_dir()
+    assert Path('app.pyz').is_file()
+    app_path = create_app(unzip='six',
+                          pip_args=['six'],
+                          unzip_path='$TEMP/app_cache')
+    os.environ['ZIPAPPS_CACHE'] = './bottle_env'
+    output, _ = subprocess.Popen(
+        [sys.executable,
+         str(app_path), '-c', 'import six;print(six.__file__)'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    _output = output.decode()
+    assert 'app_cache' not in _output and 'bottle_env' in _output
+    os.environ.pop('ZIPAPPS_CACHE')
+
     # test unzip with $CWD / $PID
     _clean_paths()
     app_path = create_app(unzip='bottle',
@@ -297,7 +334,8 @@ def test_create_app_function():
     create_app(output='bottle_env.pyz', unzip='bottle', pip_args=['bottle'])
     sys.path.insert(0, 'bottle_env.pyz')
     # ! ensure before import for refresh path
-    import ensure_bottle_env as _;import bottle
+    import ensure_bottle_env as _
+    import bottle
 
     # using app unzip cache for `import ensure_zipapps`
     # print(bottle.__file__)
@@ -359,22 +397,6 @@ def test_create_app_function():
     ).communicate()
     assert str((Path(gettempdir()) / 'app_cache').absolute()) in output.decode()
 
-    # test os.environ
-    app_path = create_app(unzip='bottle',
-                          pip_args=['bottle'],
-                          unzip_path='$TEMP/app_cache')
-    os.environ['UNZIP_PATH'] = './bottle_env'
-    output, _ = subprocess.Popen(
-        [
-            sys.executable,
-            str(app_path), '-c', 'import bottle;print(bottle.__file__)'
-        ],
-        stderr=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-    ).communicate()
-    _output = output.decode()
-    assert 'app_cache' not in _output and 'bottle_env' in _output
-
     # test --zipapps
     _clean_paths()
     create_app(unzip='AUTO', output='psutil.pyz', pip_args=['psutil'])
@@ -384,7 +406,6 @@ def test_create_app_function():
     # print(stdout_output)
     assert re.search(r'six.pyz[\\/]six.py', stdout_output) and re.search(
         r'psutil[\\/]psutil[\\/]__init__.py', stdout_output)
-    os.environ.pop('UNZIP_PATH')
 
     # test --zipapps while building
     _clean_paths()

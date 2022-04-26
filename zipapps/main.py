@@ -45,6 +45,16 @@ class ZipApp(object):
     LAZY_PIP_DIR_NAME = '_zipapps_lazy_pip'
     PATH_SPLIT_TAG = ','
     HANDLE_ACTIVATE_ZIPAPPS = '--activate-zipapps'
+    ENV_ALIAS = {
+        'unzip': 'ZIPAPPS_UNZIP',
+        'unzip_exclude': 'ZIPAPPS_UNZIP_EXCLUDE',
+        'unzip_path': 'ZIPAPPS_CACHE',
+        'ignore_system_python_path': 'STRICT_PYTHON_PATH',
+        'python_version_slice': 'PYTHON_VERSION_SLICE',
+        'clear_zipapps_cache': 'CLEAR_ZIPAPPS_CACHE',
+        'clear_zipapps_self': 'CLEAR_ZIPAPPS_SELF',
+        'chmod': 'UNZIP_CHMOD',
+    }
 
     LOGGING = True
 
@@ -322,13 +332,15 @@ class ZipApp(object):
             'LAZY_PIP_DIR_NAME': repr(self.LAZY_PIP_DIR_NAME),
             'pip_args_repr': repr(self.pip_args),
             'sys_paths': repr(self.sys_paths),
-            'python_version_slice': self.python_version_slice,
+            'python_version_slice': repr(self.python_version_slice),
             'pip_args_md5': self.pip_args_md5,
             'clear_zipapps_cache': repr(self.clear_zipapps_cache),
             'HANDLE_ACTIVATE_ZIPAPPS': self.HANDLE_ACTIVATE_ZIPAPPS,
-            'chmod': self.chmod,
+            'chmod': repr(self.chmod),
             'clear_zipapps_self': repr(self.clear_zipapps_self),
         }
+        for k, v in self.ENV_ALIAS.items():
+            kwargs[f'{k}_env'] = repr(v)
         code = get_data('zipapps', '_entry_point.py.template').decode('u8')
         (self._cache_path / '__main__.py').write_text(code.format(**kwargs))
 
