@@ -36,6 +36,24 @@ def _clean_paths():
 
 def test_create_app_function():
 
+    # test unzip with $CWD / $PID
+    _clean_paths()
+    app_path = create_app(unzip='bottle',
+                          pip_args=['bottle'],
+                          unzip_path='$CWD/app_cache/$PID')
+    proc = subprocess.Popen(
+        [
+            sys.executable,
+            str(app_path), '-c', 'import bottle;print(bottle.__file__)'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    )
+    output, _ = proc.communicate()
+    assert '$CWD' not in output.decode()
+    assert str(proc.pid) in output.decode()
+    assert (Path.cwd() / 'app_cache').is_dir()
+
     # test clear_zipapps_self
     _clean_paths()
     assert not Path('app.pyz').is_file()
