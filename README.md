@@ -212,6 +212,17 @@ Details:
          1. `python3 six.pyz --zipapps=psutil.pyz,bottle.pyz -c "import psutil, bottle"`
 2. `--activate-zipapps` / `--ensure-zipapps`
    1. to ensure the zipapps_cache folder but do nothing
+3. use environment variables to reset build args while running, and custom it with `ENV_ALIAS` arg
+    1.  the upper names are environment variables
+    2.  
+            'unzip': 'ZIPAPPS_UNZIP',
+            'unzip_exclude': 'ZIPAPPS_UNZIP_EXCLUDE',
+            'unzip_path': 'ZIPAPPS_CACHE',
+            'ignore_system_python_path': 'STRICT_PYTHON_PATH',
+            'python_version_slice': 'PYTHON_VERSION_SLICE',
+            'clear_zipapps_cache': 'CLEAR_ZIPAPPS_CACHE',
+            'clear_zipapps_self': 'CLEAR_ZIPAPPS_SELF',
+            'unzip_chmod': 'UNZIP_CHMOD',
 
 # When to Use it?
 

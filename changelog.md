@@ -9,7 +9,17 @@
     - change TEMP/HOME/SELF prefixes with $TEMP/$HOME/$SELF
       - backward compatibility is preserved
     - support $PID, $CWD
+  - normalize the map of environment variables
+    - use these envs to reset build args at runtime
     - 
+            'unzip': 'ZIPAPPS_UNZIP',
+            'unzip_exclude': 'ZIPAPPS_UNZIP_EXCLUDE',
+            'unzip_path': 'ZIPAPPS_CACHE',
+            'ignore_system_python_path': 'STRICT_PYTHON_PATH',
+            'python_version_slice': 'PYTHON_VERSION_SLICE',
+            'clear_zipapps_cache': 'CLEAR_ZIPAPPS_CACHE',
+            'clear_zipapps_self': 'CLEAR_ZIPAPPS_SELF',
+            'unzip_chmod': 'UNZIP_CHMOD',
 - 2022.03.17
   - fix `--chmod` forget the parent folder and `.pyz` self
 - 2022.03.13
