@@ -191,7 +191,17 @@ Details:
        1. Only work while `--layer-mode` is set, will move the files in the given prefix folder.
 20. `--clear-zipapps-cache, -czc`
     1. Clear the zipapps cache folder after running, but maybe failed for .pyd/.so files.
-21. all the other (or `unknown`) args will be used by `pip install`
+21. `--clear-zipapps-self, -czs`
+    1. Clear the zipapps pyz file self after running.
+22. `--chmod`
+    1. os.chmod(int(chmod, 8)) for unzip files with `--chmod=777`
+        1.  unix-like system only
+23. `--dump-config`
+    1. Dump zipapps build args into JSON string.
+       1. A file path needed and `-` means stdout.
+24. `--load-config`
+    1. Load zipapps build args from a JSON file.
+25. all the other (or `unknown`) args will be used by `pip install`
     1. such as `-r requirements.txt`
     2. such as `bottle aiohttp`
     3. the `pip_args` arg of `zipapps.create_app`
