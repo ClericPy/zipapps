@@ -13,14 +13,17 @@ from zipapps.main import create_app
 
 @atexit.register
 def _clean_paths():
+    # files
     for p in [
             'mock_main.py', 'app.pyz', 'bottle.pyz', 'bottle_env.pyz',
-            'psutil.pyz', '_requirements.txt', 'six.pyz', 'entry_test.py'
+            'psutil.pyz', '_requirements.txt', 'six.pyz', 'entry_test.py',
+            'zipapps_config.json'
     ]:
         try:
             Path(p).unlink()
         except Exception:
             pass
+    # folders
     for d in [
             'mock_package', 'zipapps_cache', 'bottle_env',
             Path.home() / 'app_cache',
@@ -36,13 +39,46 @@ def _clean_paths():
 
 def test_create_app_function():
 
+    # test `--dump-config` and `--load-config`
+    _clean_paths()
+    output, _ = subprocess.Popen(
+        [sys.executable, '-m', 'zipapps', '--dump-config', '-'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    assert output.startswith(b'{') and output.endswith(b'}'), output
+    subprocess.Popen(
+        [
+            sys.executable, '-m', 'zipapps', '--dump-config',
+            'zipapps_config.json', 'six'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).wait()
+    assert Path('zipapps_config.json').is_file()
+    subprocess.Popen(
+        [
+            sys.executable, '-m', 'zipapps', '--load-config',
+            'zipapps_config.json'
+        ],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).wait()
+    output, _ = subprocess.Popen(
+        [sys.executable, 'app.pyz', '-c', 'import six;print(six.__file__)'],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    ).communicate()
+    _output = output.decode()
+    assert 'app.pyz' in _output
+
     # test os.environ
+    _clean_paths()
     app_path = create_app(unzip='*', unzip_path='app_cache')
     os.environ['CLEAR_ZIPAPPS_CACHE'] = '1'
     os.environ['CLEAR_ZIPAPPS_SELF'] = '1'
     subprocess.Popen(
-        [sys.executable,
-         str(app_path), '--activate-zipapps'],
+        [sys.executable, str(app_path), '--activate-zipapps'],
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).wait()
@@ -52,8 +88,7 @@ def test_create_app_function():
     assert not Path('app.pyz').is_file()
     app_path = create_app(unzip='*', unzip_path='app_cache')
     subprocess.Popen(
-        [sys.executable,
-         str(app_path), '--activate-zipapps'],
+        [sys.executable, str(app_path), '--activate-zipapps'],
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).wait()

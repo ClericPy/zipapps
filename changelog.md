@@ -2,8 +2,9 @@
 # Changelogs
 
 
-- 2022.04.26
+- 2022.04.27
   - handle PermissionError for chmod
+  - support `--dump-config` and `--load-config` #24 fixed
   - support clear self pyz after running fix #21
   - refactor environment variables template and interval variables(with string.Template) #23
     - change TEMP/HOME/SELF prefixes with $TEMP/$HOME/$SELF

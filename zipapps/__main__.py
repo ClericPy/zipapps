@@ -159,7 +159,8 @@ def main():
         default='',
         dest='env_paths',
         help='Default --zipapps arg if it is not given while running.'
-        ' Also support $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas.')
+        ' Also support $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas.'
+    )
     parser.add_argument(
         '--delay',
         '-d',
@@ -180,14 +181,15 @@ def main():
         help='Only work for lazy-install mode, then `pip` target folders differ '
         'according to sys.version_info[:_slice], defaults to 2, which means '
         '3.8.3 equals to 3.8.4 for same version accuracy 3.8')
-    parser.add_argument('--sys-paths',
-                        '--sys-path',
-                        '--py-path',
-                        '--python-path',
-                        default='',
-                        dest='sys_paths',
-                        help='Paths be insert to sys.path[-1] while running.'
-                        ' Support $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas.')
+    parser.add_argument(
+        '--sys-paths',
+        '--sys-path',
+        '--py-path',
+        '--python-path',
+        default='',
+        dest='sys_paths',
+        help='Paths be insert to sys.path[-1] while running.'
+        ' Support $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas.')
     parser.add_argument(
         '--activate',
         default='',
@@ -235,6 +237,19 @@ def main():
         help='os.chmod(int(chmod, 8)) for unzip files with `--chmod=777`,'
         ' unix-like system only',
     )
+    parser.add_argument(
+        '--dump-config',
+        default='',
+        dest='dump_config',
+        help='Dump zipapps build args into JSON string.'
+        ' A file path needed and `-` means stdout.',
+    )
+    parser.add_argument(
+        '--load-config',
+        default='',
+        dest='load_config',
+        help='Load zipapps build args from a JSON file.',
+    )
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()
@@ -243,33 +258,47 @@ def main():
         for path in args.activate.split(','):
             activate(path)
         return
-    return create_app(
-        includes=args.includes,
-        cache_path=args.cache_path,
-        main=args.main,
-        output=args.output,
-        interpreter=args.interpreter,
-        compressed=args.compress,
-        shell=args.shell,
-        unzip=args.unzip,
-        unzip_path=args.unzip_path,
-        ignore_system_python_path=args.ignore_system_python_path,
-        main_shell=args.main_shell,
-        pip_args=pip_args,
-        compiled=args.compiled,
-        build_id=args.build_id,
-        env_paths=args.env_paths,
-        lazy_install=args.lazy_install,
-        sys_paths=args.sys_paths,
-        python_version_slice=int(args.python_version_slice),
-        ensure_pip=args.ensure_pip,
-        layer_mode=args.layer_mode,
-        layer_mode_prefix=args.layer_mode_prefix,
-        clear_zipapps_cache=args.clear_zipapps_cache,
-        unzip_exclude=args.unzip_exclude,
-        chmod=args.chmod,
-        clear_zipapps_self=args.clear_zipapps_self,
-    )
+    if args.load_config:
+        import json
+        with open(args.load_config, 'r') as f:
+            kwargs = json.load(f)
+    else:
+        kwargs = dict(
+            includes=args.includes,
+            cache_path=args.cache_path,
+            main=args.main,
+            output=args.output,
+            interpreter=args.interpreter,
+            compressed=args.compress,
+            shell=args.shell,
+            unzip=args.unzip,
+            unzip_path=args.unzip_path,
+            ignore_system_python_path=args.ignore_system_python_path,
+            main_shell=args.main_shell,
+            pip_args=pip_args,
+            compiled=args.compiled,
+            build_id=args.build_id,
+            env_paths=args.env_paths,
+            lazy_install=args.lazy_install,
+            sys_paths=args.sys_paths,
+            python_version_slice=int(args.python_version_slice),
+            ensure_pip=args.ensure_pip,
+            layer_mode=args.layer_mode,
+            layer_mode_prefix=args.layer_mode_prefix,
+            clear_zipapps_cache=args.clear_zipapps_cache,
+            unzip_exclude=args.unzip_exclude,
+            chmod=args.chmod,
+            clear_zipapps_self=args.clear_zipapps_self,
+        )
+    if args.dump_config:
+        import json
+        if args.dump_config == '-':
+            print(json.dumps(kwargs), end='')
+        else:
+            with open(args.dump_config, 'w') as f:
+                json.dump(kwargs, f)
+    else:
+        return create_app(**kwargs)
 
 
 if __name__ == "__main__":
