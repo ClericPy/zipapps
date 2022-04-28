@@ -206,7 +206,7 @@ Details:
     1.  Freeze package versions of pip args with venv, output to the given file path.
         1.  `-` equals to `stdout`
         2.  logs will be redirect to `stderr`
-    2.  It tasks time for: init venv + pip install + pip freeze
+    2.  Based on `pip` + `venv`
         1.  work folder is `tempfile.TemporaryDirectory`, prefix='zipapps_'
 26. all the other (or `unknown`) args will be used by `pip install`
     1. such as `-r requirements.txt`
