@@ -61,7 +61,7 @@ class FreezeTool(object):
         venv_path = self.temp_path / self.VENV_NAME
         self.log(f'Initial venv with pip: {venv_path.absolute()}')
         if self.FASTER_PREPARE_PIP:
-            venv.create(env_dir=venv_path, with_pip=False)
+            venv.create(env_dir=venv_path, system_site_packages=False, with_pip=False)
             import shutil
 
             import pip
@@ -73,7 +73,7 @@ class FreezeTool(object):
                 target = venv_path / 'lib' / pyv / 'site-packages' / 'pip'
             shutil.copytree(pip_dir, target)
         else:
-            venv.create(env_dir=venv_path, with_pip=True)
+            venv.create(env_dir=venv_path, system_site_packages=False, with_pip=True)
         if not venv_path.is_dir():
             raise FileNotFoundError(str(venv_path))
 
@@ -108,8 +108,10 @@ class FreezeTool(object):
         return result
 
     def freeze_requirements(self, output):
-        print(output, flush=True)
-        if self.output_path != '-':
+        if self.output_path == '-':
+            print(output, flush=True)
+        else:
+            print(output, file=sys.stderr, flush=True)
             with open(self.output_path, 'w', encoding='utf-8') as f:
                 print(output, file=f, flush=True)
 

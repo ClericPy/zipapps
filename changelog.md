@@ -9,7 +9,7 @@
     - Freeze package versions of pip args with venv, output to the given file path.
         -  `-` equals to `stdout`
         -  logs will be redirect to `stderr`
-    -  It tasks time for: init venv + pip install + pip freeze
+    -  Based on `pip` + `venv`
         -  the work folder is `tempfile.TemporaryDirectory`, prefix='zipapps_'
   - support clear self pyz after running fix #21
   - refactor environment variables template and interval variables(with string.Template) #23
