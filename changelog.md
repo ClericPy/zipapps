@@ -5,6 +5,12 @@
 - 2022.04.27
   - handle PermissionError for chmod
   - support `--dump-config` and `--load-config` #24 fixed
+  - support `--freeze-reqs` close #22
+    - Freeze package versions of pip args with venv, output to the given file path.
+        -  `-` equals to `stdout`
+        -  logs will be redirect to `stderr`
+    -  It tasks time for: init venv + pip install + pip freeze
+        -  the work folder is `tempfile.TemporaryDirectory`, prefix='zipapps_'
   - support clear self pyz after running fix #21
   - refactor environment variables template and interval variables(with string.Template) #23
     - change TEMP/HOME/SELF prefixes with $TEMP/$HOME/$SELF

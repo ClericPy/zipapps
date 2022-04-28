@@ -250,6 +250,13 @@ def main():
         dest='load_config',
         help='Load zipapps build args from a JSON file.',
     )
+    parser.add_argument(
+        '--freeze-reqs',
+        default='',
+        dest='freeze',
+        help='Freeze package versions of pip args with venv,'
+        ' output to the given file path.',
+    )
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()
@@ -257,6 +264,11 @@ def main():
         from .activate_zipapps import activate
         for path in args.activate.split(','):
             activate(path)
+        return
+    if args.freeze:
+        from .freezing import FreezeTool
+        with FreezeTool(args.freeze, pip_args) as ft:
+            ft.run()
         return
     if args.load_config:
         import json

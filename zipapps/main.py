@@ -90,7 +90,7 @@ class ZipApp(object):
 
         :param includes: The given paths will be copied to `cache_path` while packaging, which can be used while running. The path strings will be splited by ",". such as `my_package_dir,my_module.py,my_config.json`, often used for libs not from `pypi` or some special config files, defaults to ''
         :type includes: str, optional
-        :param cache_path: if not set, will use TemporaryDirectory, defaults to None
+        :param cache_path: if not set, will use TemporaryDirectory, prefix='zipapps_', defaults to None
         :type cache_path: str, optional
         :param main: The entry point function of the application, the `valid format` is: `package.module:function` `package.module` `module:function` `package`, defaults to ''
         :type main: str, optional
@@ -188,7 +188,7 @@ class ZipApp(object):
         if self.cache_path:
             self._cache_path = Path(self.cache_path)
         else:
-            self._tmp_dir = tempfile.TemporaryDirectory()
+            self._tmp_dir = tempfile.TemporaryDirectory(prefix='zipapps_')
             self._cache_path = Path(self._tmp_dir.name)
         if not self.unzip_path:
             if self.lazy_install:
@@ -341,7 +341,7 @@ class ZipApp(object):
         }
         for k, v in self.ENV_ALIAS.items():
             kwargs[f'{k}_env'] = repr(v)
-        code = get_data('zipapps', '_entry_point.py.template').decode('u8')
+        code = get_data('zipapps', 'entry_point.py.template').decode('u8')
         (self._cache_path / '__main__.py').write_text(code.format(**kwargs))
 
         code = get_data('zipapps', 'ensure_zipapps.py.template').decode('u8')
