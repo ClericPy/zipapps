@@ -43,7 +43,7 @@ def test_create_app_function():
     _clean_paths()
     output = subprocess.check_output(
         [sys.executable, '-m', 'zipapps', '--freeze-reqs', '-', 'six==1.15.0'])
-    assert output.strip() == b'six==1.15.0', output
+    assert b'six==1.15.0' in output.strip(), output
 
     # test `--dump-config` and `--load-config`
     _clean_paths()
