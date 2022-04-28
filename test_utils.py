@@ -39,6 +39,12 @@ def _clean_paths():
 
 def test_create_app_function():
 
+    # test --freeze-reqs
+    _clean_paths()
+    output = subprocess.check_output(
+        [sys.executable, '-m', 'zipapps', '--freeze-reqs', '-', 'six==1.15.0'])
+    assert output.strip() == b'six==1.15.0', output
+
     # test `--dump-config` and `--load-config`
     _clean_paths()
     output, _ = subprocess.Popen(
@@ -232,7 +238,7 @@ def test_create_app_function():
     # files not be set by includes arg
     assert b'Traceback' in stderr_output, 'test includes failed'
     app_path = create_app(
-        includes='./zipapps/_entry_point.py.template,./zipapps/main.py')
+        includes='./zipapps/entry_point.py.template,./zipapps/main.py')
     _, stderr_output = subprocess.Popen(
         [sys.executable, str(app_path), '-c', 'import main'],
         stderr=subprocess.PIPE,

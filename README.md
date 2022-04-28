@@ -22,6 +22,7 @@ So, what could `zipapps` be?
 2. a `single-file virtual environment`(portable site-packages)
 3. a `dependences installer`
 4. a `set of import-path`
+5. a `pip freezing toolkit`
 
 > PS: The pyz extension can be modified to any character you want, such as `.py`.
 
@@ -201,7 +202,13 @@ Details:
        1. A file path needed and `-` means stdout.
 24. `--load-config`
     1. Load zipapps build args from a JSON file.
-25. all the other (or `unknown`) args will be used by `pip install`
+25. `--freeze-reqs`
+    1.  Freeze package versions of pip args with venv, output to the given file path.
+        1.  `-` equals to `stdout`
+        2.  logs will be redirect to `stderr`
+    2.  It tasks time for: init venv + pip install + pip freeze
+        1.  work folder is `tempfile.TemporaryDirectory`, prefix='zipapps_'
+26. all the other (or `unknown`) args will be used by `pip install`
     1. such as `-r requirements.txt`
     2. such as `bottle aiohttp`
     3. the `pip_args` arg of `zipapps.create_app`
