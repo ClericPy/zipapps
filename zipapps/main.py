@@ -397,7 +397,7 @@ class ZipApp(object):
             target = str(self._cache_path.absolute())
         _pip_args = ['install', '--target', target] + self.pip_args
         pip_main = get_pip_main()
-        pip_main(_pip_args)
+        assert pip_main(_pip_args) == 0, 'pip install failed'
         self.clean_pip_pycache()
 
     def clean_pip_pycache(self):
