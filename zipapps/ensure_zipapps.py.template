@@ -186,7 +186,7 @@ def prepare_path():
                     os.chdir(_cache_folder_path_str)
                     try:
                         pip_main = get_pip_main(ensurepip_root=lazy_pip_dir_str)
-                        pip_main(_pip_args)
+                        assert pip_main(_pip_args) == 0, 'pip install failed'
                     finally:
                         os.chdir(cwd)
                     # avoid duplicated installation
