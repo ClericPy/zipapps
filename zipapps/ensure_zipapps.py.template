@@ -88,11 +88,23 @@ def get_pip_main(ensurepip_root=None):
                     sys.path.append(str(_path.parent.absolute()))
                     break
         import pip
-    pip_main = getattr(pip, 'main', None)
-    if pip_main:
-        return pip_main
-    from pip._internal import main as pip_main
-    return pip_main
+    try:
+        from pip._internal.cli.main import main
+        return main
+    except ImportError:
+        pass
+    try:
+        from pip import main
+        return main
+    except ImportError:
+        pass
+    try:
+        from pip._internal import main
+        return main
+    except ImportError:
+        pass
+    return pip.main
+
 
 
 def try_chmod(path: Path):
