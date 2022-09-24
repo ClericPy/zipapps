@@ -19,10 +19,15 @@ All you need is the **Python Interpreter** as the runtime environment.
 So, what could `zipapps` be?
 
 1. a `packaging tool`
-2. a `single-file virtual environment`(portable site-packages)
+   1. compress your package folder into a zip file.
+2. a `single-file virtual environment`
+   1. it's a portable site-packages.
 3. a `dependences installer`
+   1. lazy install requirements while first running.
 4. a `set of import-path`
-5. a `pip freezing toolkit`
+   1. add many `venv.pyz` files to PYTHONPATH automatically.
+5. a `requirements.txt freezing toolkit`
+   1. use `venv` to freeze your pip packages.
 
 > PS: The pyz extension can be modified to any character you want, such as `.py`.
 
@@ -313,17 +318,20 @@ Inspired by [shiv](https://github.com/linkedin/shiv) and with the differences.
    1. `pure-python` dependencies can be import directly without unzipped.
    2. unless your package includes the C language-based libraries or dynamic modules(`.so/.pyd`), such as `psutil`.
       1. use the arg `-u=AUTO` or `-u=*`
-2. The default cache path is `./zipapps_cache` instead of `HOME` path.
-3. The cache folders will be reused for the same **Appname** built at the same time.
+2. The default cache path is `./zipapps_cache` instead of the `HOME` path.
+3. One app name create cache folder only once.
 4. You can install requirements with `pip` while first running(not packaging) by `lazy install` mode
    1. reducing your `.pyz` file size.
-   2. cross-platform and cross-python-version
+      1. cross-platform and cross-python-version
+   2. `python -m zipapps -c -d -a your-package -r requirements.txt`
 5. Mix multiple `venv.pyz` files together.
-   1. the `--zipapps` arg
+   1. `python -m app.pyz --zipapps=bottle.pyz,requests.pyz`
+6. **Freeze** your requirements.txt
+   1. `python -m zipapps --freeze-reqs=requirements.lock -r requirements.txt`
 
 <details>
 
-<summary> <b>Click to read more</b> </summary>
+<summary> <b>Click here read more</b> </summary>
 
 ## 1. Package your script file with only built-ins functions.
 
