@@ -18,18 +18,18 @@ All you need is the **Python Interpreter** as the runtime environment.
 
 So, what could `zipapps` be?
 
-1. a `packaging tool`
-   1. compress your package folder into a zip file.
-2. a `single-file virtual environment`
-   1. it's a portable site-packages.
-3. a `dependences installer`
-   1. lazy install requirements while first running.
-4. a `set of import-path`
-   1. add many `venv.pyz` files to PYTHONPATH automatically.
-5. a `requirements.txt freezing toolkit`
-   1. use `venv` to freeze your pip packages.
+1. `packaging tool`
+    > compress your package folder into a zip file.
+2. `single-file virtual environment`
+    > a portable site-packages.
+3. `dependences installer`
+    > lazy install requirements while first running.
+4. `set of import-path`
+    > add many `venv.pyz` files to PYTHONPATH automatically.
+5. `requirements.txt freezing toolkit`
+    > use `venv` to freeze your pip packages.
 
-> PS: The pyz extension can be modified to any character you want, such as `.py`.
+> PS: The pyz extension can be modified to any character you want, such as `.py` and `.zip`.
 
 # Install & Quick Start
 
