@@ -76,6 +76,7 @@ def main():
     )
     parser.add_argument('--compress',
                         '-c',
+                        dest='compressed',
                         action='store_true',
                         help='compress files with the deflate method or not.')
     parser.add_argument(
@@ -176,7 +177,8 @@ def main():
         '-pva',
         '--python-version-accuracy',
         '--python-version-slice',
-        default='2',
+        default=2,
+        type=int,
         dest='python_version_slice',
         help='Only work for lazy-install mode, then `pip` target folders differ '
         'according to sys.version_info[:_slice], defaults to 2, which means '
@@ -257,9 +259,21 @@ def main():
         help='Freeze package versions of pip args with venv,'
         ' output to the given file path.',
     )
+    parser.add_argument(
+        '-q',
+        '--quite',
+        action='store_true',
+        dest='quite_mode',
+        help='mute logs.',
+    )
     if len(sys.argv) == 1:
         return parser.print_help()
     args, pip_args = parser.parse_known_args()
+    if args.quite_mode:
+        ZipApp.LOGGING = False
+        if '-q' not in pip_args and '--quiet' not in pip_args:
+            pip_args.append('-q')
+    ZipApp._log(f'zipapps args: {args}, pip install args: {pip_args}')
     if args.activate:
         from .activate_zipapps import activate
         for path in args.activate.split(','):
@@ -281,7 +295,7 @@ def main():
             main=args.main,
             output=args.output,
             interpreter=args.interpreter,
-            compressed=args.compress,
+            compressed=args.compressed,
             shell=args.shell,
             unzip=args.unzip,
             unzip_path=args.unzip_path,
