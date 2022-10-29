@@ -4,7 +4,9 @@
 - 2022.08.28
   - add `-q` for quiet mode
     - `-qqqqq` to mute all the logs
-  - 
+  - `-m` support source code with ';' like python -c
+    - demo: `python -m zipapps -m "import six; print(six.__file__)"`
+    - WARN: source code should contains `;`
 
 - 2022.04.27
   - handle PermissionError for chmod

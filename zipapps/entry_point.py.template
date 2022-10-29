@@ -66,10 +66,9 @@ def main():
     has_main = {has_main}
     if has_main:
         if {main_shell}:
-            shell_args = [sys.executable, '-c', '{import_main};{run_main}']
+            shell_args = [sys.executable, '-c', '''{run_main}''']
             run(shell_args, shell={shell})
         else:
-            {import_main}
             {run_main}
             return
     else:
