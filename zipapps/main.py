@@ -324,9 +324,7 @@ class ZipApp(object):
 
         def make_runner():
             if self.main:
-                if ';' in self.main:
-                    return self.main
-                else:
+                if re.match(r'^\w+(\.\w+)?(:\w+)?$', self.main):
                     module, _, function = self.main.partition(':')
                     if module:
                         # main may be: 'module.py:main' or 'module.submodule:main'
@@ -337,7 +335,15 @@ class ZipApp(object):
                         runner = f'import {module}'
                         if function:
                             runner += f'; {module}.{function}()'
+                        self._log(
+                            f"[INFO]: -m: matches re.match(r'^\w+(\.\w+)?(:\w+)?$', self.main), add as `{runner}`."
+                        )
                         return runner
+                else:
+                    self._log(
+                        f"[INFO]: -m: not matches re.match(r'^\w+(\.\w+)?(:\w+)?$', self.main), add as raw code `{self.main}`."
+                    )
+                    return self.main
             return ''
 
         kwargs = {
