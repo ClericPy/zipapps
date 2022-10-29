@@ -262,7 +262,7 @@ def main():
     parser.add_argument(
         '-q',
         '--quite',
-        action='store_true',
+        action="count",
         dest='quite_mode',
         help='mute logs.',
     )
@@ -272,7 +272,7 @@ def main():
     if args.quite_mode:
         ZipApp.LOGGING = False
         if '-q' not in pip_args and '--quiet' not in pip_args:
-            pip_args.append('-q')
+            pip_args.append(f'-{"q" * args.quite_mode}')
     ZipApp._log(f'zipapps args: {args}, pip install args: {pip_args}')
     if args.activate:
         from .activate_zipapps import activate

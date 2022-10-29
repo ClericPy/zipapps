@@ -1,6 +1,10 @@
 
 # Changelogs
 
+- 2022.08.28
+  - add `-q` for quiet mode
+    - `-qqqqq` to mute all the logs
+  - 
 
 - 2022.04.27
   - handle PermissionError for chmod
