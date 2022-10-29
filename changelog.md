@@ -4,9 +4,10 @@
 - 2022.08.28
   - add `-q` for quiet mode
     - `-qqqqq` to mute all the logs
-  - `-m` support source code with ';' like python -c
+  - `-m` support source code mode while not matched `module.submodule:function` format
+    - like `python -c "python code"`
     - demo: `python -m zipapps -m "import six; print(six.__file__)"`
-    - WARN: source code should contains `;`
+    - WARN: only when `-m` not matched regex `r'^\w+(\.\w+)?(:\w+)?$'`
 
 - 2022.04.27
   - handle PermissionError for chmod
