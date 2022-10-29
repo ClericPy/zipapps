@@ -321,11 +321,25 @@ class ZipApp(object):
         if not re.match(r'^[0-9a-zA-Z_]+$', output_name):
             raise ValueError(
                 'The name of `output` should match regex: ^[0-9a-zA-Z_]+$')
-        module, _, function = self.main.partition(':')
-        if module:
-            module_path = self._cache_path / module
-            if module_path.is_file():
-                module = module_path.stem
+
+        def make_runner():
+            if self.main:
+                if ';' in self.main:
+                    return self.main
+                else:
+                    module, _, function = self.main.partition(':')
+                    if module:
+                        # main may be: 'module.py:main' or 'module.submodule:main'
+                        # replace module.py to module
+                        module_path = self._cache_path / module
+                        if module_path.is_file():
+                            module = module_path.stem
+                        runner = f'import {module}'
+                        if function:
+                            runner += f'; {module}.{function}()'
+                        return runner
+            return ''
+
         kwargs = {
             'ts': self.setup_timestamp_file(),
             'shell': self.shell,
@@ -336,8 +350,7 @@ class ZipApp(object):
             'unzip_path': repr(self.unzip_path),
             'ignore_system_python_path': self.ignore_system_python_path,
             'has_main': bool(self.main),
-            'import_main': 'import %s' % module if module else '',
-            'run_main': '%s.%s()' % (module, function) if function else '',
+            'run_main': make_runner(),
             'HANDLE_OTHER_ENVS_FLAG': self.HANDLE_OTHER_ENVS_FLAG,
             'env_paths': repr(self.env_paths),
             'LAZY_PIP_DIR_NAME': repr(self.LAZY_PIP_DIR_NAME),
