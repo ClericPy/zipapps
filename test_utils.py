@@ -62,6 +62,7 @@ def test_dump_load_config():
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
+    output = output.strip()
     assert output.startswith(b'{') and output.endswith(b'}'), output
     subprocess.Popen(
         [

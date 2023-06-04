@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import compileall
+import json
 import re
 import shutil
 import sys
@@ -14,7 +15,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = '2022.10.28'
+__version__ = '2023.06.04'
 
 
 def get_pip_main(ensurepip_root=None):
@@ -180,6 +181,36 @@ class ZipApp(object):
         self._tmp_dir: tempfile.TemporaryDirectory = None
         self._build_success = False
         self._is_greater_than_python_37 = sys.version_info.minor >= 7 and sys.version_info.major >= 3
+
+    @property
+    def kwargs(self):
+        return dict(
+            includes=self.includes,
+            cache_path=str(self.cache_path),
+            main=self.main,
+            output=self.output,
+            interpreter=self.interpreter,
+            compressed=self.compressed,
+            shell=self.shell,
+            unzip=self.unzip,
+            unzip_path=self.unzip_path,
+            ignore_system_python_path=self.ignore_system_python_path,
+            main_shell=self.main_shell,
+            pip_args=self.pip_args,
+            compiled=self.compiled,
+            build_id=self.build_id,
+            env_paths=self.env_paths,
+            lazy_install=self.lazy_install,
+            sys_paths=self.sys_paths,
+            python_version_slice=self.python_version_slice,
+            ensure_pip=self.ensure_pip,
+            layer_mode=self.layer_mode,
+            layer_mode_prefix=self.layer_mode_prefix,
+            clear_zipapps_cache=self.clear_zipapps_cache,
+            unzip_exclude=self.unzip_exclude,
+            chmod=self.chmod,
+            clear_zipapps_self=self.clear_zipapps_self,
+        )
 
     def ensure_args(self):
         if not self.unzip:
@@ -385,6 +416,8 @@ class ZipApp(object):
         if output_name != 'zipapps':
             (self._cache_path / f'ensure_{output_name}.py').write_text(code)
         (self._cache_path / f'ensure_zipapps_{output_name}.py').write_text(code)
+        (self._cache_path / 'zipapps_config.json').write_text(
+            json.dumps(self.kwargs))
 
     def setup_timestamp_file(self,):
         ts = str(int(time.time() * 10000000))
@@ -427,7 +460,8 @@ class ZipApp(object):
             target = str(self._cache_path.absolute())
         _pip_args = ['install', '--target', target] + self.pip_args
         pip_main = get_pip_main()
-        assert pip_main(_pip_args) == 0, 'pip install failed'
+        result = pip_main(_pip_args)
+        assert result == 0, 'pip install failed %s' % result
         self.clean_pip_pycache()
 
     def clean_pip_pycache(self):
