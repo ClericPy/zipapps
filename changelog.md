@@ -1,6 +1,9 @@
 
 # Changelogs
 
+- 2023.06.04
+  - save zipapps_config.json to pyz file
+  - 
 - 2022.08.28
   - add `-q` for quiet mode
     - `-qqqqq` to mute all the logs

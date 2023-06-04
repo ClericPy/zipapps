@@ -1,4 +1,5 @@
 import argparse
+import json
 import sys
 
 from . import __version__
@@ -285,11 +286,10 @@ def main():
             ft.run()
         return
     if args.load_config:
-        import json
-        with open(args.load_config, 'r') as f:
-            kwargs = json.load(f)
+        with open(args.load_config, 'r', encoding='utf-8') as f:
+            app = ZipApp(**json.load(f))
     else:
-        kwargs = dict(
+        app = ZipApp(
             includes=args.includes,
             cache_path=args.cache_path,
             main=args.main,
@@ -317,14 +317,14 @@ def main():
             clear_zipapps_self=args.clear_zipapps_self,
         )
     if args.dump_config:
-        import json
+        config_json = json.dumps(app.kwargs)
         if args.dump_config == '-':
-            print(json.dumps(kwargs), end='')
+            print(config_json)
         else:
-            with open(args.dump_config, 'w') as f:
-                json.dump(kwargs, f)
+            with open(args.dump_config, 'w', encoding='utf-8') as f:
+                f.write(config_json)
     else:
-        return create_app(**kwargs)
+        return app.build()
 
 
 if __name__ == "__main__":
