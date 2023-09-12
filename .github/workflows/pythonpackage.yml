@@ -4,11 +4,11 @@ on: [push]
 
 jobs:
     test-py36:
-        runs-on: windows-2019
+        runs-on: windows-latest
         strategy:
             max-parallel: 1
             matrix:
-                python-version: ["3.6"]
+                python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
 
         steps:
             - uses: actions/checkout@v1

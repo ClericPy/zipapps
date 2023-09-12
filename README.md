@@ -29,7 +29,7 @@ So, what could `zipapps` be?
 5. `requirements.txt freezing toolkit`
     > use `venv` to freeze your pip packages.
 
-> PS: The pyz extension can be modified to any character you want, such as `.py` and `.zip`.
+> PS: The pyz extension can be modified to any character you want, such as `.py` or `pyc` or `pyo` (files with these extensions can be double-clicked to run directly in the Python interpreter on Windows platforms)
 
 # Install & Quick Start
 
