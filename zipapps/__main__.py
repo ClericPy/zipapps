@@ -1,9 +1,11 @@
 import argparse
 import json
 import sys
+import time
+from pathlib import Path
 
 from . import __version__
-from .main import ZipApp, create_app
+from .main import ZipApp
 
 USAGE = r'''
 ===========================================================================
@@ -50,6 +52,95 @@ OR
 
 PS: all the unknown args will be used by "pip install".
 ==========================================================================='''
+
+PIP_PYZ_URL = 'https://bootstrap.pypa.io/pip/pip.pyz'
+
+
+def _get_now():
+    return time.strftime('%Y-%m-%d %H:%M:%S')
+
+
+def _get_pth_path():
+    py_exe_path = Path(sys.executable)
+    for _path in py_exe_path.parent.glob('*._pth'):
+        _pth_path = _path
+        break
+    else:
+        fname = f'python{sys.version_info.major}{sys.version_info.minor}._pth'
+        _pth_path = py_exe_path.parent / fname
+    return _pth_path
+
+
+def _append_pth():
+    import re
+    _pth_path = _get_pth_path()
+    if _pth_path.is_file():
+        print('find _pth file:',
+              _pth_path.as_posix(),
+              flush=True,
+              file=sys.stderr)
+        _path_bytes = _pth_path.read_bytes()
+    else:
+        _path_bytes = b''
+    if not re.search(b'^import site$', _path_bytes):
+        _path_bytes += b'\nimport site\n'
+    if not re.search(b'^pip\.pyz$', _path_bytes):
+        _path_bytes += b'\npip.pyz\n'
+    _pth_path.write_bytes(_path_bytes)
+
+
+def download_pip_pyz(target: Path = None, log=True):
+    from urllib.request import urlretrieve
+
+    pip_pyz_path = Path(target or (Path(sys.executable).parent / 'pip.pyz'))
+    if log:
+        msg = f'Download {PIP_PYZ_URL} -> {pip_pyz_path.absolute().as_posix()}'
+        print(_get_now(), msg, flush=True, file=sys.stderr)
+    if pip_pyz_path.is_file():
+        pip_pyz_path.unlink()
+    urlretrieve(url=PIP_PYZ_URL,
+                filename=pip_pyz_path.absolute().as_posix(),
+                reporthook=lambda a, b, c: print(
+                    _get_now(),
+                    f'Downloading {int(100*(1+a)*b/c)}%, {(1 + a) * b} / {c}',
+                    end='\r',
+                    flush=True,
+                    file=sys.stderr,
+                ) if log else None)
+    try:
+        sys.path.append(pip_pyz_path.absolute().as_posix())
+        import pip as _
+        if log:
+            print(f'\n{_get_now()} install pip ok', flush=True, file=sys.stderr)
+        return True
+    except ImportError:
+        if log:
+            print(f'\n{_get_now()} install pip failed',
+                  flush=True,
+                  file=sys.stderr)
+
+
+def handle_win32_embeded():
+    _pth_path = _get_pth_path()
+
+    if not _pth_path.is_file():
+        return
+    try:
+        import pip as _
+        return
+    except ImportError:
+        need_install = (
+            input(f'\n{"=" * 50}\npip module not found, try installing?(Y/n)'
+                 ).lower().strip() or 'y')
+        if need_install != 'y':
+            return
+    print('find _pth file:', _pth_path.as_posix(), flush=True, file=sys.stderr)
+    if download_pip_pyz():
+        _append_pth()
+    import os
+
+    os.system('%s -m pip -V' % Path(sys.executable).as_posix())
+    os.system('pause')
 
 
 def main():
@@ -267,9 +358,18 @@ def main():
         dest='quite_mode',
         help='mute logs.',
     )
+    parser.add_argument('--download-pip-pyz',
+                        default='',
+                        dest='download_pip_pyz',
+                        help=f'Download pip.pyz from "{PIP_PYZ_URL}"')
+
     if len(sys.argv) == 1:
-        return parser.print_help()
+        parser.print_help()
+        handle_win32_embeded()
+        return
     args, pip_args = parser.parse_known_args()
+    if args.download_pip_pyz:
+        return download_pip_pyz(args.download_pip_pyz)
     if args.quite_mode:
         ZipApp.LOGGING = False
         if '-q' not in pip_args and '--quiet' not in pip_args:

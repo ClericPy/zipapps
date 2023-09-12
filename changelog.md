@@ -1,9 +1,13 @@
 
 # Changelogs
 
+- 2023.09.12
+  - add `--download-pip-pyz` to download pip.pyz
+    - install pip module to win32 embeded exe
+      - win32 embeded `./python.exe xxx/xxx/zipapps.pyz` auto download `pip.pyz` and append to _pth
+  - fix `main.py` docs
 - 2023.06.04
   - save zipapps_config.json to pyz file
-  - 
 - 2022.08.28
   - add `-q` for quiet mode
     - `-qqqqq` to mute all the logs
