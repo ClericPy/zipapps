@@ -15,7 +15,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = '2023.06.04'
+__version__ = '2023.09.12'
 
 
 def get_pip_main(ensurepip_root=None):
@@ -137,19 +137,19 @@ class ZipApp(object):
         :param python_version_slice: Only work for lazy-install mode, then `pip` target folders differ according to sys.version_info[:_slice], defaults to 2, which means 3.8.3 equals to 3.8.4 for same version accuracy 3.8, defaults to 2
         :type python_version_slice: int, optional
         :param ensure_pip: Add the ensurepip package to your pyz file, works for embed-python(windows) or other python versions without `pip` installed but `lazy-install` mode is enabled.
-        :type includes: bool, optional
+        :type ensure_pip: bool, optional
         :param layer_mode: Layer mode for the serverless use case, __main__.py / ensure_zipapps.py / activate_zipapps.py files will not be set in this mode, which means it will skip the activative process.
-        :type includes: bool, optional
+        :type layer_mode: bool, optional
         :param layer_mode_prefix: Only work while --layer-mode is set, will move the files in the given prefix folder.
-        :type includes: str, optional
+        :type layer_mode_prefix: str, optional
         :param clear_zipapps_cache: Clear the zipapps cache folder after running, but maybe failed for .pyd/.so files.
-        :type includes: bool, optional
+        :type clear_zipapps_cache: bool, optional
         :param unzip_exclude: names not to be unzip, defaults to '', should be used with unzip. Can be overwrite with environment variable `ZIPAPPS_UNZIP_EXCLUDE`
         :type unzip_exclude: str, optional
         :param chmod: os.chmod(int(chmod, 8)) for unzip files with `--chmod=777`, unix-like system only
         :type chmod: str, optional
         :param clear_zipapps_self: Clear the zipapps pyz file after running.
-        :type includes: bool, optional
+        :type clear_zipapps_self: bool, optional
         """
         self.includes = includes
         self.cache_path = cache_path
