@@ -15,7 +15,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = '2023.09.12'
+__version__ = '2024.04.22'
 
 
 def get_pip_main(ensurepip_root=None):
@@ -402,14 +402,14 @@ class ZipApp(object):
         }
         for k, v in self.ENV_ALIAS.items():
             kwargs[f'{k}_env'] = repr(v)
-        code = get_data('zipapps', 'entry_point.py.template').decode('u8')
+        code = get_data(__name__, 'entry_point.py.template').decode('u8')
         (self._cache_path / '__main__.py').write_text(code.format(**kwargs))
 
-        code = get_data('zipapps', 'ensure_zipapps.py.template').decode('u8')
+        code = get_data(__name__, 'ensure_zipapps.py.template').decode('u8')
         (self._cache_path / 'ensure_zipapps.py').write_text(
             code.format(**kwargs))
 
-        code = get_data('zipapps', 'activate_zipapps.py').decode('u8')
+        code = get_data(__name__, 'activate_zipapps.py').decode('u8')
         (self._cache_path / 'activate_zipapps.py').write_text(code)
         code += '\n\nactivate()'
 
