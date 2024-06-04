@@ -1,6 +1,10 @@
 
 # Changelogs
 
+- 20234.06.04
+  - add arg `--download-python`: interactive download standalone python interpreter (https://www.github.com/indygreg/python-build-standalone)
+  - Refactor lazy installation module
+    - `from zipapps.pip_install import install`
 - 2023.09.12
   - add `--download-pip-pyz` to download pip.pyz
     - install pip module to win32 embeded exe

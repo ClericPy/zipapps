@@ -54,6 +54,7 @@ PS: all the unknown args will be used by "pip install".
 ==========================================================================='''
 
 PIP_PYZ_URL = 'https://bootstrap.pypa.io/pip/pip.pyz'
+DOWNLOAD_PYTHON_URL = 'https://www.github.com/indygreg/python-build-standalone'
 
 
 def _get_now():
@@ -362,13 +363,19 @@ def main():
                         default='',
                         dest='download_pip_pyz',
                         help=f'Download pip.pyz from "{PIP_PYZ_URL}"')
-
+    parser.add_argument('--download-python',
+                        action='store_true',
+                        dest='download_python',
+                        help=f'Download standalone python from "{DOWNLOAD_PYTHON_URL}"')
     if len(sys.argv) == 1:
         parser.print_help()
         handle_win32_embeded()
         return
     args, pip_args = parser.parse_known_args()
-    if args.download_pip_pyz:
+    if args.download_python:
+        from .download_python import download_python
+        return download_python()
+    elif args.download_pip_pyz:
         return download_pip_pyz(args.download_pip_pyz)
     if args.quite_mode:
         ZipApp.LOGGING = False
