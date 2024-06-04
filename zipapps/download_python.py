@@ -163,7 +163,10 @@ def download_python():
     if target == "q":
         return
     target_path = Path(target)
-    target_path.unlink(missing_ok=True)
+    try:
+        target_path.unlink()
+    except FileNotFoundError:
+        pass
     print(f"[{get_time()}] Start downloading...")
     print(download_url)
     print(target_path.absolute(), flush=True)
@@ -224,14 +227,20 @@ def download_python():
         except http.client.RemoteDisconnected:
             continue
         except KeyboardInterrupt:
-            temp_path.unlink(missing_ok=True)
+            try:
+                temp_path.unlink()
+            except FileNotFoundError:
+                pass
             print()
             print(f"\n[{get_time()}] Download canceled.", flush=True)
             return
         except Exception:
             print()
             traceback.print_exc()
-            temp_path.unlink(missing_ok=True)
+            try:
+                temp_path.unlink()
+            except FileNotFoundError:
+                pass
             break
     print("Press enter to exit.", flush=True)
     input()
