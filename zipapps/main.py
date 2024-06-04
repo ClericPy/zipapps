@@ -101,6 +101,7 @@ class ZipApp(object):
         unzip_exclude: str = "",
         chmod: str = "",
         clear_zipapps_self: bool = False,
+        rm_patterns: str = "*.dist-info,__pycache__",
     ):
         """Zip your code.
 
@@ -154,6 +155,8 @@ class ZipApp(object):
         :type chmod: str, optional
         :param clear_zipapps_self: Clear the zipapps pyz file after running.
         :type clear_zipapps_self: bool, optional
+        :param rm_patterns: Delete useless files or folders, splited by "," and defaults to `*.dist-info,__pycache__`. Recursively glob: **/*.pyc
+        :type rm_patterns: str
         """
         self.includes = includes
         self.cache_path = cache_path
@@ -181,6 +184,7 @@ class ZipApp(object):
         self.clear_zipapps_cache = clear_zipapps_cache
         self.clear_zipapps_self = clear_zipapps_self
         self.chmod = chmod
+        self.rm_patterns = rm_patterns
 
         self._tmp_dir: typing.Optional[tempfile.TemporaryDirectory] = None
         self._build_success = False
@@ -192,7 +196,7 @@ class ZipApp(object):
     def kwargs(self):
         return dict(
             includes=self.includes,
-            cache_path=str(self.cache_path),
+            cache_path=str(self.cache_path or ""),
             main=self.main,
             output=self.output,
             interpreter=self.interpreter,
@@ -281,6 +285,7 @@ class ZipApp(object):
             (self._cache_path / self.build_id_name).touch()
         if self.compiled:
             compileall.compile_dir(self._cache_path, **ZipApp.COMPILE_KWARGS)
+        self.clean_pip_pycache()
         if self.layer_mode:
             self.create_archive_layer()
         else:
@@ -434,56 +439,80 @@ class ZipApp(object):
         (self._cache_path / ("_zip_time_%s" % ts)).touch()
         return ts
 
+    @staticmethod
+    def get_md5(value: typing.Any):
+        if not isinstance(value, bytes):
+            value = str(value).encode("utf-8")
+        return md5(value).hexdigest()
+
     def prepare_pip(self):
         self.pip_args_md5 = ""
         if self.pip_args:
             if "-t" in self.pip_args or "--target" in self.pip_args:
                 raise RuntimeError(
-                    "`-t` / `--target` arg can be set with `--cache-path` to rewrite the zipapps cache path."
+                    "`-t` / `--target` arg can be set with `--cache-path`/`cache_path` to rewrite the zipapps cache path."
                 )
             if self.lazy_install:
                 # copy files to cache folder
                 _temp_pip_path = self._cache_path / self.LAZY_PIP_DIR_NAME
                 _temp_pip_path.mkdir(parents=True, exist_ok=True)
-                _md5_str = md5(str(self.pip_args).encode("utf-8")).hexdigest()
+                _md5_str = self.get_md5(self.pip_args)
                 # overwrite path args to new path, such as requirements.txt or xxx.whl
                 for index, arg in enumerate(self.pip_args):
                     path = Path(arg)
                     if path.is_file():
-                        _md5_str += md5(path.read_bytes()).hexdigest()
+                        _md5_str += self.get_md5(path.read_bytes())
                         new_path = _temp_pip_path / path.name
                         shutil.copyfile(path, new_path)
                         _r_path = Path(self.LAZY_PIP_DIR_NAME) / path.name
                         self.pip_args[index] = _r_path.as_posix()
-                self.pip_args_md5 = md5(_md5_str.encode("utf-8")).hexdigest()
+                self.pip_args_md5 = self.get_md5(_md5_str.encode("utf-8"))
                 self._log(
                     f"[INFO]: pip_args_md5 has been generated: {self.pip_args_md5}"
                 )
             else:
                 self.pip_install()
 
-    def pip_install(self):
-        if self.layer_mode:
-            _target_dir = self._cache_path.absolute() / self.layer_mode_prefix
-            target = str(_target_dir)
-        else:
-            target = str(self._cache_path.absolute())
-        _pip_args = ["install", "--target", target] + self.pip_args
+    @classmethod
+    def _rm_with_patterns(
+        cls,
+        target_dir: Path,
+        patterns=("*.dist-info", "__pycache__"),
+    ):
+        target_dir = Path(target_dir)
+        for pattern in patterns:
+            if pattern:
+                for path in target_dir.glob(pattern):
+                    if path.is_dir():
+                        shutil.rmtree(path, ignore_errors=True)
+                    else:
+                        path.unlink(missing_ok=True)
+
+    @classmethod
+    def _pip_install(cls, target_dir: Path, pip_args: list):
+        target_dir = Path(target_dir)
+        _pip_args = [
+            "install",
+            "--target",
+            target_dir.absolute().as_posix(),
+        ] + pip_args
         pip_main = get_pip_main()
         result = pip_main(_pip_args)
         assert result == 0, "pip install failed %s" % result
-        self.clean_pip_pycache()
 
     def clean_pip_pycache(self):
         if self.layer_mode:
-            root = self._cache_path / self.layer_mode_prefix
+            target_dir = self._cache_path / self.layer_mode_prefix
         else:
-            root = self._cache_path
-        for dist_path in root.glob("*.dist-info"):
-            shutil.rmtree(dist_path)
-        pycache = root / "__pycache__"
-        if pycache.is_dir():
-            shutil.rmtree(pycache)
+            target_dir = self._cache_path
+        return self._rm_with_patterns(target_dir, patterns=self.rm_patterns.split(","))
+
+    def pip_install(self):
+        if self.layer_mode:
+            _target_dir = self._cache_path.absolute() / self.layer_mode_prefix
+        else:
+            _target_dir = self._cache_path
+        return self._pip_install(target_dir=_target_dir, pip_args=self.pip_args)
 
     def prepare_includes(self):
         if not self.includes:
@@ -528,7 +557,7 @@ class ZipApp(object):
             except FileNotFoundError:
                 pass
         build_id_str = build_id_str or str(self.build_id)
-        md5_id = md5(build_id_str.encode("utf-8")).hexdigest()
+        md5_id = self.get_md5(build_id_str.encode("utf-8"))
         return f"_build_id_{md5_id}"
 
     @classmethod
@@ -559,6 +588,7 @@ class ZipApp(object):
         unzip_exclude: str = "",
         chmod: str = "",
         clear_zipapps_self: bool = False,
+        rm_patterns: str = "*.dist-info,__pycache__",
     ):
         app = cls(
             includes=includes,
@@ -586,6 +616,7 @@ class ZipApp(object):
             unzip_exclude=unzip_exclude,
             chmod=chmod,
             clear_zipapps_self=clear_zipapps_self,
+            rm_patterns=rm_patterns,
         )
         return app.build()
 
