@@ -720,28 +720,35 @@ def test_pip_install_target():
     _clean_paths()
     # test without "insert sys.path"
     start_time = time.time()
-    pip_install_target(Path("./mock_dir"), ["six"], force=False, sys_path=None)
-    assert time.time() - start_time > 2
+    assert pip_install_target(
+        "./mock_dir", ["six", "--no-cache-dir"], force=False, sys_path=None
+    )
+    assert time.time() - start_time > 0.5
     sys.modules.pop("six", None)
     import six
 
     assert "mock_dir" not in six.__file__
     # hit md5 cache, force=False, sys_path ignored
     start_time = time.time()
-    pip_install_target(Path("./mock_dir"), ["six"], force=False, sys_path=0)
-    assert time.time() - start_time < 2
+    assert not pip_install_target(
+        "./mock_dir", ["six", "--no-cache-dir"], force=False, sys_path=0
+    )
+    assert time.time() - start_time < 0.5
     sys.modules.pop("six", None)
     import six
 
     assert "mock_dir" not in six.__file__
     # test force=True, sys_path=0 worked
     start_time = time.time()
-    pip_install_target(Path("./mock_dir"), ["six"], force=True, sys_path=0)
-    assert time.time() - start_time > 2
+    assert pip_install_target(
+        "./mock_dir", ["six", "--no-cache-dir"], force=True, sys_path=0
+    )
+    assert time.time() - start_time > 0.5
     sys.modules.pop("six", None)
     import six
 
     assert "mock_dir" in six.__file__
+
 
 def main():
     """
@@ -752,7 +759,7 @@ def main():
     count = 0
     items = list(globals().items())
     total = len(items)
-    name_list = {}
+    name_list = ''
     for name, func in items:
         if name_list and name not in name_list:
             continue

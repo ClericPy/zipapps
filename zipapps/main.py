@@ -651,7 +651,7 @@ def pip_install_target(
     target = Path(target)
     md5_path = target / ZipApp.get_md5(pip_args)
     if not force and md5_path.exists():
-        return
+        return False
     ZipApp._pip_install(target_dir=target, pip_args=pip_args)
     if rm_patterns:
         ZipApp._rm_with_patterns(target, patterns=rm_patterns.split(","))
@@ -659,6 +659,6 @@ def pip_install_target(
     md5_path.touch()
     if isinstance(sys_path, int):
         sys.path.insert(sys_path, target.absolute().as_posix())
-
+    return True
 
 create_app = ZipApp.create_app
