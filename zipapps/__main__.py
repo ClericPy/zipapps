@@ -397,6 +397,12 @@ def main():
         dest="download_python",
         help=f'Download standalone python from "{DOWNLOAD_PYTHON_URL}"',
     )
+    parser.add_argument(
+        "--rm-patterns",
+        default="*.dist-info,__pycache__",
+        dest="rm_patterns",
+        help='Delete useless files or folders, splited by "," and defaults to `*.dist-info,__pycache__`. Recursively glob: **/*.pyc',
+    )
     if len(sys.argv) == 1:
         parser.print_help()
         handle_win32_embeded()
@@ -427,7 +433,8 @@ def main():
         return
     if args.load_config:
         with open(args.load_config, "r", encoding="utf-8") as f:
-            app = ZipApp(**json.load(f))
+            kwargs = json.load(f)
+            app = ZipApp(**kwargs)
     else:
         app = ZipApp(
             includes=args.includes,
@@ -455,6 +462,7 @@ def main():
             unzip_exclude=args.unzip_exclude,
             chmod=args.chmod,
             clear_zipapps_self=args.clear_zipapps_self,
+            rm_patterns=args.rm_patterns,
         )
     if args.dump_config:
         config_json = json.dumps(app.kwargs)
