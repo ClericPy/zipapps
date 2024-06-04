@@ -5,6 +5,7 @@ import os
 import re
 
 from setuptools import find_packages, setup
+
 """
 linux:
 rm -rf "dist/*";rm -rf "build/*";python3 setup.py bdist_wheel;twine upload "dist/*;rm -rf "dist/*";rm -rf "build/*""
@@ -16,8 +17,10 @@ with codecs.open("README.md", encoding="u8") as f:
     long_description = f.read()
 
 here = os.path.abspath(os.path.dirname(__file__))
-with codecs.open(os.path.join(here, 'zipapps', 'main.py'), encoding="u8") as f:
-    version = re.search(r'''__version__ = ['"](.*?)['"]''', f.read()).group(1)
+with codecs.open(os.path.join(here, "zipapps", "main.py"), encoding="u8") as f:
+    m = re.search(r"""__version__ = ['"](.*?)['"]""", f.read())
+    assert m
+    version = m.group(1)
 desc = "Package your python code into one zip file, even a virtual environment."
 keywords = "zipapp distribute publish zip standalone portable".split()
 setup(
@@ -26,14 +29,14 @@ setup(
     keywords=keywords,
     description=desc,
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     license="MIT License",
-    package_data={'zipapps': ['*.template']},
+    package_data={"zipapps": ["*.template"]},
     py_modules=["zipapps"],
     python_requires=">=3.6",
     classifiers=[
         "License :: OSI Approved :: MIT License",
-        'Programming Language :: Python',
+        "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
