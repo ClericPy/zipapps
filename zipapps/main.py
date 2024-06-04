@@ -646,14 +646,29 @@ def pip_install_target(
     pip_args: list,
     rm_patterns: str = "*.dist-info,__pycache__",
     force=False,
+    clear_dir=False,
     sys_path: typing.Optional[int] = None,
 ):
+    """
+    Installs target dependencies using pip and cleans up the installed files afterwards.
+
+    Args:
+        target (Path): The target directory for dependency installation.
+        pip_args (list): List of arguments for the pip install command.
+        rm_patterns (str, optional): Patterns of files to remove after installation, defaults to "*.dist-info,__pycache__".
+        force (bool, optional): Flag to force reinstallation, defaults to False.
+        clear_dir (bool, optional): will rmtree the target directory while clear_dir=True.
+        sys_path (typing.Optional[int], optional): If provided, inserts the target directory at the specified position in sys.path.
+
+    Returns:
+        bool: Returns True if the installation is successful.
+    """
     target = Path(target)
     md5_path = target / ZipApp.get_md5(pip_args)
     if not force and md5_path.exists():
         return False
-    if force:
-        shutil.rmtree(target.as_posix())
+    if clear_dir and target.is_dir():
+        shutil.rmtree(target.as_posix(), ignore_errors=True)
     ZipApp._pip_install(target_dir=target, pip_args=pip_args)
     if rm_patterns:
         ZipApp._rm_with_patterns(target, patterns=rm_patterns.split(","))
@@ -662,5 +677,6 @@ def pip_install_target(
     if isinstance(sys_path, int):
         sys.path.insert(sys_path, target.absolute().as_posix())
     return True
+
 
 create_app = ZipApp.create_app
