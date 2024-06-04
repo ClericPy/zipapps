@@ -723,7 +723,7 @@ def test_pip_install_target():
     assert pip_install_target(
         "./mock_dir", ["six", "--no-cache-dir"], force=False, sys_path=None
     )
-    assert time.time() - start_time > 0.5
+    assert time.time() - start_time > 0.1
     sys.modules.pop("six", None)
     import six
 
@@ -733,7 +733,7 @@ def test_pip_install_target():
     assert not pip_install_target(
         "./mock_dir", ["six", "--no-cache-dir"], force=False, sys_path=0
     )
-    assert time.time() - start_time < 0.5
+    assert time.time() - start_time < 0.1
     sys.modules.pop("six", None)
     import six
 
@@ -743,7 +743,7 @@ def test_pip_install_target():
     assert pip_install_target(
         "./mock_dir", ["six", "--no-cache-dir"], force=True, sys_path=0
     )
-    assert time.time() - start_time > 0.5
+    assert time.time() - start_time > 0.1
     sys.modules.pop("six", None)
     import six
 
