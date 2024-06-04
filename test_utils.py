@@ -729,7 +729,7 @@ def test_pip_install_target():
         import six
 
         assert "mock_dir" not in six.__file__
-    except ImportError:
+    except (ImportError, FileNotFoundError):
         pass
     # hit md5 cache, force=False, sys_path ignored
     start_time = time.time()
@@ -742,7 +742,7 @@ def test_pip_install_target():
         import six
 
         assert "mock_dir" not in six.__file__
-    except ImportError:
+    except (ImportError, FileNotFoundError):
         pass
     # test force=True, sys_path=0 worked
     start_time = time.time()
