@@ -14,5 +14,5 @@ def activate(path=None):
             del _tmp
             return True
         except ImportError as err:
-            stderr.write(f'WARNING: activate failed for {err!r}\n')
+            stderr.write(f"WARNING: activate failed for {err!r}\n")
             raise err

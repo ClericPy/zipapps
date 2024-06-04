@@ -89,8 +89,7 @@ def download_python():
     https://github.com/indygreg/python-build-standalone/releases/download/20240415/cpython-3.12.3%2B20240415-x86_64-pc-windows-msvc-install_only.tar.gz
     D:\github\morebuiltins\morebuiltins\download_python\cpython-3.12.3+20240415-x86_64-pc-windows-msvc-install_only.tar.gz
     [10:56:44] Downloading: 39.12 / 39.12 MB | 100.00% | 11.3 MB/s | 0s
-    [10:56:44] Download complete.
-"""
+    [10:56:44] Download complete."""
     print(
         f"[{get_time()}] Checking https://api.github.com/repos/indygreg/python-build-standalone/releases/latest",
         flush=True,
