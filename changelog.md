@@ -1,10 +1,12 @@
 
 # Changelogs
 
-- 20234.06.04
+- 2024.06.04
   - add arg `--download-python`: interactive download standalone python interpreter (https://www.github.com/indygreg/python-build-standalone)
-  - Refactor lazy installation module
-    - `from zipapps.pip_install import install`
+  - custom `--rm-patterns` to remove useless files . fixed #28 #29
+  - add `pip_install_target` to install requirements and insert to `sys.path`, cache support
+    - `from zipapps import pip_install_target`
+    - `pip_install_target(Path("./mock_dir"), ["six"], force=False, sys_path=0); import six`
 - 2023.09.12
   - add `--download-pip-pyz` to download pip.pyz
     - install pip module to win32 embeded exe

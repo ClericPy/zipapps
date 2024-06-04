@@ -712,6 +712,37 @@ def test_delete_useless():
         assert "mock_file.py" not in str(namelist), namelist
 
 
+def test_pip_install_target():
+    import time
+
+    from zipapps import pip_install_target
+
+    _clean_paths()
+    # test without "insert sys.path"
+    start_time = time.time()
+    pip_install_target(Path("./mock_dir"), ["six"], force=False, sys_path=None)
+    assert time.time() - start_time > 2
+    sys.modules.pop("six", None)
+    import six
+
+    assert "mock_dir" not in six.__file__
+    # hit md5 cache, force=False, sys_path ignored
+    start_time = time.time()
+    pip_install_target(Path("./mock_dir"), ["six"], force=False, sys_path=0)
+    assert time.time() - start_time < 2
+    sys.modules.pop("six", None)
+    import six
+
+    assert "mock_dir" not in six.__file__
+    # test force=True, sys_path=0 worked
+    start_time = time.time()
+    pip_install_target(Path("./mock_dir"), ["six"], force=True, sys_path=0)
+    assert time.time() - start_time > 2
+    sys.modules.pop("six", None)
+    import six
+
+    assert "mock_dir" in six.__file__
+
 def main():
     """
     test all cases
@@ -721,7 +752,10 @@ def main():
     count = 0
     items = list(globals().items())
     total = len(items)
+    name_list = {}
     for name, func in items:
+        if name_list and name not in name_list:
+            continue
         if name.startswith("test_") and inspect.isfunction(func):
             count += 1
             print("=" * 80)

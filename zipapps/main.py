@@ -498,7 +498,8 @@ class ZipApp(object):
         ] + pip_args
         pip_main = get_pip_main()
         result = pip_main(_pip_args)
-        assert result == 0, "pip install failed %s" % result
+        if result != 0:
+            raise RuntimeError("pip install failed: return code=%s" % result)
 
     def clean_pip_pycache(self):
         if self.layer_mode:
@@ -635,6 +636,26 @@ class ZipApp(object):
             )
         else:
             self._log(f'[ERROR]: {"=" * 10} Build failed {"=" * 10}')
+
+
+def pip_install_target(
+    target: Path,
+    pip_args: list,
+    rm_patterns: str = "*.dist-info,__pycache__",
+    force=False,
+    sys_path: typing.Optional[int] = None,
+):
+    target = Path(target)
+    md5_path = target / ZipApp.get_md5(pip_args)
+    if not force and md5_path.exists():
+        return
+    ZipApp._pip_install(target_dir=target, pip_args=pip_args)
+    if rm_patterns:
+        ZipApp._rm_with_patterns(target, patterns=rm_patterns.split(","))
+
+    md5_path.touch()
+    if isinstance(sys_path, int):
+        sys.path.insert(sys_path, target.absolute().as_posix())
 
 
 create_app = ZipApp.create_app
