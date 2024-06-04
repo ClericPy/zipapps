@@ -1,6 +1,6 @@
 # [zipapps](https://github.com/ClericPy/zipapps)
 
-[![PyPI](https://img.shields.io/pypi/v/zipapps?style=plastic)](https://pypi.org/project/zipapps/)[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/clericpy/zipapps/pythonpackage.yml)](https://github.com/ClericPy/zipapps/actions)![PyPI - Wheel](https://img.shields.io/pypi/wheel/zipapps?style=plastic)![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zipapps?style=plastic)![PyPI - Downloads](https://img.shields.io/pypi/dm/zipapps?style=plastic)![PyPI - License](https://img.shields.io/pypi/l/zipapps?style=plastic)
+[![PyPI](https://img.shields.io/pypi/v/zipapps?style=plastic)](https://pypi.org/project/zipapps/)[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/clericpy/zipapps/pythonpackage.yml)](https://github.com/ClericPy/zipapps/actions)![PyPI - Wheel](https://img.shields.io/pypi/wheel/zipapps?style=plastic)![PyPI - Downloads](https://img.shields.io/pypi/dm/zipapps?style=plastic)![PyPI - License](https://img.shields.io/pypi/l/zipapps?style=plastic)
 
 [Changelogs](https://github.com/ClericPy/zipapps/blob/master/changelog.md)
 
