@@ -486,7 +486,10 @@ class ZipApp(object):
                     if path.is_dir():
                         shutil.rmtree(path, ignore_errors=True)
                     else:
-                        path.unlink(missing_ok=True)
+                        try:
+                            path.unlink()
+                        except FileNotFoundError:
+                            pass
 
     @classmethod
     def _pip_install(cls, target_dir: Path, pip_args: list):
