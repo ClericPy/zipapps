@@ -211,10 +211,10 @@ def prepare_path():
     if ignore_system_python_path:
         sys.path.clear()
         # env of Popen is not valid for win32 platform, use os.environ instead.
-        _new_paths = _zipapps_python_path_list + new_sys_paths
+        _new_paths = new_sys_paths + _zipapps_python_path_list
     else:
         _old_path = os.environ.get('PYTHONPATH') or ''
-        _new_paths = _zipapps_python_path_list + [_old_path] + new_sys_paths
+        _new_paths = new_sys_paths + _zipapps_python_path_list + [_old_path]
     os.environ['PYTHONPATH'] = os.pathsep.join(_new_paths)
     # let the dir path first
     zipapps_paths = [
@@ -222,7 +222,7 @@ def prepare_path():
     ]
     seen_path = set()
     result = []
-    for path in zipapps_paths + sys.path + new_sys_paths:
+    for path in new_sys_paths + zipapps_paths + sys.path:
         if path not in seen_path:
             seen_path.add(path)
             result.append(path)

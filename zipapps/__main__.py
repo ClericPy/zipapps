@@ -304,7 +304,7 @@ def main():
         "--python-path",
         default="",
         dest="sys_paths",
-        help="Paths be insert to sys.path[-1] while running."
+        help="Paths be insert to sys.path[0] while running."
         " Support $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas.",
     )
     parser.add_argument(
@@ -395,7 +395,7 @@ def main():
         "--download-python",
         action="store_true",
         dest="download_python",
-        help=f'Download standalone python from "{DOWNLOAD_PYTHON_URL}"',
+        help=f'(please use `python -m zipapps.download_python` instead). Download standalone python from "{DOWNLOAD_PYTHON_URL}"',
     )
     parser.add_argument(
         "--rm-patterns",
@@ -409,9 +409,7 @@ def main():
         return
     args, pip_args = parser.parse_known_args()
     if args.download_python:
-        from .download_python import download_python
-
-        return download_python()
+        raise ValueError("please use `python -m zipapps.download_python` instead")
     elif args.download_pip_pyz:
         return download_pip_pyz(args.download_pip_pyz)
     if args.quite_mode:

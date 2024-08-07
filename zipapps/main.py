@@ -15,7 +15,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = "2024.06.04"
+__version__ = "2024.08.07"
 
 
 def get_pip_main(ensurepip_root=None):
@@ -137,7 +137,7 @@ class ZipApp(object):
         :type env_paths: str, optional
         :param lazy_install: Install packages with pip while running, which means requirements will not be install into pyz file, defaults to False
         :type lazy_install: bool, optional
-        :param sys_paths: Paths be insert to sys.path[-1] while running. Support $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas, defaults to ''
+        :param sys_paths: Paths be insert to sys.path[0] while running. Support $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas, defaults to ''
         :type sys_paths: str, optional
         :param python_version_slice: Only work for lazy-install mode, then `pip` target folders differ according to sys.version_info[:_slice], defaults to 2, which means 3.8.3 equals to 3.8.4 for same version accuracy 3.8, defaults to 2
         :type python_version_slice: int, optional
