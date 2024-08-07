@@ -1,6 +1,17 @@
 
 # Changelogs
 
+- 2024.08.07
+  - [**Compatible WARNING**]: update `sys_paths` insert index from `-1` to `0`
+  - disable `--download-python`, use `python -m zipapps.download_python` instead
+    - add `-a/--auto`
+      - auto download the latest version matched the current platform: x86_64+install_only
+      - `python -m zipapps.download_python -a`
+    - add `-k/--keywords`, filt with keywords split by `,`
+      - `python -m zipapps.download_python -a -k 3.11`
+    - add `-u/--unzip`, unzip the `.tar.gz`
+      - `python -m zipapps.download_python -a -k 3.11 -u`
+        - download and unzip the `.tar.gz`
 - 2024.06.04
   - add arg `--download-python`: interactive download standalone python interpreter (https://www.github.com/indygreg/python-build-standalone)
   - custom `--rm-patterns` to remove useless files . fixed #28 #29

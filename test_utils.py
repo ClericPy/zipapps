@@ -310,21 +310,19 @@ def test_includes():
 def test_pip_args():
     # test pip_args
     _clean_paths()
-    _, stderr_output = subprocess.Popen(
-        [sys.executable, "-c", "import bottle"],
+    stdout, _ = subprocess.Popen(
+        [sys.executable, "-c", "import bottle;print(bottle.__file__)"],
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
-    assert (
-        b"No module named" in stderr_output
-    ), "check init failed, bottle should not be installed"
+    assert b'app.pyz' not in stdout, "test pip_args failed %s" % stdout
     app_path = create_app(pip_args=["bottle"])
-    _, stderr_output = subprocess.Popen(
-        [sys.executable, str(app_path), "-c", "import bottle"],
+    stdout, _ = subprocess.Popen(
+        [sys.executable, str(app_path), "-c", "import bottle;print(bottle.__file__)"],
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
-    assert stderr_output == b"", "test pip_args failed"
+    assert b'app.pyz' in stdout, "test pip_args failed %s" % stdout
 
 
 def test_cache_path():
@@ -626,8 +624,6 @@ def test_sys_paths():
     # pip install by given --target
     args = [sys.executable, "-m", "pip", "install", "bottle", "-t", "./bottle_env"]
     subprocess.Popen(args=args).wait()
-    mock_requirement = Path("_requirements.txt")
-    mock_requirement.write_text("bottle")
     create_app(sys_paths="$SELF/bottle_env")
     output = subprocess.check_output(
         [sys.executable, "app.pyz", "-c", "import bottle;print(bottle.__file__)"]
