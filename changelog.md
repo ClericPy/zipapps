@@ -3,7 +3,7 @@
 
 - 2024.09.17
   - `download_python` remove default `stripped` keyword
-  - 
+  - `test_utils.py` use `test_cache/` folder to avoid conflict
 - 2024.08.07
   - [**Compatible WARNING**]: update `sys_paths` insert index from `-1` to `0`
   - disable `--download-python`, use `python -m zipapps.download_python` instead

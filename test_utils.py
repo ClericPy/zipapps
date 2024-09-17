@@ -12,43 +12,14 @@ from tempfile import gettempdir
 from zipapps.main import create_app
 
 
+test_path = Path("test_cache").resolve()
+test_path.mkdir(parents=True, exist_ok=True)
+os.chdir(test_path.as_posix())
+
+
 @atexit.register
 def _clean_paths():
-    # files
-    for p in [
-        "mock_main.py",
-        "app.pyz",
-        "bottle.pyz",
-        "bottle_env.pyz",
-        "orjson.pyz",
-        "_requirements.txt",
-        "six.pyz",
-        "entry_test.py",
-        "zipapps_config.json",
-        "mock_dir",
-    ]:
-        try:
-            path = Path(p)
-            if path.is_file():
-                path.unlink()
-            else:
-                shutil.rmtree(path.as_posix())
-        except Exception:
-            pass
-    # folders
-    for d in [
-        "mock_package",
-        "zipapps_cache",
-        "bottle_env",
-        Path.home() / "app_cache",
-        Path("./app_cache"),
-        Path(gettempdir()) / "app_cache",
-        Path("./zipapps_cache"),
-    ]:
-        try:
-            shutil.rmtree(d)
-        except Exception:
-            pass
+    shutil.rmtree(test_path.as_posix(), ignore_errors=True)
 
 
 def test_quiet_mode():
@@ -295,11 +266,18 @@ def test_includes():
     ).communicate()
     # files not be set by includes arg
     assert b"Traceback" in stderr_output, "test includes failed"
-    app_path = create_app(
-        includes="./zipapps/entry_point.py.template,./zipapps/main.py"
-    )
+    test1 = Path("./test1.py")
+    test1.touch()
+    test2 = Path("./test2.py")
+    test2.touch()
+    app_path = create_app(includes=",".join([test1.name, test2.name]))
     _, stderr_output = subprocess.Popen(
-        [sys.executable, str(app_path), "-c", "import main"],
+        [
+            sys.executable,
+            str(app_path),
+            "-c",
+            "import %s,%s" % (test1.stem, test2.stem),
+        ],
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
@@ -315,14 +293,14 @@ def test_pip_args():
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
-    assert b'app.pyz' not in stdout, "test pip_args failed %s" % stdout
+    assert b"app.pyz" not in stdout, "test pip_args failed %s" % stdout
     app_path = create_app(pip_args=["bottle"])
     stdout, _ = subprocess.Popen(
         [sys.executable, str(app_path), "-c", "import bottle;print(bottle.__file__)"],
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     ).communicate()
-    assert b'app.pyz' in stdout, "test pip_args failed %s" % stdout
+    assert b"app.pyz" in stdout, "test pip_args failed %s" % stdout
 
 
 def test_cache_path():
@@ -634,6 +612,8 @@ def test_sys_paths():
 def test_layer_mode():
     # test layer-mode
     _clean_paths()
+    test1 = Path("setup.py")
+    test1.touch()
     old_file = create_app(
         includes="setup.py",
         layer_mode=True,
@@ -759,6 +739,7 @@ def main():
     import inspect
 
     count = 0
+    start = 0
     items = list(globals().items())
     total = len(items)
     name_list = ""
@@ -767,6 +748,8 @@ def main():
             continue
         if name.startswith("test_") and inspect.isfunction(func):
             count += 1
+            if count < start:
+                continue
             print("=" * 80)
             print(count, "/", total, "start testing:", name, flush=True)
             func()
