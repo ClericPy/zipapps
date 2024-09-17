@@ -12,9 +12,9 @@ from tempfile import gettempdir
 from zipapps.main import create_app
 
 
-test_path = Path("test_cache").resolve()
+test_path = Path("./test_cache").resolve()
 test_path.mkdir(parents=True, exist_ok=True)
-os.chdir(test_path.as_posix())
+os.chdir(test_path.name)
 
 
 @atexit.register
@@ -33,9 +33,9 @@ def test_freeze():
     # test --freeze-reqs
     _clean_paths()
     output = subprocess.check_output(
-        [sys.executable, "-m", "zipapps", "--freeze-reqs", "-", "six==1.15.0"]
+        [sys.executable, "-m", "zipapps", "--freeze-reqs", "-", "six==1.16.0"]
     )
-    assert b"six==1.15.0" in output.strip(), output
+    assert b"six==1.16.0" in output.strip(), output
 
 
 def test_dump_load_config():
@@ -208,11 +208,11 @@ def test_main_source_code():
             "zipapps",
             "-m",
             "import six;print(six.__version__)",
-            "six==1.15.0",
+            "six==1.16.0",
         ]
     )
     output = subprocess.check_output([sys.executable, "app.pyz"])
-    assert b"1.15.0" == output.strip(), output
+    assert b"1.16.0" == output.strip(), output
 
 
 def test_main_module():
