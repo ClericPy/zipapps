@@ -18,20 +18,27 @@ os.chdir(test_path.name)
 
 
 @atexit.register
-def _clean_paths():
-    shutil.rmtree(test_path.as_posix(), ignore_errors=True)
+def _clean_paths(root=True):
+    if root:
+        shutil.rmtree(test_path.as_posix(), ignore_errors=True)
+    else:
+        for path in test_path.iterdir():
+            if path.is_file():
+                path.unlink()
+            else:
+                shutil.rmtree(path.as_posix(), ignore_errors=True)
 
 
 def test_quiet_mode():
     # test -qqqq quiet mode
-    _clean_paths()
+    _clean_paths(root=False)
     output = subprocess.check_output([sys.executable, "-m", "zipapps", "six", "-qqqq"])
     assert not output, output
 
 
 def test_freeze():
     # test --freeze-reqs
-    _clean_paths()
+    _clean_paths(root=False)
     output = subprocess.check_output(
         [sys.executable, "-m", "zipapps", "--freeze-reqs", "-", "six==1.16.0"]
     )
@@ -40,7 +47,7 @@ def test_freeze():
 
 def test_dump_load_config():
     # test `--dump-config` and `--load-config`
-    _clean_paths()
+    _clean_paths(root=False)
     output, _ = subprocess.Popen(
         [sys.executable, "-m", "zipapps", "--dump-config", "-"],
         stderr=subprocess.PIPE,
@@ -77,7 +84,7 @@ def test_dump_load_config():
 
 def test_environ():
     # test os.environ
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(unzip="*", unzip_path="app_cache")
     os.environ["CLEAR_ZIPAPPS_CACHE"] = "1"
     os.environ["CLEAR_ZIPAPPS_SELF"] = "1"
@@ -112,7 +119,7 @@ def test_environ():
 
 def test_unzip_with_cwd_pid():
     # test unzip with $CWD / $PID
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(
         unzip="bottle", pip_args=["bottle"], unzip_path="$CWD/app_cache/$PID"
     )
@@ -129,7 +136,7 @@ def test_unzip_with_cwd_pid():
 
 def test_clear_zipapps_self():
     # test clear_zipapps_self
-    _clean_paths()
+    _clean_paths(root=False)
     assert not Path("app.pyz").is_file()
     app_path = create_app(clear_zipapps_self=True)
     assert Path("app.pyz").is_file()
@@ -141,13 +148,13 @@ def test_clear_zipapps_self():
 
 def test_unzip_exclude():
     # test unzip_exclude
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(unzip="*", pip_args=["six"], unzip_exclude="")
     stdout_output, stderr_output = subprocess.Popen(
         [sys.executable, str(app_path), "--activate-zipapps"]
     ).communicate()
     assert Path("./zipapps_cache/app/six.py").is_file()
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(unzip="*", pip_args=["six"], unzip_exclude="six")
     stdout_output, stderr_output = subprocess.Popen(
         [sys.executable, str(app_path), "--activate-zipapps"]
@@ -157,13 +164,13 @@ def test_unzip_exclude():
 
 def test_clear_zip_cache():
     # test -czc
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(clear_zipapps_cache=False, unzip="*")
     stdout_output, stderr_output = subprocess.Popen(
         [sys.executable, str(app_path), "-V"]
     ).communicate()
     assert Path("./zipapps_cache").is_dir()
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(clear_zipapps_cache=True, unzip="*")
     stdout_output, stderr_output = subprocess.Popen(
         [sys.executable, str(app_path), "-V"]
@@ -173,7 +180,7 @@ def test_clear_zip_cache():
 
 def test_build_id_and_single_file():
     # test build_id
-    _clean_paths()
+    _clean_paths(root=False)
     mock_requirement = Path("_requirements.txt")
     mock_requirement.write_text("bottle")
     old_file = create_app(
@@ -200,7 +207,7 @@ def test_build_id_and_single_file():
 
 def test_main_source_code():
     # test main: source code
-    _clean_paths()
+    _clean_paths(root=False)
     subprocess.check_output(
         [
             sys.executable,
@@ -217,7 +224,7 @@ def test_main_source_code():
 
 def test_main_module():
     # test main module+function
-    _clean_paths()
+    _clean_paths(root=False)
     mock_main = Path("mock_main.py")
     mock_main.touch()
     mock_main.write_text("print(1)")
@@ -257,7 +264,7 @@ def test_main_module():
 
 def test_includes():
     # test includes
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(includes="")
     _, stderr_output = subprocess.Popen(
         [sys.executable, "-c", "import main"],
@@ -287,7 +294,7 @@ def test_includes():
 
 def test_pip_args():
     # test pip_args
-    _clean_paths()
+    _clean_paths(root=False)
     stdout, _ = subprocess.Popen(
         [sys.executable, "-c", "import bottle;print(bottle.__file__)"],
         stderr=subprocess.PIPE,
@@ -305,7 +312,7 @@ def test_pip_args():
 
 def test_cache_path():
     # test cache_path
-    _clean_paths()
+    _clean_paths(root=False)
     mock_dir = Path("mock_package")
     mock_dir.mkdir()
     create_app(cache_path=mock_dir)
@@ -314,7 +321,7 @@ def test_cache_path():
 
 def test_unzip():
     # test unzip
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(unzip="bottle", pip_args=["bottle"])
     output, _ = subprocess.Popen(
         [sys.executable, str(app_path), "-c", "import bottle;print(bottle.__file__)"],
@@ -330,7 +337,7 @@ def test_unzip():
 
 def test_unzip_complete_path():
     # test unzip with complete path
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(unzip="ensure_app,bin/bottle.py", pip_args=["bottle"])
     output, _ = subprocess.Popen(
         [sys.executable, str(app_path), "-c", "import bottle;print(bottle.__file__)"],
@@ -346,7 +353,7 @@ def test_unzip_complete_path():
 
 def test_unzip_with_auto_unzip():
     # test unzip with `AUTO_UNZIP` and `*`
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(unzip="", pip_args=["orjson"])
     output, _ = subprocess.Popen(
         [sys.executable, str(app_path), "-V"],
@@ -355,7 +362,7 @@ def test_unzip_with_auto_unzip():
     ).communicate()
     orjson_unzipped = bool(list(Path("zipapps_cache").glob("**/orjson")))
     assert not orjson_unzipped, "test unzip failed, orjson should not be unzipped"
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(unzip="AUTO_UNZIP", pip_args=["orjson"])
     output, _ = subprocess.Popen(
         [sys.executable, str(app_path), "-V"],
@@ -364,7 +371,7 @@ def test_unzip_with_auto_unzip():
     ).communicate()
     orjson_unzipped = bool(list(Path("zipapps_cache").glob("**/orjson")))
     assert orjson_unzipped, "test unzip failed, orjson should be unzipped"
-    _clean_paths()
+    _clean_paths(root=False)
     # test auto unzip without nonsense folder
     app_path = create_app(unzip="AUTO_UNZIP")
     output, _ = subprocess.Popen(
@@ -374,7 +381,7 @@ def test_unzip_with_auto_unzip():
     ).communicate()
     no_cache_dir = not Path("zipapps_cache").is_dir()
     assert no_cache_dir, "test unzip failed, should not unzip anything"
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(unzip="AUTO", pip_args=["orjson"])
     output, _ = subprocess.Popen(
         [sys.executable, str(app_path), "-V"],
@@ -383,7 +390,7 @@ def test_unzip_with_auto_unzip():
     ).communicate()
     orjson_unzipped = bool(list(Path("zipapps_cache").glob("**/orjson")))
     assert orjson_unzipped, "test unzip failed, orjson should be unzipped"
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(unzip="*", pip_args=["orjson"])
     output, _ = subprocess.Popen(
         [sys.executable, str(app_path), "-V"],
@@ -396,7 +403,7 @@ def test_unzip_with_auto_unzip():
 
 def test_env_usage():
     # test ensure path for venv usage
-    _clean_paths()
+    _clean_paths(root=False)
     create_app(output="bottle_env.pyz", unzip="bottle", pip_args=["bottle"])
     # activate sys.path and unzip cache
     zipimport.zipimporter("bottle_env.pyz").load_module("ensure_zipapps")
@@ -409,7 +416,7 @@ def test_env_usage():
 
 def test_compiled():
     # test compiled
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(unzip="six", compiled=True, pip_args=["six"])
     output, _ = subprocess.Popen(
         [sys.executable, str(app_path), "-c", "import six;print(six.__cached__)"],
@@ -422,7 +429,7 @@ def test_compiled():
 
 def test_variable_home_self_temp():
     # test unzip with $HOME / $SELF / $TEMP
-    _clean_paths()
+    _clean_paths(root=False)
     app_path = create_app(
         unzip="bottle", pip_args=["bottle"], unzip_path="$HOME/app_cache"
     )
@@ -457,7 +464,7 @@ def test_variable_home_self_temp():
 
 def test_runtime_zipapps_arg():
     # test --zipapps
-    _clean_paths()
+    _clean_paths(root=False)
     create_app(unzip="AUTO", output="orjson.pyz", pip_args=["orjson"])
     create_app(output="six.pyz", pip_args=["six"])
     cmd = (
@@ -473,7 +480,7 @@ def test_runtime_zipapps_arg():
 
 def test_build_zipapps_arg():
     # test --zipapps while building
-    _clean_paths()
+    _clean_paths(root=False)
     # test for simple usage
     create_app(pip_args=["six"], output="six.pyz")
     Path("./entry_test.py").write_text("import six;print(six.__file__)")
@@ -502,7 +509,7 @@ def test_build_zipapps_arg():
     assert not error
     assert b"six.pyz" in output
 
-    _clean_paths()
+    _clean_paths(root=False)
     # test for $SELF arg
     create_app(pip_args=["six"], output="six.pyz")
     Path("./entry_test.py").write_text("import six;print(six.__file__)")
@@ -530,7 +537,7 @@ def test_build_zipapps_arg():
     assert not error
     assert b"six.pyz" in output
 
-    _clean_paths()
+    _clean_paths(root=False)
     # test for without --zipapps
     create_app(pip_args=["six"], output="six.pyz")
     Path("./entry_test.py").write_text("import six;print(six.__file__)")
@@ -550,7 +557,7 @@ def test_build_zipapps_arg():
 
 def test_run_path():
     # test run_path
-    _clean_paths()
+    _clean_paths(root=False)
     create_app(output="app.pyz")
     Path("mock_main.py").write_text("import sys;print(__name__, sys.argv)")
     output = subprocess.check_output(
@@ -562,7 +569,7 @@ def test_run_path():
 
 def test_lazy_install():
     # test lazy pip install
-    _clean_paths()
+    _clean_paths(root=False)
     mock_requirements = Path("_requirements.txt")
     mock_requirements.write_text("six")
     app_path = create_app(
@@ -598,7 +605,7 @@ def test_lazy_install():
 
 def test_sys_paths():
     # test sys_paths
-    _clean_paths()
+    _clean_paths(root=False)
     # pip install by given --target
     args = [sys.executable, "-m", "pip", "install", "bottle", "-t", "./bottle_env"]
     subprocess.Popen(args=args).wait()
@@ -611,7 +618,7 @@ def test_sys_paths():
 
 def test_layer_mode():
     # test layer-mode
-    _clean_paths()
+    _clean_paths(root=False)
     test1 = Path("setup.py")
     test1.touch()
     old_file = create_app(
@@ -631,7 +638,7 @@ def test_chmod():
     if os.name != "nt":
         # posix only
         # test --chmod
-        _clean_paths()
+        _clean_paths(root=False)
         app_path = create_app(unzip="*", pip_args=["six"], lazy_install=True)
         subprocess.Popen([sys.executable, str(app_path), "--activate-zipapps"]).wait()
         assert Path("app.pyz").stat().st_mode != 33279
@@ -640,7 +647,7 @@ def test_chmod():
                 assert _path.stat().st_mode != 33279, _path.stat().st_mode
                 break
 
-        _clean_paths()
+        _clean_paths(root=False)
         app_path = create_app(
             unzip="*", pip_args=["six"], lazy_install=True, chmod="777"
         )
@@ -654,7 +661,7 @@ def test_chmod():
 
 def test_delete_useless():
     # test layer-mode
-    _clean_paths()
+    _clean_paths(root=False)
     from zipfile import ZipFile
 
     # test cmd mode, do not delete dist-info dir
@@ -693,7 +700,7 @@ def test_pip_install_target():
 
     from zipapps import pip_install_target
 
-    _clean_paths()
+    _clean_paths(root=False)
     # test without "insert sys.path"
     start_time = time.time()
     assert pip_install_target(
