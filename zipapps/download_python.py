@@ -62,14 +62,12 @@ def choose_asset(assets: list, keywords, auto=False):
         elif system == "linux":
             keywords.add("gnu")
             keywords.add("unknown")
-            not_include.add("v2")
-            not_include.add("v3")
-            not_include.add("v4")
-        keywords.add("install_only")
-        keywords.add("tar.gz")
+            for v in ("v2", "v3", "v4"):
+                if v not in keywords:
+                    not_include.add(v)
+        keywords.add("install_only.tar.gz")
         keywords.add("cpython")
         keywords.add("x86_64")
-        not_include.add("stripped")
 
     result = []
     for asset in assets:
