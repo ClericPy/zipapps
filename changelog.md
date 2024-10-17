@@ -1,6 +1,12 @@
 
 # Changelogs
 
+- 2024.10.17
+  - fix linux test cases
+  - download_python
+    - remove default stripped keyword
+    - use linux as default auto platform
+  - 
 - 2024.09.17
   - `download_python` remove default `stripped` keyword
   - `test_utils.py` use `test_cache/` folder to avoid conflict

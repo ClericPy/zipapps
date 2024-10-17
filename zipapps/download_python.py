@@ -59,7 +59,9 @@ def choose_asset(assets: list, keywords, auto=False):
         keywords.add(system)
         if system == "windows":
             keywords.add("msvc-shared")
-        elif system == "linux":
+        elif system == "darwin":
+            pass
+        else:
             keywords.add("gnu")
             keywords.add("unknown")
             for v in ("v2", "v3", "v4"):
