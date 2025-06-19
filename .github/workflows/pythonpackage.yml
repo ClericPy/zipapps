@@ -1,8 +1,10 @@
 name: Python package
 
-on: [push]
-
-# https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
+on:
+    push:
+        branches:
+            - main
+            - master
 
 jobs:
     test-linux:
@@ -10,7 +12,7 @@ jobs:
         strategy:
             max-parallel: 3
             matrix:
-                python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.x"]
+                python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.x"]
 
         steps:
             - uses: actions/checkout@v4
