@@ -15,7 +15,7 @@ from pathlib import Path
 from pkgutil import get_data
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-__version__ = "2024.09.17"
+__version__ = "2025.09.04"
 
 
 def get_pip_main(ensurepip_root=None):

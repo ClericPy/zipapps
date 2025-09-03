@@ -1,15 +1,16 @@
 
 # Changelogs
 
-- 2024.10.17
+- 2025.09.04
+  - `download_python` remove default `stripped` keyword
+  - `test_utils.py` use `test_cache/` folder to avoid conflict
   - fix linux test cases
   - download_python
     - remove default stripped keyword
     - use linux as default auto platform
-  - 
-- 2024.09.17
-  - `download_python` remove default `stripped` keyword
-  - `test_utils.py` use `test_cache/` folder to avoid conflict
+  - add scripts entry point to zipapps's pyproject.toml
+    - also could be used as `uvx zipapps ...`
+    - or `zipapps.exe ...` on windows, or `zipapps` on unix
 - 2024.08.07
   - [**Compatible WARNING**]: update `sys_paths` insert index from `-1` to `0`
   - disable `--download-python`, use `python -m zipapps.download_python` instead

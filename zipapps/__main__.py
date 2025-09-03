@@ -5,8 +5,7 @@ import time
 import typing
 from pathlib import Path
 
-from . import __version__
-from .main import ZipApp
+from .main import ZipApp, __version__
 
 USAGE = r"""
 ===========================================================================
@@ -84,7 +83,7 @@ def _append_pth():
         _path_bytes = b""
     if not re.search(b"^import site$", _path_bytes):
         _path_bytes += b"\nimport site\n"
-    if not re.search(b"^pip\.pyz$", _path_bytes):
+    if not re.search(rb"^pip\.pyz$", _path_bytes):
         _path_bytes += b"\npip.pyz\n"
     _pth_path.write_bytes(_path_bytes)
 
@@ -103,7 +102,7 @@ def download_pip_pyz(target: typing.Optional[Path] = None, log=True):
         filename=pip_pyz_path.absolute().as_posix(),
         reporthook=lambda a, b, c: print(
             _get_now(),
-            f"Downloading {int(100*(1+a)*b/c)}%, {(1 + a) * b} / {c}",
+            f"Downloading {int(100 * (1 + a) * b / c)}%, {(1 + a) * b} / {c}",
             end="\r",
             flush=True,
             file=sys.stderr,
@@ -138,7 +137,7 @@ def handle_win32_embeded():
         return
     except ImportError:
         need_install = (
-            input(f'\n{"=" * 50}\npip module not found, try installing?(Y/n)')
+            input(f"\n{'=' * 50}\npip module not found, try installing?(Y/n)")
             .lower()
             .strip()
             or "y"
@@ -241,8 +240,7 @@ def main():
         "--shell",
         "-s",
         action="store_true",
-        help="Only while `main` is not set, used for shell=True"
-        " in subprocess.Popen.",
+        help="Only while `main` is not set, used for shell=True in subprocess.Popen.",
     )
     parser.add_argument(
         "--main-shell",
@@ -415,7 +413,7 @@ def main():
     if args.quite_mode:
         ZipApp.LOGGING = False
         if "-q" not in pip_args and "--quiet" not in pip_args:
-            pip_args.append(f'-{"q" * args.quite_mode}')
+            pip_args.append(f"-{'q' * args.quite_mode}")
     ZipApp._log(f"zipapps args: {args}, pip install args: {pip_args}")
     if args.activate:
         from .activate_zipapps import activate

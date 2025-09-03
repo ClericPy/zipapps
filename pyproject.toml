@@ -26,6 +26,7 @@ classifiers = [
     'Operating System :: Unix',
     'Operating System :: MacOS',
 ]
+scripts = { zipapps = "zipapps:__main__.main" }
 
 [project.urls]
 Home = "https://github.com/ClericPy/zipapps"
