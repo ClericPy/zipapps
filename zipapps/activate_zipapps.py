@@ -9,13 +9,9 @@ def activate(path=None):
     path_str = path.absolute().as_posix()
     if zipfile.is_zipfile(path_str):
         try:
-            sys.path.insert(0, path_str)
             ensure_zipapps = importlib.import_module("ensure_zipapps")
             del ensure_zipapps
             sys.modules.pop("ensure_zipapps", None)
         except ImportError as err:
             sys.stderr.write(f"WARNING: activate failed for {err!r}\n")
             raise err
-        finally:
-            if sys.path[0] == path_str:
-                sys.path.pop(0)
