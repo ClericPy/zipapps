@@ -11,10 +11,11 @@ from tempfile import gettempdir
 
 from zipapps.main import create_app
 
-
 test_path = Path("./test_cache").resolve()
 test_path.mkdir(parents=True, exist_ok=True)
 os.chdir(test_path.name)
+# add sys path
+os.environ["PYTHONPATH"] = test_path.parent.resolve().as_posix()
 
 
 @atexit.register
@@ -330,9 +331,9 @@ def test_unzip():
     ).communicate()
     file_counts = len(list(Path("zipapps_cache").glob("**/*")))
     assert file_counts >= 5, file_counts
-    assert (
-        b"zipapps_cache" in output
-    ), "test unzip failed, zipapps_cache as sys.path should be priority"
+    assert b"zipapps_cache" in output, (
+        "test unzip failed, zipapps_cache as sys.path should be priority"
+    )
 
 
 def test_unzip_complete_path():
@@ -346,9 +347,9 @@ def test_unzip_complete_path():
     ).communicate()
     file_counts = len(list(Path("zipapps_cache").glob("**/*")))
     # print(file_counts)
-    assert (
-        file_counts == 5
-    ), "test unzip failed, zipapps_cache as sys.path should be priority"
+    assert file_counts == 5, (
+        "test unzip failed, zipapps_cache as sys.path should be priority"
+    )
 
 
 def test_unzip_with_auto_unzip():
@@ -739,6 +740,20 @@ def test_pip_install_target():
     assert "mock_dir" in six.__file__
 
 
+def test_uv_path():
+    # `pip install uv` before testing
+    output = subprocess.check_output(
+        [sys.executable, "-m", "zipapps", "six", "--uv", "uv"], stderr=subprocess.STDOUT
+    )
+    assert b"Collecting six" not in output, output.decode("utf-8", "replace")
+    assert b"using uv_path:" in output, output.decode("utf-8", "replace")
+    assert b"interpreter at:" in output, output.decode("utf-8", "replace")
+    output = subprocess.check_output(
+        [sys.executable, "-m", "zipapps", "six"], stderr=subprocess.STDOUT
+    )
+    assert b"Collecting six" in output, output.decode("utf-8", "replace")
+
+
 def main():
     """
     test all cases
@@ -747,21 +762,19 @@ def main():
 
     count = 0
     start = 0
-    items = list(globals().items())
-    total = len(items)
+    items = [(name, func) for name, func in globals().items() if name.startswith("test_") and inspect.isfunction(func)]
     name_list = ""
     for name, func in items:
         if name_list and name not in name_list:
             continue
-        if name.startswith("test_") and inspect.isfunction(func):
-            count += 1
-            if count < start:
-                continue
-            print("=" * 80)
-            print(count, "/", total, "start testing:", name, flush=True)
-            func()
-            print("=" * 80)
-            # quit('test one')
+        count += 1
+        if count < start:
+            continue
+        print("=" * 80)
+        print(count, "/", len(items), "start testing:", name, flush=True)
+        func()
+        print("=" * 80)
+        # quit('test one')
     print("=" * 80)
     print("All tests finished.")
     print("=" * 80)

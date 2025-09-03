@@ -1,16 +1,17 @@
-
 # Changelogs
 
 - 2025.09.04
-  - `download_python` remove default `stripped` keyword
-  - `test_utils.py` use `test_cache/` folder to avoid conflict
-  - fix linux test cases
+  - `download_python`: removed the default `stripped` keyword
+  - `test_utils.py`: now uses the `test_cache/` folder to avoid conflicts
+  - Fixed Linux test cases
   - download_python
-    - remove default stripped keyword
-    - use linux as default auto platform
-  - add scripts entry point to zipapps's pyproject.toml
-    - also could be used as `uvx zipapps ...`
-    - or `zipapps.exe ...` on windows, or `zipapps` on unix
+    - removed the default `stripped` keyword
+    - Linux is now the default platform for auto mode
+  - Added scripts entry point to zipapps's pyproject.toml
+    - Can also be used as `uvx zipapps ...`
+    - Or `zipapps.exe ...` on Windows, or `zipapps` on Unix
+  - Added `--uv` option to accept a path to uv, speeding up `pip install`
+  - Added `--freeze-deps` as an alias for `--freeze-reqs`
 - 2024.08.07
   - [**Compatible WARNING**]: update `sys_paths` insert index from `-1` to `0`
   - disable `--download-python`, use `python -m zipapps.download_python` instead

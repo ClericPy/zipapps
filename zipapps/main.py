@@ -72,7 +72,7 @@ class ZipApp(object):
         "chmod": "UNZIP_CHMOD",
     }
 
-    LOGGING = True
+    LOGGING: bool = True
 
     def __init__(
         self,
@@ -102,6 +102,7 @@ class ZipApp(object):
         chmod: str = "",
         clear_zipapps_self: bool = False,
         rm_patterns: str = "*.dist-info,__pycache__",
+        uv_path: str = "",
     ):
         """Zip your code.
 
@@ -157,6 +158,8 @@ class ZipApp(object):
         :type clear_zipapps_self: bool, optional
         :param rm_patterns: Delete useless files or folders, splited by "," and defaults to `*.dist-info,__pycache__`. Recursively glob: **/*.pyc
         :type rm_patterns: str
+        :param uv_path: The path of the `uv` executable, defaults to '', which means use `uv` in PATH environment variable.
+        :type uv_path: str, optional
         """
         self.includes = includes
         self.cache_path = cache_path
@@ -185,6 +188,7 @@ class ZipApp(object):
         self.clear_zipapps_self = clear_zipapps_self
         self.chmod = chmod
         self.rm_patterns = rm_patterns
+        self.uv_path = uv_path
 
         self._tmp_dir: typing.Optional[tempfile.TemporaryDirectory] = None
         self._build_success = False
@@ -270,7 +274,7 @@ class ZipApp(object):
 
     def build(self):
         self._log(
-            f'[INFO]: {"=" * 10} Start building `{self._output_path}` with zipapps version <{__version__}> {"=" * 10}'
+            f"[INFO]: {'=' * 10} Start building `{self._output_path}` with zipapps version <{__version__}> {'=' * 10}"
         )
         self.ensure_args()
         if self.build_exists():
@@ -454,6 +458,10 @@ class ZipApp(object):
                     "`-t` / `--target` arg can be set with `--cache-path`/`cache_path` to rewrite the zipapps cache path."
                 )
             if self.lazy_install:
+                if self.uv_path:
+                    raise RuntimeError(
+                        "The arg `uv_path` is not supported in lazy_install mode."
+                    )
                 # copy files to cache folder
                 _temp_pip_path = self._cache_path / self.LAZY_PIP_DIR_NAME
                 _temp_pip_path.mkdir(parents=True, exist_ok=True)
@@ -493,15 +501,37 @@ class ZipApp(object):
                             pass
 
     @classmethod
-    def _pip_install(cls, target_dir: Path, pip_args: list):
+    def _pip_install(cls, target_dir: Path, pip_args: list, uv_path: str = ""):
         target_dir = Path(target_dir)
         _pip_args = [
             "install",
             "--target",
             target_dir.absolute().as_posix(),
         ] + pip_args
-        pip_main = get_pip_main()
-        result = pip_main(_pip_args)
+        if uv_path:
+            import os
+            import subprocess
+
+            # use uv and subprocess
+            args = [
+                "uv",
+                "pip",
+                "install",
+                "--python",
+                sys.executable,
+                "--no-cache-dir",
+            ] + _pip_args[1:]
+            cls._log(f"using uv_path: {args}")
+            result = subprocess.call(
+                args,
+                stdout=sys.stdout,
+                stderr=sys.stderr,
+                env=dict(**os.environ, UV_LINK_MODE="copy"),
+            )
+        else:
+            # use default python interpreter and pip main
+            pip_main = get_pip_main()
+            result = pip_main(_pip_args)
         if result != 0:
             raise RuntimeError("pip install failed: return code=%s" % result)
 
@@ -517,7 +547,9 @@ class ZipApp(object):
             _target_dir = self._cache_path.absolute() / self.layer_mode_prefix
         else:
             _target_dir = self._cache_path
-        return self._pip_install(target_dir=_target_dir, pip_args=self.pip_args)
+        return self._pip_install(
+            target_dir=_target_dir, pip_args=self.pip_args, uv_path=self.uv_path
+        )
 
     def prepare_includes(self):
         if not self.includes:
@@ -628,7 +660,7 @@ class ZipApp(object):
     @classmethod
     def _log(cls, text):
         if cls.LOGGING:
-            sys.stderr.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} | {text}\n')
+            sys.stderr.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} | {text}\n")
 
     def __del__(self):
         if self._tmp_dir:
@@ -636,10 +668,10 @@ class ZipApp(object):
             self._log(f"[INFO]: Temp cache has been cleaned. ({self._tmp_dir!r})")
         if self._build_success:
             self._log(
-                f'[INFO]: {"=" * 10} Successfully built `{self._output_path}` {"=" * 10}'
+                f"[INFO]: {'=' * 10} Successfully built `{self._output_path}` {'=' * 10}"
             )
         else:
-            self._log(f'[ERROR]: {"=" * 10} Build failed {"=" * 10}')
+            self._log(f"[ERROR]: {'=' * 10} Build failed {'=' * 10}")
 
 
 def pip_install_target(

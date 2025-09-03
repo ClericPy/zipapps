@@ -371,6 +371,7 @@ def main():
     )
     parser.add_argument(
         "--freeze-reqs",
+        "--freeze-deps",
         default="",
         dest="freeze",
         help="Freeze package versions of pip args with venv,"
@@ -401,6 +402,12 @@ def main():
         dest="rm_patterns",
         help='Delete useless files or folders, splited by "," and defaults to `*.dist-info,__pycache__`. Recursively glob: **/*.pyc',
     )
+    parser.add_argument(
+        "--uv",
+        default="",
+        dest="uv_path",
+        help="the executable path of python-uv, to speed up pip install",
+    )  # internal use only
     if len(sys.argv) == 1:
         parser.print_help()
         handle_win32_embeded()
@@ -459,6 +466,7 @@ def main():
             chmod=args.chmod,
             clear_zipapps_self=args.clear_zipapps_self,
             rm_patterns=args.rm_patterns,
+            uv_path=args.uv_path,
         )
     if args.dump_config:
         config_json = json.dumps(app.kwargs)
