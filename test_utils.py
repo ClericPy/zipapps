@@ -410,7 +410,7 @@ def test_env_usage():
     # activate sys.path and unzip cache
     sys.path.append("bottle_env.pyz")
     importlib.import_module("ensure_zipapps")
-    import bottle
+    bottle = importlib.import_module("bottle")
 
     # using app unzip cache for `import ensure_zipapps`
     # print(bottle.__file__)
