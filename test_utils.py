@@ -404,12 +404,12 @@ def test_unzip_with_auto_unzip():
 
 def test_env_usage():
     # test ensure path for venv usage
+    import importlib
     _clean_paths(root=False)
     create_app(output="bottle_env.pyz", unzip="bottle", pip_args=["bottle"])
     # activate sys.path and unzip cache
-    spec = zipimport.zipimporter("bottle_env.pyz").find_spec("ensure_zipapps")
-    if spec and spec.loader:
-        spec.loader.load_module("ensure_zipapps")
+    sys.path.append("bottle_env.pyz")
+    importlib.import_module("ensure_zipapps")
     import bottle
 
     # using app unzip cache for `import ensure_zipapps`
