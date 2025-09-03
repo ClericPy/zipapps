@@ -12,6 +12,7 @@
     - Or `zipapps.exe ...` on Windows, or `zipapps` on Unix
   - Added `--uv` option to accept a path to uv, speeding up `pip install`
   - Added `--freeze-deps` as an alias for `--freeze-reqs`
+  - fix Deprecated since 3.10 `zipimporter.load_module`
 - 2024.08.07
   - [**Compatible WARNING**]: update `sys_paths` insert index from `-1` to `0`
   - disable `--download-python`, use `python -m zipapps.download_python` instead

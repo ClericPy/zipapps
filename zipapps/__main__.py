@@ -407,7 +407,7 @@ def main():
         default="",
         dest="uv_path",
         help="the executable path of python-uv, to speed up pip install",
-    )  # internal use only
+    )
     if len(sys.argv) == 1:
         parser.print_help()
         handle_win32_embeded()

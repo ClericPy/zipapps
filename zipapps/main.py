@@ -224,6 +224,7 @@ class ZipApp(object):
             unzip_exclude=self.unzip_exclude,
             chmod=self.chmod,
             clear_zipapps_self=self.clear_zipapps_self,
+            uv_path=self.uv_path,
         )
 
     def ensure_args(self):

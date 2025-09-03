@@ -407,7 +407,9 @@ def test_env_usage():
     _clean_paths(root=False)
     create_app(output="bottle_env.pyz", unzip="bottle", pip_args=["bottle"])
     # activate sys.path and unzip cache
-    zipimport.zipimporter("bottle_env.pyz").load_module("ensure_zipapps")
+    spec = zipimport.zipimporter("bottle_env.pyz").find_spec("ensure_zipapps")
+    if spec and spec.loader:
+        spec.loader.load_module("ensure_zipapps")
     import bottle
 
     # using app unzip cache for `import ensure_zipapps`
@@ -762,7 +764,11 @@ def main():
 
     count = 0
     start = 0
-    items = [(name, func) for name, func in globals().items() if name.startswith("test_") and inspect.isfunction(func)]
+    items = [
+        (name, func)
+        for name, func in globals().items()
+        if name.startswith("test_") and inspect.isfunction(func)
+    ]
     name_list = ""
     for name, func in items:
         if name_list and name not in name_list:
