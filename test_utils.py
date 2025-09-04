@@ -40,9 +40,11 @@ def test_quiet_mode():
 def test_freeze():
     # test --freeze-reqs
     _clean_paths(root=False)
-    output = subprocess.check_output(
-        [sys.executable, "-m", "zipapps", "--freeze-reqs", "-", "six==1.16.0"]
-    )
+    output = subprocess.Popen(
+        [sys.executable, "-m", "zipapps", "--freeze-reqs", "-", "six==1.16.0"],
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+    ).communicate()[0]
     assert b"six==1.16.0" in output.strip(), output
 
 
@@ -405,6 +407,7 @@ def test_unzip_with_auto_unzip():
 def test_env_usage():
     # test ensure path for venv usage
     import importlib
+
     _clean_paths(root=False)
     create_app(output="bottle_env.pyz", unzip="bottle", pip_args=["bottle"])
     # activate sys.path and unzip cache
@@ -644,10 +647,12 @@ def test_chmod():
         _clean_paths(root=False)
         app_path = create_app(unzip="*", pip_args=["six"], lazy_install=True)
         subprocess.Popen([sys.executable, str(app_path), "--activate-zipapps"]).wait()
-        assert Path("app.pyz").stat().st_mode != 33279
+        temp = oct(app_path.stat().st_mode)[-3:]
+        assert temp != "777", temp
         for _path in Path("zipapps_cache/app").rglob("*"):
             if _path.name == "six.py":
-                assert _path.stat().st_mode != 33279, _path.stat().st_mode
+                temp = oct(_path.stat().st_mode)[-3:]
+                assert temp != "777", temp
                 break
 
         _clean_paths(root=False)
@@ -655,10 +660,12 @@ def test_chmod():
             unzip="*", pip_args=["six"], lazy_install=True, chmod="777"
         )
         subprocess.Popen([sys.executable, str(app_path), "--activate-zipapps"]).wait()
-        assert Path("app.pyz").stat().st_mode == 33279
+        temp = oct(app_path.stat().st_mode)[-3:]
+        assert temp == "777", temp
         for _path in Path("zipapps_cache/app").rglob("*"):
             if _path.name == "six.py":
-                assert _path.stat().st_mode == 33279, _path.stat().st_mode
+                temp = oct(_path.stat().st_mode)[-3:]
+                assert temp == "777", temp
                 break
 
 

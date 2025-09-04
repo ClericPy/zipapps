@@ -70,5 +70,5 @@ jobs:
                   python -m pip install .
             - name: Test with pytest
               run: |
-                  pip install pytest uv
-                  pytest -x
+                  pip install uv
+                  uvx pytest -x
