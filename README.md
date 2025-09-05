@@ -78,7 +78,7 @@ So, what could `zipapps` be?
 ## 4. Activate the `.pyz` environment
 
 1. use `zipimport` (Recommended)
-   1. `sys.path.append("some_lib_venv.pyz");importlib.import_module("ensure_zipapps")`
+   1. `sys.path.insert(0, "some_lib_venv.pyz");importlib.import_module("ensure_zipapps")`
    2. automatically unzip cache, and add the path to sys.path
       1. it can be run multiple times
 2. if they are all pure-python code and **no need to decompress**
