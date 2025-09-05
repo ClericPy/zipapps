@@ -514,14 +514,30 @@ class ZipApp(object):
             import subprocess
 
             # use uv and subprocess
-            args = [
-                "uv",
-                "pip",
-                "install",
-                "--python",
-                sys.executable,
-                "--no-cache-dir",
-            ] + _pip_args[1:]
+            uv_real_path = Path(uv_path)
+            if not uv_real_path.is_file():
+                if uv_path == "uv":
+                    _path = shutil.which(uv_path)
+                    if _path:
+                        uv_real_path = Path(_path)
+                        uv_exec_args = [uv_real_path.resolve().as_posix()]
+                    else:
+                        uv_exec_args = [sys.executable, "-m", "uv"]
+                else:
+                    raise RuntimeError(f"The uv_path: {uv_path} is not a valid file.")
+            else:
+                uv_exec_args = [uv_real_path.resolve().as_posix()]
+            args = (
+                uv_exec_args
+                + [
+                    "pip",
+                    "install",
+                    "--python",
+                    sys.executable,
+                    "--no-cache-dir",
+                ]
+                + _pip_args[1:]
+            )
             cls._log(f"using uv_path: {args}")
             result = subprocess.call(
                 args,
