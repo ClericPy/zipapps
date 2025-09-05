@@ -14,6 +14,9 @@
     - `--uv=uv` or `--uv=path/to/uv`
   - Added `--freeze-deps` as an alias for `--freeze-reqs`
   - fix deprecated warning since 3.10 `zipimporter.load_module`
+  - add `uvx` use case to test_utils.py
+    - `uvx zipapps six`
+    - `python -m zipapps six --uv=uv`
 - 2024.08.07
   - [**Compatible WARNING**]: update `sys_paths` insert index from `-1` to `0`
   - disable `--download-python`, use `python -m zipapps.download_python` instead

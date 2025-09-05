@@ -4,7 +4,6 @@ import re
 import shutil
 import subprocess
 import sys
-import zipimport
 from getpass import getuser
 from pathlib import Path
 from tempfile import gettempdir
@@ -751,6 +750,7 @@ def test_pip_install_target():
 
 def test_uv_path():
     # `pip install uv` before testing
+    _clean_paths(root=False)
     output = subprocess.check_output(
         [sys.executable, "-m", "zipapps", "six", "--uv", "uv"], stderr=subprocess.STDOUT
     )
@@ -761,6 +761,34 @@ def test_uv_path():
         [sys.executable, "-m", "zipapps", "six"], stderr=subprocess.STDOUT
     )
     assert b"Collecting six" in output, output.decode("utf-8", "replace")
+
+
+def test_uvx_zipapps():
+    # `pip install uv` before testing
+    _clean_paths(root=False)
+    if shutil.which("uvx") is None:
+        raise RuntimeError("uvx not found, please install uvx first")
+    subprocess.Popen(["uvx", "--with", "..", "zipapps", "-o", "app.pyz", "six"]).wait()
+    proc = subprocess.Popen(
+        [sys.executable, "app.pyz", "-c", "import six;print(six.__file__)"],
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+    )
+    output = proc.communicate()[0]
+    assert b"app.pyz" in output, output.decode("utf-8", "replace")
+    _clean_paths(root=False)
+    if shutil.which("uvx") is None:
+        raise RuntimeError("uvx not found, please install uvx first")
+    subprocess.Popen(
+        ["uvx", "--with", "..", "zipapps", "-o", "app.pyz", "--uv", "uv", "six"]
+    ).wait()
+    proc = subprocess.Popen(
+        [sys.executable, "app.pyz", "-c", "import six;print(six.__file__)"],
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+    )
+    output = proc.communicate()[0]
+    assert b"app.pyz" in output, output.decode("utf-8", "replace")
 
 
 def main():
