@@ -423,20 +423,30 @@ class ZipApp(object):
         }
         for k, v in self.ENV_ALIAS.items():
             kwargs[f"{k}_env"] = repr(v)
-        code = get_data(__name__, "entry_point.py.template").decode("u8")
-        (self._cache_path / "__main__.py").write_text(code.format(**kwargs))
+        code = get_data(__name__, "entry_point.py.template").decode("utf-8")
+        (self._cache_path / "__main__.py").write_text(
+            code.format(**kwargs), encoding="utf-8"
+        )
 
-        code = get_data(__name__, "ensure_zipapps.py.template").decode("u8")
-        (self._cache_path / "ensure_zipapps.py").write_text(code.format(**kwargs))
+        code = get_data(__name__, "ensure_zipapps.py.template").decode("utf-8")
+        (self._cache_path / "ensure_zipapps.py").write_text(
+            code.format(**kwargs), encoding="utf-8"
+        )
 
-        code = get_data(__name__, "activate_zipapps.py").decode("u8")
-        (self._cache_path / "activate_zipapps.py").write_text(code)
+        code = get_data(__name__, "activate_zipapps.py").decode("utf-8")
+        (self._cache_path / "activate_zipapps.py").write_text(code, encoding="utf-8")
         code += "\n\nactivate()"
 
         if output_name != "zipapps":
-            (self._cache_path / f"ensure_{output_name}.py").write_text(code)
-        (self._cache_path / f"ensure_zipapps_{output_name}.py").write_text(code)
-        (self._cache_path / "zipapps_config.json").write_text(json.dumps(self.kwargs))
+            (self._cache_path / f"ensure_{output_name}.py").write_text(
+                code, encoding="utf-8"
+            )
+        (self._cache_path / f"ensure_zipapps_{output_name}.py").write_text(
+            code, encoding="utf-8"
+        )
+        (self._cache_path / "zipapps_config.json").write_text(
+            json.dumps(self.kwargs), encoding="utf-8"
+        )
 
     def setup_timestamp_file(
         self,

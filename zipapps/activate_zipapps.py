@@ -12,9 +12,9 @@ def activate(path=None):
 
             importer = zipimporter(path_str)
             try:
-                spec = importer.find_spec("ensure_zipapps")  # 返回ModuleSpec
+                spec = importer.find_spec("ensure_zipapps")
                 if spec and spec.loader:
-                    module = spec.loader.load_module("ensure_zipapps")  # 直接加载
+                    module = spec.loader.load_module("ensure_zipapps")
                 else:
                     raise ImportError("Module not found")
             except AttributeError:

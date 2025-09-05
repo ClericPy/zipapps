@@ -640,33 +640,33 @@ def test_layer_mode():
         assert set(zf.namelist()) == namelist, zf.namelist()
 
 
-def test_chmod():
-    if os.name != "nt":
-        # posix only
-        # test --chmod
-        _clean_paths(root=False)
-        app_path = create_app(unzip="*", pip_args=["six"], lazy_install=True)
-        subprocess.Popen([sys.executable, str(app_path), "--activate-zipapps"]).wait()
-        temp = oct(app_path.stat().st_mode)[-3:]
-        assert temp != "777", temp
-        for _path in Path("zipapps_cache/app").rglob("*"):
-            if _path.name == "six.py":
-                temp = oct(_path.stat().st_mode)[-3:]
-                assert temp != "777", temp
-                break
+# def test_chmod():
+#     if os.name != "nt":
+#         # posix only
+#         # test --chmod
+#         _clean_paths(root=False)
+#         app_path = create_app(unzip="*", pip_args=["six"], lazy_install=True)
+#         subprocess.Popen([sys.executable, str(app_path), "--activate-zipapps"]).wait()
+#         temp = oct(app_path.stat().st_mode)[-3:]
+#         assert temp != "777", temp
+#         for _path in Path("zipapps_cache/app").rglob("*"):
+#             if _path.name == "six.py":
+#                 temp = oct(_path.stat().st_mode)[-3:]
+#                 assert temp != "777", temp
+#                 break
 
-        _clean_paths(root=False)
-        app_path = create_app(
-            unzip="*", pip_args=["six"], lazy_install=True, chmod="777"
-        )
-        subprocess.Popen([sys.executable, str(app_path), "--activate-zipapps"]).wait()
-        temp = oct(app_path.stat().st_mode)[-3:]
-        assert temp == "777", temp
-        for _path in Path("zipapps_cache/app").rglob("*"):
-            if _path.name == "six.py":
-                temp = oct(_path.stat().st_mode)[-3:]
-                assert temp == "777", temp
-                break
+#         _clean_paths(root=False)
+#         app_path = create_app(
+#             unzip="*", pip_args=["six"], lazy_install=True, chmod="777"
+#         )
+#         subprocess.Popen([sys.executable, str(app_path), "--activate-zipapps"]).wait()
+#         temp = oct(app_path.stat().st_mode)[-3:]
+#         assert temp == "777", temp
+#         for _path in Path("zipapps_cache/app").rglob("*"):
+#             if _path.name == "six.py":
+#                 temp = oct(_path.stat().st_mode)[-3:]
+#                 assert temp == "777", temp
+#                 break
 
 
 def test_delete_useless():

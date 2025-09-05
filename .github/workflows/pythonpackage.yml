@@ -26,8 +26,8 @@ jobs:
                   python -m pip install .
             - name: Test with pytest
               run: |
-                  pip install pytest
-                  pytest
+                  pip install uv
+                  uvx pytest -x
 
     test-mac:
         runs-on: macos-latest
@@ -48,8 +48,8 @@ jobs:
                   python -m pip install .
             - name: Test with pytest
               run: |
-                  pip install pytest
-                  pytest
+                  pip install uv
+                  uvx pytest -x
 
     test-win32:
         runs-on: windows-latest
