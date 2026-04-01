@@ -791,6 +791,54 @@ def test_uvx_zipapps():
     assert b"app.pyz" in output, output.decode("utf-8", "replace")
 
 
+def test_multiprocessing():
+    """
+    Test deleting the cache with a multiprocessing app.
+
+    When the app forks, the cache directory should only be cleared if the main process exits.
+    """
+    _clean_paths(root=False)
+
+    secret = "XXXXXXXXXXXXX"
+    unzip_path = (test_path / "multiprocessing_test" / "cache").absolute()
+
+    Path("test.so").touch()
+
+    mock_main = Path("mock_main.py")
+    mock_main.touch()
+    mock_main.write_text(
+        f"def main():\n"
+        f"   import os, sys, os.path\n"
+        f"   is_parent = os.fork()\n"
+        f"   print({secret!r}, file=sys.stderr if is_parent else sys.stdout)\n"
+        f"   if not is_parent: return\n"
+        f"   import time; time.sleep(1)\n"
+        f"   print(os.path.isdir({str(unzip_path)!r}))\n"
+    )
+    app_path = create_app(
+        includes="mock_main.py",
+        main="mock_main:main",
+        unzip="test.so",
+        clear_zipapps_cache=True,
+        unzip_path=str(unzip_path),
+    )
+    stdout_output, stderr_output = subprocess.Popen(
+        [sys.executable, str(app_path)],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        text=True,
+    ).communicate()
+
+    assert not unzip_path.exists(), "Cache dir should be deleted"
+
+    secret += "\n"
+    # Test that the child printed the string successfully and no errors got raised
+    assert stderr_output == secret, f"unexpected stderr: {stderr_output!r}"
+    # Test that the main process prints the string sucessfully
+    # and that the cache directory still exists after the child exits
+    assert stdout_output == (secret + "True\n"), f"unexpected stdout: {stdout_output!r}"
+
+
 def main():
     """
     test all cases
