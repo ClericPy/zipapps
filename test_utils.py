@@ -813,7 +813,7 @@ if hasattr(os, "fork"):
             f"   is_parent = os.fork()\n"
             f"   print({secret!r}, file=sys.stderr if is_parent else sys.stdout)\n"
             f"   if not is_parent: return\n"
-            f"   import time; time.sleep(1)\n"
+            f"   os.waitpid(is_parent, 0)\n"
             f"   print(os.path.isdir({str(unzip_path)!r}))\n"
         )
         app_path = create_app(
