@@ -398,6 +398,8 @@ def main():
     )
     parser.add_argument(
         "--rm-patterns",
+        "--exclude-patterns",
+        "--excludes",
         default="*.dist-info,__pycache__",
         dest="rm_patterns",
         help='Delete useless files or folders, splited by "," and defaults to `*.dist-info,__pycache__`. Recursively glob: **/*.pyc',

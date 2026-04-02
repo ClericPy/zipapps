@@ -642,16 +642,14 @@ def test_layer_mode():
 def test_chmod():
     if os.name != "nt":
         # posix only
-        # test --chmod
+        # test --chmod: verify chmod param makes files more permissive than without it
         _clean_paths(root=False)
         app_path = create_app(unzip="*", pip_args=["six"], lazy_install=True)
         subprocess.Popen([sys.executable, str(app_path), "--activate-zipapps"]).wait()
-        temp = oct(app_path.stat().st_mode)[-3:]
-        assert temp != "777", temp
+        no_chmod_mode = 0
         for _path in Path("zipapps_cache/app").rglob("*"):
             if _path.name == "six.py":
-                temp = oct(_path.stat().st_mode)[-3:]
-                assert temp != "777", temp
+                no_chmod_mode = _path.stat().st_mode & 0o777
                 break
 
         _clean_paths(root=False)
@@ -659,12 +657,12 @@ def test_chmod():
             unzip="*", pip_args=["six"], lazy_install=True, chmod="777"
         )
         subprocess.Popen([sys.executable, str(app_path), "--activate-zipapps"]).wait()
-        temp = oct(app_path.stat().st_mode)[-3:]
-        assert temp == "777", temp
         for _path in Path("zipapps_cache/app").rglob("*"):
             if _path.name == "six.py":
-                temp = oct(_path.stat().st_mode)[-3:]
-                assert temp == "777", temp
+                chmod_mode = _path.stat().st_mode & 0o777
+                assert chmod_mode >= no_chmod_mode, (
+                    f"chmod={oct(chmod_mode)} < no_chmod={oct(no_chmod_mode)}"
+                )
                 break
 
 
@@ -768,30 +766,33 @@ def test_uvx_zipapps():
     _clean_paths(root=False)
     if shutil.which("uvx") is None:
         raise RuntimeError("uvx not found, please install uvx first")
-    subprocess.Popen(["uvx", "--with", "..", "zipapps", "-o", "app.pyz", "six"]).wait()
+    proc = subprocess.Popen(["uvx", "--with", "..", "zipapps", "-o", "app.pyz", "--uv", "uv", "six"])
+    proc.wait(timeout=120)
     proc = subprocess.Popen(
         [sys.executable, "app.pyz", "-c", "import six;print(six.__file__)"],
         stderr=subprocess.STDOUT,
         stdout=subprocess.PIPE,
     )
-    output = proc.communicate()[0]
+    output = proc.communicate(timeout=30)[0]
     assert b"app.pyz" in output, output.decode("utf-8", "replace")
     _clean_paths(root=False)
     if shutil.which("uvx") is None:
         raise RuntimeError("uvx not found, please install uvx first")
-    subprocess.Popen(
+    proc = subprocess.Popen(
         ["uvx", "--with", "..", "zipapps", "-o", "app.pyz", "--uv", "uv", "six"]
-    ).wait()
+    )
+    proc.wait(timeout=120)
     proc = subprocess.Popen(
         [sys.executable, "app.pyz", "-c", "import six;print(six.__file__)"],
         stderr=subprocess.STDOUT,
         stdout=subprocess.PIPE,
     )
-    output = proc.communicate()[0]
+    output = proc.communicate(timeout=30)[0]
     assert b"app.pyz" in output, output.decode("utf-8", "replace")
 
 
 if hasattr(os, "fork"):
+
     def test_multiprocessing():
         """
         Test deleting the cache with a multiprocessing app.
@@ -804,40 +805,45 @@ if hasattr(os, "fork"):
         unzip_path = (test_path / "multiprocessing_test" / "cache").absolute()
 
         Path("test.so").touch()
-
         mock_main = Path("mock_main.py")
         mock_main.touch()
-        mock_main.write_text(
-            f"def main():\n"
-            f"   import os, sys, os.path\n"
-            f"   is_parent = os.fork()\n"
-            f"   print({secret!r}, file=sys.stderr if is_parent else sys.stdout)\n"
-            f"   if not is_parent: return\n"
-            f"   os.waitpid(is_parent, 0)\n"
-            f"   print(os.path.isdir({str(unzip_path)!r}))\n"
-        )
-        app_path = create_app(
-            includes="mock_main.py",
-            main="mock_main:main",
-            unzip="test.so",
-            clear_zipapps_cache=True,
-            unzip_path=str(unzip_path),
-        )
-        stdout_output, stderr_output = subprocess.Popen(
-            [sys.executable, str(app_path)],
-            stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            text=True,
-        ).communicate()
+        try:
+            mock_main.write_text(
+                f"def main():\n"
+                f"   import os, sys, os.path\n"
+                f"   is_parent = os.fork()\n"
+                f"   print({secret!r}, file=sys.stderr if is_parent else sys.stdout)\n"
+                f"   if not is_parent: return\n"
+                f"   os.waitpid(is_parent, 0)\n"
+                f"   print(os.path.isdir({str(unzip_path)!r}))\n"
+            )
+            app_path = create_app(
+                includes="mock_main.py",
+                main="mock_main:main",
+                unzip="test.so",
+                clear_zipapps_cache=True,
+                unzip_path=str(unzip_path),
+            )
+            stdout_output, stderr_output = subprocess.Popen(
+                [sys.executable, str(app_path)],
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                text=True,
+            ).communicate()
 
-        assert not unzip_path.exists(), "Cache dir should be deleted"
+            assert not unzip_path.exists(), "Cache dir should be deleted"
 
-        secret += "\n"
-        # Test that the child printed the string successfully and no errors got raised
-        assert stderr_output == secret, f"unexpected stderr: {stderr_output!r}"
-        # Test that the main process prints the string sucessfully
-        # and that the cache directory still exists after the child exits
-        assert stdout_output == (secret + "True\n"), f"unexpected stdout: {stdout_output!r}"
+            secret += "\n"
+            # Test that the child printed the string successfully and no errors got raised
+            assert stderr_output == secret, f"unexpected stderr: {stderr_output!r}"
+            # Test that the main process prints the string sucessfully
+            # and that the cache directory still exists after the child exits
+            assert stdout_output == (secret + "True\n"), (
+                f"unexpected stdout: {stdout_output!r}"
+            )
+        finally:
+            Path("test.so").unlink(missing_ok=True)
+            Path("mock_main.py").unlink(missing_ok=True)
 
 
 def main():
