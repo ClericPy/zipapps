@@ -141,7 +141,11 @@ def prepare_path():
         if clear_zipapps_cache:
             import atexit
 
+            main_pid = os.getpid()
+
             def _remove_cache_folder():
+                if main_pid != os.getpid():
+                    return  # only remove folders when the main process exits
                 rm_dir_or_file(_cache_folder_path)
                 if not any(_cache_folder_path_parent.iterdir()):
                     rm_dir_or_file(_cache_folder_path_parent)
