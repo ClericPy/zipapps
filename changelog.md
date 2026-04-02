@@ -1,5 +1,12 @@
 # Changelogs
 
+- 2026.4.2
+  - Only delete zipapps cache on the main process
+  - add --uv flag to test_uvx_zipapps
+  - improve test_chmod/multiprocessing robustness
+  - add --exclude-patterns alias
+  - include Python 3.14 in CI matrix
+
 - 2025.09.04
   - `download_python`: removed the default `stripped` keyword
   - `test_utils.py`: now uses the `test_cache/` folder to avoid conflicts
