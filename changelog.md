@@ -1,5 +1,12 @@
 # Changelogs
 
+- 2026.4.17
+  - add `uv_download_python` module for downloading Python via uv
+    - rename `uv_python.py` to `uv_download_python.py`
+    - add `--flatten` flag to promote versioned sub-directory to target root
+    - auto-clean uv artifacts (junctions, metadata) after installation
+    - skip pre-release versions in auto mode when no keyword filter is specified
+
 - 2026.4.2
   - Only delete zipapps cache on the main process
   - add --uv flag to test_uvx_zipapps
