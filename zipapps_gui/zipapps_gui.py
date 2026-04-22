@@ -133,7 +133,11 @@ def _load_gui_config() -> dict[str, str]:
         return {}
     try:
         data = json.loads(p.read_text(encoding="utf-8"))
-        return {k: str(v) for k, v in data.items() if isinstance(v, str)} if isinstance(data, dict) else {}
+        return (
+            {k: str(v) for k, v in data.items() if isinstance(v, str)}
+            if isinstance(data, dict)
+            else {}
+        )
     except (json.JSONDecodeError, OSError):
         return {}
 
@@ -373,8 +377,9 @@ class _BuildConfigPanel(ttk.Frame):
         )
         canvas.bind("<Leave>", lambda _: canvas.unbind_all("<MouseWheel>"))
 
+        # --- Section 1: Button bar ---
         btn_frame = ttk.Frame(scroll_frame)
-        btn_frame.grid(row=0, column=0, columnspan=6, pady=(0, 5), sticky="ew")
+        btn_frame.pack(fill="x", pady=(0, 5))
         ttk.Button(btn_frame, text="Load Config", command=self.on_load).pack(
             side="left", padx=5
         )
@@ -383,7 +388,7 @@ class _BuildConfigPanel(ttk.Frame):
         )
         build_btn = tk.Button(
             btn_frame,
-            text="Build .pyz",
+            text="pyz",
             command=self.on_build,
             font=("", 10, "bold"),
             fg="black",
@@ -398,71 +403,57 @@ class _BuildConfigPanel(ttk.Frame):
         )
         bundle_btn.pack(side="left", padx=5)
         _bind_tooltip(bundle_btn, "app.pyz + Interpreter + Launcher")
-        self._bundle_compress = tk.BooleanVar(value=True)
+        self._bundle_compress = tk.BooleanVar(value=False)
         bundle_cb = ttk.Checkbutton(
-            btn_frame, text="Dist Compress", variable=self._bundle_compress
+            btn_frame, text="Dist Zip", variable=self._bundle_compress
         )
         bundle_cb.pack(side="left", padx=(10, 0))
         _bind_tooltip(bundle_cb, "Compress the bundle directory into a .zip file")
 
-        row = 1
+        # --- Classify fields into entry and check ---
         _group_members: set[str] = set()
         for group in self._CHECK_GROUPS:
             _group_members.update(group)
 
-        for key, label, default, wtype, help_text in self._FIELD_DEFS:
-            if wtype == "check" and key in _group_members:
-                group = next((g for g in self._CHECK_GROUPS if key in g), None)
-                if group and key != group[0]:
-                    continue
+        entry_fields: list[tuple[str, str, str, str, str]] = []
+        check_fields: list[tuple[str, str, str, str, str]] = []
+        for item in self._FIELD_DEFS:
+            if item[3] == "check":
+                check_fields.append(item)
+            else:
+                entry_fields.append(item)
 
-            ttk.Label(scroll_frame, text=label).grid(
+        # --- Section 2: Entry fields ---
+        entry_frame = ttk.LabelFrame(scroll_frame, text="Settings", padding=5)
+        entry_frame.pack(fill="x", pady=(0, 5))
+        entry_inner = ttk.Frame(entry_frame)
+        entry_inner.pack(fill="x")
+        entry_inner.columnconfigure(1, weight=1)
+
+        for row, (key, label, default, wtype, help_text) in enumerate(entry_fields):
+            ttk.Label(entry_inner, text=label).grid(
                 row=row, column=0, sticky="w", padx=5, pady=2
             )
-            if wtype == "check":
-                var: tk.Variable = tk.BooleanVar(value=False)
-                cb = ttk.Checkbutton(scroll_frame, variable=var)
-                cb.grid(row=row, column=1, sticky="w", padx=5, pady=2)
-                _bind_tooltip(cb, help_text)
-                # Place grouped checkboxes on the same row
-                group = next((g for g in self._CHECK_GROUPS if key in g), None)
-                if group:
-                    col_offset = 0
-                    for gkey in group:
-                        if gkey == key:
-                            continue
-                        g_def = next(d for d in self._FIELD_DEFS if d[0] == gkey)
-                        _, g_label, _, _, g_help = g_def
-                        col = 2 + col_offset * 2
-                        ttk.Label(scroll_frame, text=g_label).grid(
-                            row=row, column=col, sticky="w", padx=(10, 0), pady=2
-                        )
-                        g_var: tk.Variable = tk.BooleanVar(value=False)
-                        g_cb = ttk.Checkbutton(scroll_frame, variable=g_var)
-                        g_cb.grid(row=row, column=col + 1, sticky="w", padx=5, pady=2)
-                        _bind_tooltip(g_cb, g_help)
-                        self._vars[gkey] = g_var
-                        col_offset += 1
-            elif wtype == "text":
+            if wtype == "text":
                 var = tk.StringVar(value=default)
-                txt = tk.Text(scroll_frame, height=3, width=60, wrap="word")
+                txt = tk.Text(entry_inner, height=3, width=60, wrap="word")
                 txt.grid(row=row, column=1, columnspan=2, sticky="ew", padx=5, pady=2)
                 txt.insert("1.0", default)
                 self._text_widgets[key] = txt
             elif wtype == "spin":
                 var = tk.IntVar(value=int(default) if default else 2)
-                ttk.Spinbox(
-                    scroll_frame, from_=1, to=3, textvariable=var, width=5
-                ).grid(row=row, column=1, sticky="w", padx=5, pady=2)
+                ttk.Spinbox(entry_inner, from_=1, to=3, textvariable=var, width=5).grid(
+                    row=row, column=1, sticky="w", padx=5, pady=2
+                )
             else:
                 var = tk.StringVar(value=default)
-                ttk.Entry(scroll_frame, textvariable=var, width=60).grid(
+                ttk.Entry(entry_inner, textvariable=var, width=60).grid(
                     row=row, column=1, columnspan=2, sticky="ew", padx=5, pady=2
                 )
                 if key == "output":
                     str_var = var
                     ttk.Button(
-                        scroll_frame,
+                        entry_inner,
                         text="...",
                         width=3,
                         command=lambda: self._browse_output(str_var),
@@ -471,7 +462,7 @@ class _BuildConfigPanel(ttk.Frame):
                     str_var = var
                     self._interpreter_var = str_var
                     ttk.Button(
-                        scroll_frame,
+                        entry_inner,
                         text="...",
                         width=3,
                         command=lambda: self._browse_interpreter(str_var),
@@ -479,20 +470,33 @@ class _BuildConfigPanel(ttk.Frame):
                 elif key == "includes":
                     str_var = var
                     ttk.Button(
-                        scroll_frame,
+                        entry_inner,
                         text="...",
                         width=3,
                         command=lambda: self._browse_includes(str_var),
                     ).grid(row=row, column=3, padx=2)
 
             self._vars[key] = var
-
             if help_text:
-                self._create_tooltip(scroll_frame, help_text, row)
+                self._create_tooltip(entry_inner, help_text, row)
 
-            row += 1
-
-        scroll_frame.columnconfigure(1, weight=1)
+        # --- Section 3: Checkboxes ---
+        check_frame = ttk.LabelFrame(scroll_frame, text="Options", padding=5)
+        check_frame.pack(fill="x", pady=(0, 5))
+        cb_row = ttk.Frame(check_frame)
+        cb_row.pack(fill="x")
+        col = 0
+        for key, label, default, wtype, help_text in check_fields:
+            var: tk.Variable = tk.BooleanVar(value=(key == "compressed"))
+            cb = ttk.Checkbutton(cb_row, text=label, variable=var)
+            cb.grid(row=0, column=col, sticky="w", padx=5, pady=2)
+            _bind_tooltip(cb, help_text)
+            self._vars[key] = var
+            col += 1
+            if col >= 3:
+                col = 0
+                cb_row = ttk.Frame(check_frame)
+                cb_row.pack(fill="x")
 
     def _create_tooltip(
         self, parent: ttk.Frame, text: str, row: int, col_offset: int = 0
@@ -751,7 +755,7 @@ class _BuildConfigPanel(ttk.Frame):
 
             # Step 2: Package bundle
             stem = pyz_path.stem
-            ts = datetime.now().strftime("%Y%m%d%H%M")
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
             bundle_name = f"{stem}_{ts}"
             bundle_dir = pyz_path.parent / bundle_name
             bundle_dir.mkdir(parents=True, exist_ok=True)
@@ -1018,9 +1022,7 @@ class _UvPythonPanel(ttk.Frame):
         )
         delete_btn.pack(side="left", padx=5)
         _bind_tooltip(delete_btn, "Delete all contents in the target directory")
-        flatten_cb = ttk.Checkbutton(
-            btn_row, text="Flatten", variable=self._flatten
-        )
+        flatten_cb = ttk.Checkbutton(btn_row, text="Flatten", variable=self._flatten)
         flatten_cb.pack(side="right", padx=(10, 0))
         _bind_tooltip(
             flatten_cb,
@@ -1399,7 +1401,7 @@ class ZipAppsGUI(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title("zipapps GUI")
-        self.geometry("700x780")
+        self.geometry("700x750")
         self.minsize(700, 500)
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._workdir_persist = False
@@ -1461,7 +1463,7 @@ class ZipAppsGUI(tk.Tk):
         if isinstance(output_var, tk.StringVar):
             output = output_var.get().strip()
             if output and Path(output).name == "app.pyz":
-                output_var.set(str(wd_path / "app.pyz"))
+                output_var.set("app.pyz")
         # Refresh installed markers in version list
         if self._uv_panel._all_downloads:
             self._uv_panel._apply_filter()
@@ -1510,7 +1512,7 @@ class ZipAppsGUI(tk.Tk):
         ).pack(side="left", padx=2)
         if sys.platform == "win32":
             ttk.Button(
-                workdir_frame, text="Explore", width=7, command=self._open_workdir
+                workdir_frame, text="View", width=7, command=self._open_workdir
             ).pack(side="left", padx=2)
         self._remember_btn = ttk.Button(
             workdir_frame, text="Remember", command=self._toggle_remember_workdir
@@ -1536,10 +1538,10 @@ class ZipAppsGUI(tk.Tk):
         self._notebook.add(config_frame, text="ZipApps Config")
         self._config_panel = _BuildConfigPanel(config_frame, log_fn=self.log)
 
-        # Set output default to workdir/app.pyz
+        # Set output default to app.pyz (cwd is already workdir)
         output_var = self._config_panel._vars.get("output")
         if isinstance(output_var, tk.StringVar):
-            output_var.set(str(Path(initial_wd) / "app.pyz"))
+            output_var.set("app.pyz")
 
         # Wire workdir changes to child panels
         self._workdir.trace_add("write", self._on_workdir_changed)
