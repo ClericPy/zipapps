@@ -123,6 +123,27 @@ def _load_config(path: Path) -> dict[str, Any]:
         raise ValueError(f"Failed to load config: {exc}") from exc
 
 
+def _gui_config_path() -> Path:
+    return Path.home() / ".config" / "zipapps_gui.json"
+
+
+def _load_gui_config() -> dict[str, str]:
+    p = _gui_config_path()
+    if not p.is_file():
+        return {}
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        return {k: str(v) for k, v in data.items() if isinstance(v, str)} if isinstance(data, dict) else {}
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_gui_config(cfg: dict[str, str]) -> None:
+    p = _gui_config_path()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(cfg, ensure_ascii=False), encoding="utf-8")
+
+
 # ---------------------------------------------------------------------------
 # Build configuration panel
 # ---------------------------------------------------------------------------
@@ -316,8 +337,9 @@ class _BuildConfigPanel(ttk.Frame):
 
     # checkbox keys grouped to share one row (3 per row)
     _CHECK_GROUPS: list[tuple[str, ...]] = [
-        ("compressed", "compiled", "shell"),
-        ("main_shell", "ignore_system_python_path", "lazy_install"),
+        ("compressed", "compiled"),
+        ("shell", "main_shell"),
+        ("ignore_system_python_path", "lazy_install"),
         ("layer_mode", "clear_zipapps_cache", "clear_zipapps_self"),
     ]
 
@@ -364,9 +386,24 @@ class _BuildConfigPanel(ttk.Frame):
             text="Build .pyz",
             command=self.on_build,
             font=("", 10, "bold"),
-            fg="#2e7d32",
+            fg="black",
         )
         build_btn.pack(side="left", padx=20)
+        bundle_btn = tk.Button(
+            btn_frame,
+            text="Dist",
+            command=self.on_bundle,
+            font=("", 10, "bold"),
+            fg="black",
+        )
+        bundle_btn.pack(side="left", padx=5)
+        _bind_tooltip(bundle_btn, "app.pyz + Interpreter + Launcher")
+        self._bundle_compress = tk.BooleanVar(value=True)
+        bundle_cb = ttk.Checkbutton(
+            btn_frame, text="Dist Compress", variable=self._bundle_compress
+        )
+        bundle_cb.pack(side="left", padx=(10, 0))
+        _bind_tooltip(bundle_cb, "Compress the bundle directory into a .zip file")
 
         row = 1
         _group_members: set[str] = set()
@@ -390,20 +427,22 @@ class _BuildConfigPanel(ttk.Frame):
                 # Place grouped checkboxes on the same row
                 group = next((g for g in self._CHECK_GROUPS if key in g), None)
                 if group:
-                    for i, gkey in enumerate(group):
+                    col_offset = 0
+                    for gkey in group:
                         if gkey == key:
                             continue
                         g_def = next(d for d in self._FIELD_DEFS if d[0] == gkey)
                         _, g_label, _, _, g_help = g_def
-                        col = 2 + (i * 2) if i < group.index(key) else 2 + ((i - 1) * 2)
+                        col = 2 + col_offset * 2
                         ttk.Label(scroll_frame, text=g_label).grid(
-                            row=row, column=col, sticky="w", padx=(20, 0), pady=2
+                            row=row, column=col, sticky="w", padx=(10, 0), pady=2
                         )
                         g_var: tk.Variable = tk.BooleanVar(value=False)
                         g_cb = ttk.Checkbutton(scroll_frame, variable=g_var)
                         g_cb.grid(row=row, column=col + 1, sticky="w", padx=5, pady=2)
                         _bind_tooltip(g_cb, g_help)
                         self._vars[gkey] = g_var
+                        col_offset += 1
             elif wtype == "text":
                 var = tk.StringVar(value=default)
                 txt = tk.Text(scroll_frame, height=3, width=60, wrap="word")
@@ -636,6 +675,178 @@ class _BuildConfigPanel(ttk.Frame):
             on_error=lambda e: self._log(f"Build failed: {e}"),
         )
 
+    def on_bundle(self) -> None:
+        config = self.collect_config()
+        if not config.get("main"):
+            messagebox.showinfo("Info", "Entry point (-m) is required for bundling.")
+            return
+        interp_str = config.get("interpreter", "")
+        if not interp_str:
+            messagebox.showinfo("Info", "Interpreter path is required for bundling.")
+            return
+        interp_path = Path(interp_str).resolve()
+        if not interp_path.is_file():
+            messagebox.showinfo("Info", f"Interpreter not found: {interp_path}")
+            return
+        compress = self._bundle_compress.get()
+        pyz_path = Path(config.get("output", "app.pyz"))
+        self._log("Packaging bundle ...")
+        _log_q: queue.Queue[str] = queue.Queue()
+
+        def _poll_log() -> None:
+            try:
+                while True:
+                    msg = _log_q.get_nowait()
+                    self._log(msg)
+            except queue.Empty:
+                pass
+            root = self.winfo_toplevel()
+            if root.winfo_exists():
+                root.after(50, _poll_log)
+
+        def do_bundle() -> Path:
+            # Step 1: Build pyz
+            import json as _json
+
+            script = (
+                "import sys,json\n"
+                "from zipapps.main import ZipApp\n"
+                f"config = json.loads({_json.dumps(config)!r})\n"
+                "app = ZipApp(**config)\n"
+                "result = app.build()\n"
+                "sys.stdout.write(str(result))\n"
+            )
+            proc = subprocess.Popen(
+                [sys.executable, "-c", script],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            assert proc.stdout is not None
+            assert proc.stderr is not None
+            buf = ""
+            while True:
+                ch = proc.stdout.read(1)
+                if not ch:
+                    break
+                c = chr(ch[0])
+                if c in ("\r", "\n"):
+                    line = buf.strip()
+                    if line:
+                        _log_q.put(line)
+                    buf = ""
+                else:
+                    buf += c
+            if buf.strip():
+                _log_q.put(buf.strip())
+            for line in proc.stderr.read().decode().strip().splitlines():
+                if line.strip():
+                    _log_q.put(line)
+            proc.wait()
+            if proc.returncode != 0:
+                raise RuntimeError(f"Build failed with return code {proc.returncode}")
+
+            if not pyz_path.is_file():
+                raise RuntimeError(f"Build succeeded but pyz not found: {pyz_path}")
+            _log_q.put(f"Built: {pyz_path}")
+
+            # Step 2: Package bundle
+            stem = pyz_path.stem
+            ts = datetime.now().strftime("%Y%m%d%H%M")
+            bundle_name = f"{stem}_{ts}"
+            bundle_dir = pyz_path.parent / bundle_name
+            bundle_dir.mkdir(parents=True, exist_ok=True)
+            _log_q.put(f"Created bundle dir: {bundle_dir}")
+
+            # Copy interpreter directory
+            interp_dir = interp_path.parent
+            interp_target = bundle_dir / interp_dir.name
+            if interp_target.exists():
+                shutil.rmtree(interp_target)
+            shutil.copytree(str(interp_dir), str(interp_target))
+            _log_q.put(f"Copied interpreter: {interp_target}")
+
+            # Copy pyz file
+            pyz_target = bundle_dir / pyz_path.name
+            shutil.copy2(str(pyz_path), str(pyz_target))
+            _log_q.put(f"Copied pyz: {pyz_target}")
+
+            # Determine target platform from interpreter path
+            interp_lower = str(interp_path).lower()
+            is_windows = (
+                interp_path.suffix == ".exe"
+                or "\\python.exe" in interp_lower.replace("/", "\\")
+            )
+            rel_interp = interp_path.relative_to(interp_dir)
+            rel_pyz = pyz_target.name
+
+            if is_windows:
+                # Console launcher (bat)
+                bat_content = (
+                    f"@echo off\r\n"
+                    f'cd /d "%~dp0"\r\n'
+                    f'"{interp_dir.name}\\{rel_interp}" "{rel_pyz}" %*\r\n'
+                )
+                bat_path = bundle_dir / f"{stem}.bat"
+                bat_path.write_text(bat_content, encoding="utf-8")
+                _log_q.put(f"Created launcher: {bat_path}")
+
+                # Windowed launcher (vbs — no console)
+                interp_vbs = str(rel_interp).replace("\\", "\\\\")
+                pyz_vbs = str(rel_pyz).replace("\\", "\\\\")
+                vbs_lines = [
+                    'Set objShell = CreateObject("WScript.Shell")',
+                    'objShell.CurrentDirectory = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)',
+                    f'objShell.Run """{interp_dir.name}\\{interp_vbs}"" ""{pyz_vbs}""", 0, False',
+                    "WScript.Quit",
+                ]
+                vbs_content = "\r\n".join(vbs_lines)
+                vbs_path = bundle_dir / f"{stem}.vbs"
+                vbs_path.write_text(vbs_content, encoding="utf-8")
+                _log_q.put(f"Created launcher: {vbs_path}")
+            else:
+                # Unix shell launcher
+                sh_content = (
+                    f"#!/bin/bash\n"
+                    f'cd "$(dirname "$0")"\n'
+                    f'"{interp_dir.name}/{rel_interp}" "{rel_pyz}" "$@"\n'
+                )
+                sh_path = bundle_dir / f"{stem}.sh"
+                sh_path.write_text(sh_content, encoding="utf-8")
+                sh_path.chmod(0o755)
+                _log_q.put(f"Created launcher: {sh_path}")
+
+            result = bundle_dir
+            if compress:
+                zip_path = bundle_dir.with_suffix(".zip")
+                _log_q.put(f"Compressing to {zip_path} ...")
+                shutil.make_archive(
+                    str(bundle_dir.with_suffix("")),
+                    "zip",
+                    str(bundle_dir.parent),
+                    bundle_dir.name,
+                )
+                shutil.rmtree(bundle_dir)
+                _log_q.put(f"Compressed to: {zip_path}")
+                result = zip_path
+
+            return result
+
+        root = self.winfo_toplevel()
+        root.after(50, _poll_log)
+
+        def _on_bundle_done(result: Any) -> None:
+            self._log(f"Bundle ready: {result}")
+            if sys.platform == "win32":
+                p = Path(result)
+                target = p if p.is_file() else p
+                subprocess.Popen(f'explorer /select,"{target}"', shell=True)
+
+        _run_in_thread(
+            fn=do_bundle,
+            on_success=_on_bundle_done,
+            on_error=lambda e: self._log(f"Bundle failed: {e}"),
+        )
+
     def on_export(self) -> None:
         path = filedialog.asksaveasfilename(
             defaultextension=".json",
@@ -676,11 +887,15 @@ class _UvPythonPanel(ttk.Frame):
         parent: ttk.Frame,
         log_fn: Callable[[str], None],
         on_set_interpreter: Callable[[str], None] | None = None,
+        default_workdir: str = "",
+        default_uv_path: str = "",
     ) -> None:
         super().__init__(parent)
         self._log = log_fn
         self._on_set_interpreter = on_set_interpreter
         self._downloads: list[dict[str, Any]] = []
+        self._default_workdir = default_workdir
+        self._default_uv_path = default_uv_path
         self._all_downloads: list[dict[str, Any]] = []
         self._build()
         self.pack(fill="both", expand=True)
@@ -693,7 +908,7 @@ class _UvPythonPanel(ttk.Frame):
         row += 1
 
         ttk.Label(settings, text="UV path:").grid(row=0, column=0, sticky="w")
-        self._uv_path = tk.StringVar()
+        self._uv_path = tk.StringVar(value=self._default_uv_path)
         ttk.Entry(settings, textvariable=self._uv_path, width=50).grid(
             row=0, column=1, padx=5
         )
@@ -740,7 +955,7 @@ class _UvPythonPanel(ttk.Frame):
 
         columns = ("version", "key", "os", "arch")
         self._tree = ttk.Treeview(
-            tree_frame, columns=columns, show="headings", height=12
+            tree_frame, columns=columns, show="headings", height=10
         )
         self._tree.heading("version", text="Version")
         self._tree.heading("key", text="Key")
@@ -764,7 +979,11 @@ class _UvPythonPanel(ttk.Frame):
         row += 1
 
         ttk.Label(install_frame, text="Target dir:").grid(row=0, column=0, sticky="w")
-        self._target_dir = tk.StringVar(value="./.cache")
+        self._target_dir = tk.StringVar(
+            value=str(Path(self._default_workdir) / ".cache")
+            if self._default_workdir
+            else "./.cache"
+        )
         ttk.Entry(install_frame, textvariable=self._target_dir, width=50).grid(
             row=0, column=1, padx=5
         )
@@ -777,21 +996,13 @@ class _UvPythonPanel(ttk.Frame):
             ).grid(row=0, column=3, padx=2)
 
         self._flatten = tk.BooleanVar(value=False)
-        flatten_cb = ttk.Checkbutton(
-            install_frame, text="Flatten install", variable=self._flatten
-        )
-        flatten_cb.grid(row=1, column=0, columnspan=3, sticky="w", pady=2)
-        _bind_tooltip(
-            flatten_cb,
-            "Extract all files to the target dir instead of a versioned subdirectory",
-        )
-
         btn_row = ttk.Frame(install_frame)
-        btn_row.grid(row=2, column=0, columnspan=3, pady=5)
+        btn_row.grid(row=1, column=0, columnspan=3, pady=5)
         install_btn = ttk.Button(
             btn_row, text="Install Selected", command=self.install_selected
         )
         install_btn.pack(side="left", padx=5)
+        self._install_btn = install_btn
         _bind_tooltip(
             install_btn, "Install the selected Python version to the target directory"
         )
@@ -807,10 +1018,17 @@ class _UvPythonPanel(ttk.Frame):
         )
         delete_btn.pack(side="left", padx=5)
         _bind_tooltip(delete_btn, "Delete all contents in the target directory")
+        flatten_cb = ttk.Checkbutton(
+            btn_row, text="Flatten", variable=self._flatten
+        )
+        flatten_cb.pack(side="right", padx=(10, 0))
+        _bind_tooltip(
+            flatten_cb,
+            "Extract all files to the target dir instead of a versioned subdirectory",
+        )
         self._install_proc: subprocess.Popen[bytes] | None = None
 
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(2, weight=1)
 
     def _bring_to_front(self) -> None:
         root = self.winfo_toplevel()
@@ -919,6 +1137,7 @@ class _UvPythonPanel(ttk.Frame):
         self._apply_filter()
 
     def _apply_filter(self) -> None:
+        self._last_selected = None
         self._tree.delete(*self._tree.get_children())
         filtered = self._filter_downloads(self._all_downloads)
         self._downloads = filtered
@@ -928,7 +1147,15 @@ class _UvPythonPanel(ttk.Frame):
             key = (tag, d["version_parts"]["major"], d["version_parts"]["minor"])
             if key not in seen:
                 seen[key] = d
-        items = sorted(seen.values(), key=lambda d: d["version"], reverse=True)
+        items = sorted(
+            seen.values(),
+            key=lambda d: (
+                d["version_parts"]["major"],
+                d["version_parts"]["minor"],
+                d["version_parts"]["patch"],
+            ),
+            reverse=True,
+        )
 
         installed_keys = self._fetch_installed_keys()
 
@@ -960,7 +1187,7 @@ class _UvPythonPanel(ttk.Frame):
         def fetch() -> list[dict[str, Any]]:
             from zipapps.uv_download_python import get_downloads
 
-            return get_downloads(uv_path=uv_path)
+            return get_downloads(all_platforms=True, uv_path=uv_path)
 
         _run_in_thread(
             fn=fetch,
@@ -992,6 +1219,7 @@ class _UvPythonPanel(ttk.Frame):
             "--no-bin",
         ]
         self._log(f"Installing {key} to {target_path} ...")
+        self._install_btn.configure(state="disabled")
         self._cancel_btn.configure(state="normal")
 
         def _worker() -> None:
@@ -1083,16 +1311,15 @@ class _UvPythonPanel(ttk.Frame):
             except queue.Empty:
                 pass
             # Update status bar with current progress
-            if _progress_line[0]:
-                root = self.winfo_toplevel()
-                status = getattr(root, "_status_var", None)
-                if status and _progress_line[0]:
-                    status.set(_progress_line[0])
+            root = self.winfo_toplevel()
+            status = getattr(root, "_status_var", None)
+            if _progress_line[0] and status:
+                status.set(_progress_line[0])
             try:
                 msg_type, value = _result_q.get_nowait()
                 self._cancel_btn.configure(state="disabled")
+                self._install_btn.configure(state="normal")
                 _progress_line[0] = ""
-                status = getattr(root, "_status_var", None)
                 if status:
                     status.set("Ready")
                 if msg_type == "ok":
@@ -1114,6 +1341,7 @@ class _UvPythonPanel(ttk.Frame):
             self._install_proc.kill()
             self._log("Install cancelled.")
             self._cancel_btn.configure(state="disabled")
+            self._install_btn.configure(state="normal")
 
     def delete_installed(self) -> None:
         sel = self._tree.selection()
@@ -1171,11 +1399,17 @@ class ZipAppsGUI(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title("zipapps GUI")
-        self.geometry("900x750")
+        self.geometry("700x780")
         self.minsize(700, 500)
         self.protocol("WM_DELETE_WINDOW", self._on_close)
+        self._workdir_persist = False
+        self._saved_cfg = _load_gui_config()
+        saved_geo = self._saved_cfg.get("geometry")
         self._init_ui()
-        self.after_idle(self._center)
+        if saved_geo:
+            self.geometry(saved_geo)
+        else:
+            self.after_idle(self._center)
 
     def _center(self) -> None:
         self.update_idletasks()
@@ -1187,8 +1421,66 @@ class ZipAppsGUI(tk.Tk):
         y = (sh - h) // 2
         self.geometry(f"+{x}+{y}")
 
+    def _collect_gui_config(self) -> dict[str, str]:
+        cfg: dict[str, str] = {"workdir": self._workdir.get().strip()}
+        uv = self._uv_panel._uv_path.get().strip()
+        if uv and shutil.which(uv):
+            cfg["uv_path"] = uv
+        cfg["geometry"] = self.geometry()
+        return cfg
+
     def _on_close(self) -> None:
+        if self._workdir_persist:
+            _save_gui_config(self._collect_gui_config())
         self.destroy()
+
+    def _browse_workdir(self) -> None:
+        path = filedialog.askdirectory(title="Select Working Directory")
+        if path:
+            self._workdir.set(path)
+
+    def _open_workdir(self) -> None:
+        wd = self._workdir.get().strip()
+        if wd and Path(wd).is_dir():
+            os.startfile(wd)
+
+    def _on_workdir_changed(self, *_args: object) -> None:
+        wd = self._workdir.get().strip()
+        if not wd:
+            return
+        wd_path = Path(wd)
+        if wd_path.is_dir():
+            os.chdir(wd)
+        # Update target dir if it's still the old default pattern
+        target = self._uv_panel._target_dir.get().strip()
+        target_name = ".cache"
+        if Path(target).name == target_name or target == "./.cache":
+            self._uv_panel._target_dir.set(str(wd_path / target_name))
+        # Update output if it's under old workdir
+        output_var = self._config_panel._vars.get("output")
+        if isinstance(output_var, tk.StringVar):
+            output = output_var.get().strip()
+            if output and Path(output).name == "app.pyz":
+                output_var.set(str(wd_path / "app.pyz"))
+        # Refresh installed markers in version list
+        if self._uv_panel._all_downloads:
+            self._uv_panel._apply_filter()
+
+    def _toggle_remember_workdir(self) -> None:
+        if self._workdir_persist:
+            cfg = _gui_config_path()
+            if cfg.is_file():
+                cfg.unlink()
+            self._workdir_persist = False
+            self._remember_btn.configure(text="Remember")
+            self.log("Working directory forgotten.")
+        else:
+            wd = self._workdir.get().strip()
+            if wd:
+                _save_gui_config(self._collect_gui_config())
+                self._workdir_persist = True
+                self._remember_btn.configure(text="Forget")
+                self.log(f"Working directory saved: {wd}")
 
     def _init_ui(self) -> None:
         menubar = tk.Menu(self)
@@ -1197,8 +1489,38 @@ class ZipAppsGUI(tk.Tk):
         menubar.add_cascade(label="File", menu=file_menu)
         self.config(menu=menubar)
 
+        # Work dir bar — above notebook, shared across tabs
+        workdir_frame = ttk.Frame(self)
+        workdir_frame.pack(fill="x", padx=5, pady=(5, 0))
+        ttk.Label(workdir_frame, text="Work Dir:").pack(side="left", padx=(0, 5))
+        self._workdir = tk.StringVar()
+        saved_wd = self._saved_cfg.get("workdir") or None
+        saved_uv = self._saved_cfg.get("uv_path") or None
+        if saved_wd:
+            self._workdir_persist = True
+        initial_wd = saved_wd if saved_wd else os.getcwd()
+        self._workdir.set(initial_wd)
+        if saved_wd and Path(saved_wd).is_dir():
+            os.chdir(saved_wd)
+        ttk.Entry(workdir_frame, textvariable=self._workdir, width=50).pack(
+            side="left", fill="x", expand=True, padx=2
+        )
+        ttk.Button(
+            workdir_frame, text="...", width=3, command=self._browse_workdir
+        ).pack(side="left", padx=2)
+        if sys.platform == "win32":
+            ttk.Button(
+                workdir_frame, text="Explore", width=7, command=self._open_workdir
+            ).pack(side="left", padx=2)
+        self._remember_btn = ttk.Button(
+            workdir_frame, text="Remember", command=self._toggle_remember_workdir
+        )
+        self._remember_btn.pack(side="left", padx=2)
+        if saved_wd:
+            self._remember_btn.configure(text="Forget")
+
         self._notebook = ttk.Notebook(self)
-        self._notebook.pack(fill="both", expand=True, padx=5, pady=(5, 0))
+        self._notebook.pack(fill="both", expand=True, padx=5, pady=(5, 3))
 
         uv_frame = ttk.Frame(self._notebook)
         self._notebook.add(uv_frame, text="Python Manager")
@@ -1206,15 +1528,27 @@ class ZipAppsGUI(tk.Tk):
             uv_frame,
             log_fn=self.log,
             on_set_interpreter=lambda path: self._config_panel.set_interpreter(path),
+            default_workdir=initial_wd,
+            default_uv_path=saved_uv or "",
         )
 
         config_frame = ttk.Frame(self._notebook)
         self._notebook.add(config_frame, text="ZipApps Config")
         self._config_panel = _BuildConfigPanel(config_frame, log_fn=self.log)
 
+        # Set output default to workdir/app.pyz
+        output_var = self._config_panel._vars.get("output")
+        if isinstance(output_var, tk.StringVar):
+            output_var.set(str(Path(initial_wd) / "app.pyz"))
+
+        # Wire workdir changes to child panels
+        self._workdir.trace_add("write", self._on_workdir_changed)
+
         uv_var_config = self._config_panel._vars.get("uv_path")
         uv_var_manager = self._uv_panel._uv_path
         if isinstance(uv_var_config, tk.StringVar):
+            _cfg_var = uv_var_config
+            _mgr_var = uv_var_manager
             _syncing = False
 
             def _sync_to_config(*_args: object) -> None:
@@ -1222,7 +1556,7 @@ class ZipAppsGUI(tk.Tk):
                 if _syncing:
                     return
                 _syncing = True
-                uv_var_config.set(uv_var_manager.get())
+                _cfg_var.set(_mgr_var.get())
                 _syncing = False
 
             def _sync_to_manager(*_args: object) -> None:
@@ -1230,11 +1564,11 @@ class ZipAppsGUI(tk.Tk):
                 if _syncing:
                     return
                 _syncing = True
-                uv_var_manager.set(uv_var_config.get())
+                _mgr_var.set(_cfg_var.get())
                 _syncing = False
 
-            uv_var_manager.trace_add("write", _sync_to_config)
-            uv_var_config.trace_add("write", _sync_to_manager)
+            _mgr_var.trace_add("write", _sync_to_config)
+            _cfg_var.trace_add("write", _sync_to_manager)
 
         log_frame = ttk.LabelFrame(self, text="Log", padding=3)
         log_frame.pack(fill="x", padx=5, pady=5)
