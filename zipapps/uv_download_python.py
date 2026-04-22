@@ -30,6 +30,7 @@ import shutil
 import subprocess
 import sys
 from collections import OrderedDict
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +42,10 @@ GroupedDownloads = OrderedDict[str, list[Download]]
 def _uv_bin(uv_path: str = "") -> list[str]:
     """Resolve uv executable as a command list (safe for paths with spaces)."""
     if uv_path:
+        # shlex.split treats backslashes as escapes, which breaks Windows paths.
+        # Use shlex only for posix-style paths (forward slashes or quoted).
+        if "\\" in uv_path and not uv_path.startswith('"'):
+            return [uv_path]
         return shlex.split(uv_path)
     path = shutil.which("uv")
     if path:
@@ -290,23 +295,56 @@ def _flatten_install(target_path: Path) -> None:
     _cleanup_uv_artifacts(target_path)
 
 
-def install(request: str, target: str, uv_path: str = "", *, flatten: bool = False) -> Path:
+def install(
+    request: str,
+    target: str,
+    uv_path: str = "",
+    *,
+    flatten: bool = False,
+    on_output: Callable[[str], None] | None = None,
+) -> Path:
     """Install Python via uv python install --install-dir."""
     target_path = Path(target).resolve()
     target_path.mkdir(parents=True, exist_ok=True)
-    print(f"[INFO] Installing {request} to {target_path} ...")
+    if on_output:
+        on_output(f"Installing {request} to {target_path} ...")
     cmd = _uv_bin(uv_path) + [
         "python",
         "install",
         request,
         "--install-dir",
         str(target_path),
+        "--no-bin",
     ]
-    result = subprocess.run(cmd)  # noqa: S603
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"uv python install failed with return code {result.returncode}"
-        )
+    if on_output:
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)  # noqa: S603
+        assert proc.stdout is not None
+        buf = ""
+        while True:
+            ch = proc.stdout.read(1)
+            if not ch:
+                break
+            if ch in ("\r", "\n"):
+                line = buf.strip()
+                if line:
+                    on_output(line)
+                buf = ""
+            else:
+                buf += ch
+        if buf.strip():
+            on_output(buf.strip())
+        proc.wait()
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"uv python install failed with return code {proc.returncode}"
+            )
+    else:
+        print(f"[INFO] Installing {request} to {target_path} ...")
+        result = subprocess.run(cmd)  # noqa: S603
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"uv python install failed with return code {result.returncode}"
+            )
 
     if flatten:
         _flatten_install(target_path)
