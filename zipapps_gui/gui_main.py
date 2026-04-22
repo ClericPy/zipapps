@@ -5,12 +5,14 @@ Usage:
     python gui_main.py
 """
 
+from __future__ import annotations
+
 import json
 import os
 import queue
-import subprocess
 import shlex
 import shutil
+import subprocess
 import sys
 import threading
 import tkinter as tk
@@ -37,8 +39,14 @@ def _bind_tooltip(widget: tk.Widget, text: str) -> None:
         tw.wm_overrideredirect(True)
         tw.wm_geometry(f"+{event.x_root + 15}+{event.y_root + 10}")
         label = tk.Label(
-            tw, text=text, background="#ffffe0", relief="solid", borderwidth=1,
-            font=("Segoe UI", 9), padx=4, pady=2,
+            tw,
+            text=text,
+            background="#ffffe0",
+            relief="solid",
+            borderwidth=1,
+            font=("Segoe UI", 9),
+            padx=4,
+            pady=2,
         )
         label.pack()
 
@@ -103,25 +111,6 @@ def _run_in_thread(
     return t
 
 
-class _LogWriter:
-    """Minimal file-like object that puts each line into a queue."""
-
-    def __init__(self, q: queue.Queue[str]) -> None:
-        self._q = q
-        self._real = sys.stderr
-
-    def write(self, msg: str) -> None:
-        for line in msg.splitlines():
-            if line.strip():
-                self._q.put(line)
-
-    def flush(self) -> None:
-        pass
-
-    def fileno(self) -> int:
-        return self._real.fileno()
-
-
 def _save_config(config: dict[str, Any], path: Path) -> None:
     path.write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding="utf-8")
 
@@ -141,57 +130,188 @@ def _load_config(path: Path) -> dict[str, Any]:
 
 class _BuildConfigPanel(ttk.Frame):
     _FIELD_DEFS: list[tuple[str, str, str, str, str]] = [
-        ("output", "Output file (-o)", "app.pyz", "entry",
-         "The path of the output file, defaults to \"app.pyz\"."),
-        ("interpreter", "Interpreter (-p)", "", "entry",
-         "The path of the Python interpreter set as the shebang line. With shebang you can run app with ./app.pyz directly."),
-        ("main", "Entry point (-m)", "", "entry",
-         "The entry point function: package | package.module | package.module:function | module:function"),
-        ("pip_args", "Pip packages", "", "text",
-         "Packages to install via pip. All unknown args will be used by pip install."),
-        ("includes", "Includes (-a)", "", "entry",
-         "Paths copied to cache_path while packaging, split by \",\". For libs not from pypi or special config files."),
-        ("unzip", "Unzip (-u)", "", "entry",
-         "Names to unzip at runtime, split by \",\" without ext. For .so/.pyd files. Use * to unzip all, AUTO to auto-add .pyd/.so. Env: ZIPAPPS_UNZIP"),
-        ("unzip_exclude", "Unzip exclude (-ue)", "", "entry",
-         "The opposite of --unzip, names not to be unzipped. Env: ZIPAPPS_UNZIP_EXCLUDE"),
-        ("unzip_path", "Unzip path (-up)", "", "entry",
-         "Cache path for unzipped files. Supports $TEMP/$HOME/$SELF/$PID/$CWD variables."),
-        ("cache_path", "Cache path (-cp)", "", "entry",
-         "Cache path for site-packages and includes, treated as PYTHONPATH. If not set, creates and cleans up in TEMP dir automatically."),
-        ("env_paths", "Env paths (--zipapps)", "", "entry",
-         "Default --zipapps arg if not given while running. Supports $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas."),
-        ("sys_paths", "Sys paths", "", "entry",
-         "Paths inserted to sys.path[0] while running. Supports $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas."),
-        ("uv_path", "UV path (--uv)", "", "entry",
-         "The executable path of python-uv, to speed up pip install."),
-        ("build_id", "Build ID (-b)", "", "entry",
-         "Skip duplicate builds. File paths split by \",\" use modify time as build_id. Supports glob with *. Example: -b requirements.txt"),
-        ("compressed", "Compress (-c)", "", "check", "Compress files with the deflate method."),
-        ("compiled", "Compile to .pyc", "", "check",
-         "Compile .py to .pyc for fast import. zipapp does not work unless you unzip it."),
-        ("shell", "Shell (-s)", "", "check",
-         "Only while main is not set, used for shell=True in subprocess.Popen."),
-        ("main_shell", "Main shell (-ss)", "", "check",
-         "Only for main is not null, call main with subprocess.Popen. Used for psutil ImportError of DLL load."),
-        ("ignore_system_python_path", "Strict Python path (-spp)", "", "check",
-         "Ignore global PYTHONPATH, only use zipapps_cache and app.pyz."),
-        ("lazy_install", "Lazy install (-d)", "", "check",
-         "Install packages with pip while running. Requirements will not be installed into pyz file. Default unzip path: SELF/zipapps_cache"),
-        ("python_version_slice", "Version accuracy (-pva)", "2", "spin",
-         "Only for lazy-install mode. pip target folders differ by sys.version_info[:slice]. Default 2 means 3.8.3 == 3.8.4"),
-        ("layer_mode", "Layer mode", "", "check",
-         "Layer mode for serverless. __main__.py / ensure_zipapps.py / activate_zipapps.py will not be set."),
-        ("layer_mode_prefix", "Layer mode prefix", "python", "entry",
-         "Only work with --layer-mode, move files in the given prefix folder."),
-        ("clear_zipapps_cache", "Clear cache on run", "", "check",
-         "Clear the zipapps cache folder after running. May fail for .pyd/.so files."),
-        ("clear_zipapps_self", "Clear self on run", "", "check",
-         "Clear the zipapps pyz file itself after running."),
-        ("chmod", "Chmod", "", "entry",
-         "os.chmod(int(chmod, 8)) for unzip files, e.g. 755. Unix-like system only."),
-        ("rm_patterns", "Remove patterns", "*.dist-info,__pycache__", "entry",
-         "Delete useless files/folders, split by \",\". Recursively glob: **/*.pyc"),
+        (
+            "output",
+            "Output file (-o)",
+            "app.pyz",
+            "entry",
+            'The path of the output file, defaults to "app.pyz".',
+        ),
+        (
+            "interpreter",
+            "Interpreter (-p)",
+            "",
+            "entry",
+            "The path of the Python interpreter set as the shebang line. With shebang you can run app with ./app.pyz directly.",
+        ),
+        (
+            "main",
+            "Entry point (-m)",
+            "",
+            "entry",
+            "The entry point function: package | package.module | package.module:function | module:function",
+        ),
+        (
+            "pip_args",
+            "Pip packages",
+            "",
+            "text",
+            "Packages to install via pip. All unknown args will be used by pip install.",
+        ),
+        (
+            "includes",
+            "Includes (-a)",
+            "",
+            "entry",
+            'Paths copied to cache_path while packaging, split by ",". For libs not from pypi or special config files.',
+        ),
+        (
+            "unzip",
+            "Unzip (-u)",
+            "",
+            "entry",
+            'Names to unzip at runtime, split by "," without ext. For .so/.pyd files. Use * to unzip all, AUTO to auto-add .pyd/.so. Env: ZIPAPPS_UNZIP',
+        ),
+        (
+            "unzip_exclude",
+            "Unzip exclude (-ue)",
+            "",
+            "entry",
+            "The opposite of --unzip, names not to be unzipped. Env: ZIPAPPS_UNZIP_EXCLUDE",
+        ),
+        (
+            "unzip_path",
+            "Unzip path (-up)",
+            "",
+            "entry",
+            "Cache path for unzipped files. Supports $TEMP/$HOME/$SELF/$PID/$CWD variables.",
+        ),
+        (
+            "cache_path",
+            "Cache path (-cp)",
+            "",
+            "entry",
+            "Cache path for site-packages and includes, treated as PYTHONPATH. If not set, creates and cleans up in TEMP dir automatically.",
+        ),
+        (
+            "env_paths",
+            "Env paths (--zipapps)",
+            "",
+            "entry",
+            "Default --zipapps arg if not given while running. Supports $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas.",
+        ),
+        (
+            "sys_paths",
+            "Sys paths",
+            "",
+            "entry",
+            "Paths inserted to sys.path[0] while running. Supports $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas.",
+        ),
+        (
+            "uv_path",
+            "UV path (--uv)",
+            "",
+            "entry",
+            "The executable path of python-uv, to speed up pip install.",
+        ),
+        (
+            "build_id",
+            "Build ID (-b)",
+            "",
+            "entry",
+            'Skip duplicate builds. File paths split by "," use modify time as build_id. Supports glob with *. Example: -b requirements.txt',
+        ),
+        (
+            "compressed",
+            "Compress (-c)",
+            "",
+            "check",
+            "Compress files with the deflate method.",
+        ),
+        (
+            "compiled",
+            "Compile to .pyc",
+            "",
+            "check",
+            "Compile .py to .pyc for fast import. zipapp does not work unless you unzip it.",
+        ),
+        (
+            "shell",
+            "Shell (-s)",
+            "",
+            "check",
+            "Only while main is not set, used for shell=True in subprocess.Popen.",
+        ),
+        (
+            "main_shell",
+            "Main shell (-ss)",
+            "",
+            "check",
+            "Only for main is not null, call main with subprocess.Popen. Used for psutil ImportError of DLL load.",
+        ),
+        (
+            "ignore_system_python_path",
+            "Strict Python path (-spp)",
+            "",
+            "check",
+            "Ignore global PYTHONPATH, only use zipapps_cache and app.pyz.",
+        ),
+        (
+            "lazy_install",
+            "Lazy install (-d)",
+            "",
+            "check",
+            "Install packages with pip while running. Requirements will not be installed into pyz file. Default unzip path: SELF/zipapps_cache",
+        ),
+        (
+            "python_version_slice",
+            "Version accuracy (-pva)",
+            "2",
+            "spin",
+            "Only for lazy-install mode. pip target folders differ by sys.version_info[:slice]. Default 2 means 3.8.3 == 3.8.4",
+        ),
+        (
+            "layer_mode",
+            "Layer mode",
+            "",
+            "check",
+            "Layer mode for serverless. __main__.py / ensure_zipapps.py / activate_zipapps.py will not be set.",
+        ),
+        (
+            "layer_mode_prefix",
+            "Layer mode prefix",
+            "python",
+            "entry",
+            "Only work with --layer-mode, move files in the given prefix folder.",
+        ),
+        (
+            "clear_zipapps_cache",
+            "Clear cache on run",
+            "",
+            "check",
+            "Clear the zipapps cache folder after running. May fail for .pyd/.so files.",
+        ),
+        (
+            "clear_zipapps_self",
+            "Clear self on run",
+            "",
+            "check",
+            "Clear the zipapps pyz file itself after running.",
+        ),
+        (
+            "chmod",
+            "Chmod",
+            "",
+            "entry",
+            "os.chmod(int(chmod, 8)) for unzip files, e.g. 755. Unix-like system only.",
+        ),
+        (
+            "rm_patterns",
+            "Remove patterns",
+            "*.dist-info,__pycache__",
+            "entry",
+            'Delete useless files/folders, split by ",". Recursively glob: **/*.pyc',
+        ),
     ]
 
     # checkbox keys grouped to share one row (3 per row)
@@ -240,8 +360,11 @@ class _BuildConfigPanel(ttk.Frame):
             side="left", padx=5
         )
         build_btn = tk.Button(
-            btn_frame, text="Build .pyz", command=self.on_build,
-            font=("", 10, "bold"), fg="#2e7d32",
+            btn_frame,
+            text="Build .pyz",
+            command=self.on_build,
+            font=("", 10, "bold"),
+            fg="#2e7d32",
         )
         build_btn.pack(side="left", padx=20)
 
@@ -251,8 +374,10 @@ class _BuildConfigPanel(ttk.Frame):
             _group_members.update(group)
 
         for key, label, default, wtype, help_text in self._FIELD_DEFS:
-            if wtype == "check" and key in _group_members and key != next(iter(next(g for g in self._CHECK_GROUPS if key in g))):
-                continue
+            if wtype == "check" and key in _group_members:
+                group = next((g for g in self._CHECK_GROUPS if key in g), None)
+                if group and key != group[0]:
+                    continue
 
             ttk.Label(scroll_frame, text=label).grid(
                 row=row, column=0, sticky="w", padx=5, pady=2
@@ -470,7 +595,8 @@ class _BuildConfigPanel(ttk.Frame):
             )
             proc = subprocess.Popen(
                 [sys.executable, "-c", script],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
             assert proc.stdout is not None
             assert proc.stderr is not None
@@ -581,11 +707,15 @@ class _UvPythonPanel(ttk.Frame):
 
         self._current_platform = tk.BooleanVar(value=True)
         cp_cb = ttk.Checkbutton(
-            settings, text="Current platform only", variable=self._current_platform,
+            settings,
+            text="Current platform only",
+            variable=self._current_platform,
             command=self._on_platform_filter_changed,
         )
         cp_cb.grid(row=1, column=0, columnspan=3, sticky="w", pady=2)
-        _bind_tooltip(cp_cb, "Only show Python builds for the current OS and architecture")
+        _bind_tooltip(
+            cp_cb, "Only show Python builds for the current OS and architecture"
+        )
 
         ttk.Label(settings, text="Filter keyword:").grid(row=2, column=0, sticky="w")
         self._filter_kw = tk.StringVar()
@@ -600,9 +730,9 @@ class _UvPythonPanel(ttk.Frame):
         actions.grid(row=row, column=0, sticky="ew", padx=5, pady=5)
         row += 1
 
-        ttk.Button(
-            actions, text="List Versions", command=self.refresh_versions
-        ).pack(side="left", padx=5)
+        ttk.Button(actions, text="List Versions", command=self.refresh_versions).pack(
+            side="left", padx=5
+        )
 
         tree_frame = ttk.Frame(self)
         tree_frame.grid(row=row, column=0, sticky="nsew", padx=5, pady=5)
@@ -642,16 +772,19 @@ class _UvPythonPanel(ttk.Frame):
             row=0, column=2
         )
         if sys.platform == "win32":
-            ttk.Button(install_frame, text="Open", width=5, command=self._open_target).grid(
-                row=0, column=3, padx=2
-            )
+            ttk.Button(
+                install_frame, text="Open", width=5, command=self._open_target
+            ).grid(row=0, column=3, padx=2)
 
         self._flatten = tk.BooleanVar(value=False)
         flatten_cb = ttk.Checkbutton(
             install_frame, text="Flatten install", variable=self._flatten
         )
         flatten_cb.grid(row=1, column=0, columnspan=3, sticky="w", pady=2)
-        _bind_tooltip(flatten_cb, "Extract all files to the target dir instead of a versioned subdirectory")
+        _bind_tooltip(
+            flatten_cb,
+            "Extract all files to the target dir instead of a versioned subdirectory",
+        )
 
         btn_row = ttk.Frame(install_frame)
         btn_row.grid(row=2, column=0, columnspan=3, pady=5)
@@ -659,9 +792,14 @@ class _UvPythonPanel(ttk.Frame):
             btn_row, text="Install Selected", command=self.install_selected
         )
         install_btn.pack(side="left", padx=5)
-        _bind_tooltip(install_btn, "Install the selected Python version to the target directory")
+        _bind_tooltip(
+            install_btn, "Install the selected Python version to the target directory"
+        )
         self._cancel_btn = ttk.Button(
-            btn_row, text="Cancel Install", command=self.cancel_install, state="disabled"
+            btn_row,
+            text="Cancel Install",
+            command=self.cancel_install,
+            state="disabled",
         )
         self._cancel_btn.pack(side="left", padx=5)
         delete_btn = ttk.Button(
@@ -739,7 +877,7 @@ class _UvPythonPanel(ttk.Frame):
         if self._all_downloads:
             self._apply_filter()
 
-    def _on_tree_select(self, _event: tk.Event) -> None:
+    def _on_tree_select(self, _event: tk.Event | None) -> None:
         sel = self._tree.selection()
         if not sel or sel[0] == getattr(self, "_last_selected", None):
             return
@@ -770,7 +908,11 @@ class _UvPythonPanel(ttk.Frame):
         target_path = Path(target).resolve()
         if not target_path.is_dir():
             return set()
-        return {f.stem for f in target_path.iterdir() if f.is_file() and f.suffix == ".version"}
+        return {
+            f.stem
+            for f in target_path.iterdir()
+            if f.is_file() and f.suffix == ".version"
+        }
 
     def _populate_treeview(self, downloads: list[dict[str, Any]]) -> None:
         self._all_downloads = downloads
@@ -794,7 +936,8 @@ class _UvPythonPanel(ttk.Frame):
             is_installed = d["key"] in installed_keys
             tag = ("installed",) if is_installed else ()
             self._tree.insert(
-                "", "end",
+                "",
+                "end",
                 values=(d["version"], d["key"], d["os"], d["arch"]),
                 tags=tag,
             )
@@ -841,14 +984,21 @@ class _UvPythonPanel(ttk.Frame):
         target_path = Path(target).resolve()
         target_path.mkdir(parents=True, exist_ok=True)
         cmd = _uv_bin(uv_path) + [
-            "python", "install", key, "--install-dir", str(target_path), "--no-bin",
+            "python",
+            "install",
+            key,
+            "--install-dir",
+            str(target_path),
+            "--no-bin",
         ]
         self._log(f"Installing {key} to {target_path} ...")
         self._cancel_btn.configure(state="normal")
 
         def _worker() -> None:
             self._install_proc = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
             )
             assert self._install_proc.stdout is not None
             buf = ""
@@ -878,18 +1028,29 @@ class _UvPythonPanel(ttk.Frame):
             if rc == 0:
                 if flatten:
                     from zipapps.uv_download_python import _flatten_install
+
                     _flatten_install(target_path)
                 else:
                     from zipapps.uv_download_python import _cleanup_uv_artifacts
+
                     _cleanup_uv_artifacts(target_path)
                 # Find python executable
                 if flatten:
                     if sys.platform == "win32":
-                        candidates = [target_path / "python.exe", target_path / "Scripts" / "python.exe"]
+                        candidates = [
+                            target_path / "python.exe",
+                            target_path / "Scripts" / "python.exe",
+                        ]
                     else:
-                        candidates = [target_path / "bin" / "python3", target_path / "bin" / "python", target_path / "python3", target_path / "python"]
+                        candidates = [
+                            target_path / "bin" / "python3",
+                            target_path / "bin" / "python",
+                            target_path / "python3",
+                            target_path / "python",
+                        ]
                 else:
                     import glob as _glob
+
                     dirs = sorted(_glob.glob(str(target_path / "*")), reverse=True)
                     if sys.platform == "win32":
                         candidates = [Path(d) / "python.exe" for d in dirs]
@@ -899,7 +1060,9 @@ class _UvPythonPanel(ttk.Frame):
                 (target_path / f"{key}.version").touch()
                 _result_q.put(("ok", str(found)))
             else:
-                _result_q.put(("err", RuntimeError(f"uv install failed with return code {rc}")))
+                _result_q.put(
+                    ("err", RuntimeError(f"uv install failed with return code {rc}"))
+                )
 
         _log_q: queue.Queue[tuple[str, str]] = queue.Queue()
         _result_q: queue.Queue[tuple[str, Any]] = queue.Queue()
@@ -922,14 +1085,16 @@ class _UvPythonPanel(ttk.Frame):
             # Update status bar with current progress
             if _progress_line[0]:
                 root = self.winfo_toplevel()
-                if hasattr(root, "_status_var") and _progress_line[0]:
-                    root._status_var.set(_progress_line[0])
+                status = getattr(root, "_status_var", None)
+                if status and _progress_line[0]:
+                    status.set(_progress_line[0])
             try:
                 msg_type, value = _result_q.get_nowait()
                 self._cancel_btn.configure(state="disabled")
                 _progress_line[0] = ""
-                if hasattr(root, "_status_var"):
-                    root._status_var.set("Ready")
+                status = getattr(root, "_status_var", None)
+                if status:
+                    status.set("Ready")
                 if msg_type == "ok":
                     self._log(f"Installed: {value}")
                     self._bring_to_front()
@@ -970,8 +1135,12 @@ class _UvPythonPanel(ttk.Frame):
             del_path = sub_dir
             desc = str(sub_dir)
         else:
-            del_path = target_path
-            desc = str(target_path) + " (flatten mode)"
+            messagebox.showinfo(
+                "Info",
+                f"{key} was installed in flatten mode — files are mixed into the target "
+                f"directory and cannot be selectively deleted. Delete them manually.",
+            )
+            return
         if not messagebox.askyesno("Confirm", f"Delete:\n{desc}"):
             return
 
@@ -979,7 +1148,6 @@ class _UvPythonPanel(ttk.Frame):
 
         def do_delete() -> None:
             shutil.rmtree(del_path)
-            version_file = target_path / f"{key}.version"
             if version_file.is_file():
                 version_file.unlink()
 
@@ -992,30 +1160,6 @@ class _UvPythonPanel(ttk.Frame):
             on_success=_on_delete_success,
             on_error=lambda e: self._log(f"Delete failed: {e}"),
         )
-
-    def set_interpreter(self) -> None:
-        sel = self._tree.selection()
-        if not sel:
-            messagebox.showinfo("Info", "Select a version from the list first.")
-            return
-        target = self._target_dir.get().strip() or "."
-        target_path = Path(target).resolve()
-        if self._flatten.get():
-            if sys.platform == "win32":
-                interp = str(target_path / "python.exe")
-            else:
-                interp = str(target_path / "bin" / "python3")
-        else:
-            values = self._tree.item(sel[0], "values")
-            key = str(values[1])
-            if sys.platform == "win32":
-                interp = str(target_path / key / "python.exe")
-            else:
-                interp = str(target_path / key / "bin" / "python3")
-        if self._on_set_interpreter:
-            self._on_set_interpreter(interp)
-        else:
-            self._log(f"Suggested interpreter: {interp}")
 
 
 # ---------------------------------------------------------------------------
