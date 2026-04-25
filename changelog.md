@@ -1,6 +1,7 @@
 # Changelogs
 
 - 2026.4.17
+  - add `uv-zipapps-gui` — Tkinter GUI for zipapps configuration and uv Python management
   - add `uv_download_python` module for downloading Python via uv
     - rename `uv_python.py` to `uv_download_python.py`
     - add `--flatten` flag to promote versioned sub-directory to target root

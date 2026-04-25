@@ -31,6 +31,17 @@ So, what could `zipapps` be?
 
 > PS: The pyz extension can be modified to any character you want, such as `.py` and `.zip`.
 
+# GUI
+
+> Prefer a graphical interface? Try [uv-zipapps-gui](https://github.com/ClericPy/zipapps/blob/master/uv_zipapps_gui/README.md) — a Tkinter GUI for zipapps configuration and Python version management.
+>
+> ```bash
+> pip install uv-zipapps-gui
+> uv-zipapps-gui
+> # or run directly without installing:
+> uvx uv-zipapps-gui
+> ```
+
 # Install & Quick Start
 
 > pip install zipapps -U
