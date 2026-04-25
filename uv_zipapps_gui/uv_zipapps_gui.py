@@ -154,13 +154,14 @@ def _save_gui_config(cfg: dict[str, str]) -> None:
 
 
 class _BuildConfigPanel(ttk.Frame):
-    _FIELD_DEFS: list[tuple[str, str, str, str, str]] = [
+    _FIELD_DEFS: list[tuple[str, str, str, str, str, list[str]]] = [
         (
             "output",
             "Output file (-o)",
             "app.pyz",
-            "entry",
+            "combo",
             'The path of the output file, defaults to "app.pyz".',
+            ["app.pyz"],
         ),
         (
             "interpreter",
@@ -168,6 +169,7 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "entry",
             "The path of the Python interpreter set as the shebang line. With shebang you can run app with ./app.pyz directly.",
+            [],
         ),
         (
             "main",
@@ -175,6 +177,7 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "entry",
             "The entry point function: package | package.module | package.module:function | module:function",
+            [],
         ),
         (
             "pip_args",
@@ -182,6 +185,7 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "text",
             "Packages to install via pip. All unknown args will be used by pip install.",
+            [],
         ),
         (
             "includes",
@@ -189,13 +193,15 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "entry",
             'Paths copied to cache_path while packaging, split by ",". For libs not from pypi or special config files.',
+            [],
         ),
         (
             "unzip",
             "Unzip (-u)",
-            "",
-            "entry",
+            "*",
+            "combo",
             'Names to unzip at runtime, split by "," without ext. For .so/.pyd files. Use * to unzip all, AUTO to auto-add .pyd/.so. Env: ZIPAPPS_UNZIP',
+            ["*", "AUTO"],
         ),
         (
             "unzip_exclude",
@@ -203,34 +209,39 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "entry",
             "The opposite of --unzip, names not to be unzipped. Env: ZIPAPPS_UNZIP_EXCLUDE",
+            [],
         ),
         (
             "unzip_path",
             "Unzip path (-up)",
-            "",
+            "$SELF/.cache/app.pyz",
             "entry",
             "Cache path for unzipped files. Supports $TEMP/$HOME/$SELF/$PID/$CWD variables.",
+            ["$SELF/.cache/app.pyz", "$TEMP", "$HOME", "$SELF", "$PID", "$CWD"],
         ),
         (
             "cache_path",
             "Cache path (-cp)",
             "",
-            "entry",
+            "combo",
             "Cache path for site-packages and includes, treated as PYTHONPATH. If not set, creates and cleans up in TEMP dir automatically.",
+            ["$TEMP", "$CWD"],
         ),
         (
             "env_paths",
             "Env paths (--zipapps)",
             "",
-            "entry",
+            "combo",
             "Default --zipapps arg if not given while running. Supports $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas.",
+            ["$TEMP", "$HOME", "$SELF", "$PID", "$CWD"],
         ),
         (
             "sys_paths",
             "Sys paths",
             "",
-            "entry",
+            "combo",
             "Paths inserted to sys.path[0] while running. Supports $TEMP/$HOME/$SELF/$PID/$CWD prefix, separated by commas.",
+            ["$TEMP", "$HOME", "$SELF", "$PID", "$CWD"],
         ),
         (
             "uv_path",
@@ -238,6 +249,7 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "entry",
             "The executable path of python-uv, to speed up pip install.",
+            [],
         ),
         (
             "build_id",
@@ -245,6 +257,7 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "entry",
             'Skip duplicate builds. File paths split by "," use modify time as build_id. Supports glob with *. Example: -b requirements.txt',
+            [],
         ),
         (
             "compressed",
@@ -252,6 +265,7 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "check",
             "Compress files with the deflate method.",
+            [],
         ),
         (
             "compiled",
@@ -259,6 +273,7 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "check",
             "Compile .py to .pyc for fast import. zipapp does not work unless you unzip it.",
+            [],
         ),
         (
             "shell",
@@ -266,6 +281,7 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "check",
             "Only while main is not set, used for shell=True in subprocess.Popen.",
+            [],
         ),
         (
             "main_shell",
@@ -273,6 +289,7 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "check",
             "Only for main is not null, call main with subprocess.Popen. Used for psutil ImportError of DLL load.",
+            [],
         ),
         (
             "ignore_system_python_path",
@@ -280,6 +297,7 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "check",
             "Ignore global PYTHONPATH, only use zipapps_cache and app.pyz.",
+            [],
         ),
         (
             "lazy_install",
@@ -287,13 +305,15 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "check",
             "Install packages with pip while running. Requirements will not be installed into pyz file. Default unzip path: SELF/zipapps_cache",
+            [],
         ),
         (
             "python_version_slice",
             "Version accuracy (-pva)",
             "2",
-            "spin",
+            "combo",
             "Only for lazy-install mode. pip target folders differ by sys.version_info[:slice]. Default 2 means 3.8.3 == 3.8.4",
+            ["1", "2", "3"],
         ),
         (
             "layer_mode",
@@ -301,13 +321,15 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "check",
             "Layer mode for serverless. __main__.py / ensure_zipapps.py / activate_zipapps.py will not be set.",
+            [],
         ),
         (
             "layer_mode_prefix",
             "Layer mode prefix",
             "python",
-            "entry",
+            "combo",
             "Only work with --layer-mode, move files in the given prefix folder.",
+            ["python"],
         ),
         (
             "clear_zipapps_cache",
@@ -315,6 +337,7 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "check",
             "Clear the zipapps cache folder after running. May fail for .pyd/.so files.",
+            [],
         ),
         (
             "clear_zipapps_self",
@@ -322,29 +345,24 @@ class _BuildConfigPanel(ttk.Frame):
             "",
             "check",
             "Clear the zipapps pyz file itself after running.",
+            [],
         ),
         (
             "chmod",
             "Chmod",
             "",
-            "entry",
+            "combo",
             "os.chmod(int(chmod, 8)) for unzip files, e.g. 755. Unix-like system only.",
+            ["755", "644", "775", "700"],
         ),
         (
             "rm_patterns",
             "Remove patterns",
             "*.dist-info,__pycache__",
-            "entry",
+            "combo",
             'Delete useless files/folders, split by ",". Recursively glob: **/*.pyc',
+            ["*.dist-info,__pycache__", "*.dist-info", "__pycache__", "**/*.pyc"],
         ),
-    ]
-
-    # checkbox keys grouped to share one row (3 per row)
-    _CHECK_GROUPS: list[tuple[str, ...]] = [
-        ("compressed", "compiled"),
-        ("shell", "main_shell"),
-        ("ignore_system_python_path", "lazy_install"),
-        ("layer_mode", "clear_zipapps_cache", "clear_zipapps_self"),
     ]
 
     def __init__(self, parent: ttk.Frame, log_fn: Callable[[str], None]) -> None:
@@ -411,12 +429,8 @@ class _BuildConfigPanel(ttk.Frame):
         _bind_tooltip(bundle_cb, "Compress the bundle directory into a .zip file")
 
         # --- Classify fields into entry and check ---
-        _group_members: set[str] = set()
-        for group in self._CHECK_GROUPS:
-            _group_members.update(group)
-
-        entry_fields: list[tuple[str, str, str, str, str]] = []
-        check_fields: list[tuple[str, str, str, str, str]] = []
+        entry_fields: list[tuple[str, str, str, str, str, list[str]]] = []
+        check_fields: list[tuple[str, str, str, str, str, list[str]]] = []
         for item in self._FIELD_DEFS:
             if item[3] == "check":
                 check_fields.append(item)
@@ -430,25 +444,43 @@ class _BuildConfigPanel(ttk.Frame):
         entry_inner.pack(fill="x")
         entry_inner.columnconfigure(1, weight=1)
 
-        for row, (key, label, default, wtype, help_text) in enumerate(entry_fields):
+        _visible_row = 0
+        for key, label, default, wtype, help_text, combo_values in entry_fields:
+            if key == "chmod" and sys.platform == "win32":
+                self._vars[key] = tk.StringVar(value=default)
+                continue
+            var: tk.Variable
             ttk.Label(entry_inner, text=label).grid(
-                row=row, column=0, sticky="w", padx=5, pady=2
+                row=_visible_row, column=0, sticky="w", padx=5, pady=2
             )
             if wtype == "text":
                 var = tk.StringVar(value=default)
                 txt = tk.Text(entry_inner, height=3, width=60, wrap="word")
-                txt.grid(row=row, column=1, columnspan=2, sticky="ew", padx=5, pady=2)
+                txt.grid(row=_visible_row, column=1, columnspan=2, sticky="ew", padx=5, pady=2)
                 txt.insert("1.0", default)
                 self._text_widgets[key] = txt
             elif wtype == "spin":
                 var = tk.IntVar(value=int(default) if default else 2)
                 ttk.Spinbox(entry_inner, from_=1, to=3, textvariable=var, width=5).grid(
-                    row=row, column=1, sticky="w", padx=5, pady=2
+                    row=_visible_row, column=1, sticky="w", padx=5, pady=2
                 )
+            elif wtype == "combo":
+                var = tk.StringVar(value=default)
+                if key == "python_version_slice":
+                    ttk.Combobox(
+                        entry_inner, textvariable=var, values=combo_values, width=5
+                    ).grid(row=_visible_row, column=1, sticky="w", padx=5, pady=2)
+                else:
+                    ttk.Combobox(
+                        entry_inner,
+                        textvariable=var,
+                        values=combo_values,
+                        width=60,
+                    ).grid(row=_visible_row, column=1, columnspan=2, sticky="ew", padx=5, pady=2)
             else:
                 var = tk.StringVar(value=default)
                 ttk.Entry(entry_inner, textvariable=var, width=60).grid(
-                    row=row, column=1, columnspan=2, sticky="ew", padx=5, pady=2
+                    row=_visible_row, column=1, columnspan=2, sticky="ew", padx=5, pady=2
                 )
                 if key == "output":
                     str_var = var
@@ -457,7 +489,7 @@ class _BuildConfigPanel(ttk.Frame):
                         text="...",
                         width=3,
                         command=lambda: self._browse_output(str_var),
-                    ).grid(row=row, column=3, padx=2)
+                    ).grid(row=_visible_row, column=3, padx=2)
                 elif key == "interpreter":
                     str_var = var
                     self._interpreter_var = str_var
@@ -466,7 +498,7 @@ class _BuildConfigPanel(ttk.Frame):
                         text="...",
                         width=3,
                         command=lambda: self._browse_interpreter(str_var),
-                    ).grid(row=row, column=3, padx=2)
+                    ).grid(row=_visible_row, column=3, padx=2)
                 elif key == "includes":
                     str_var = var
                     ttk.Button(
@@ -474,11 +506,12 @@ class _BuildConfigPanel(ttk.Frame):
                         text="...",
                         width=3,
                         command=lambda: self._browse_includes(str_var),
-                    ).grid(row=row, column=3, padx=2)
+                    ).grid(row=_visible_row, column=3, padx=2)
 
             self._vars[key] = var
             if help_text:
-                self._create_tooltip(entry_inner, help_text, row)
+                self._create_tooltip(entry_inner, help_text, _visible_row)
+            _visible_row += 1
 
         # --- Section 3: Checkboxes ---
         check_frame = ttk.LabelFrame(scroll_frame, text="Options", padding=5)
@@ -486,8 +519,8 @@ class _BuildConfigPanel(ttk.Frame):
         cb_row = ttk.Frame(check_frame)
         cb_row.pack(fill="x")
         col = 0
-        for key, label, default, wtype, help_text in check_fields:
-            var: tk.Variable = tk.BooleanVar(value=(key == "compressed"))
+        for key, label, default, wtype, help_text, _combo_values in check_fields:
+            var = tk.BooleanVar(value=(key == "compressed"))
             cb = ttk.Checkbutton(cb_row, text=label, variable=var)
             cb.grid(row=0, column=col, sticky="w", padx=5, pady=2)
             _bind_tooltip(cb, help_text)
@@ -501,8 +534,10 @@ class _BuildConfigPanel(ttk.Frame):
     def _create_tooltip(
         self, parent: ttk.Frame, text: str, row: int, col_offset: int = 0
     ) -> None:
-        widget = parent.grid_slaves(row=row, column=col_offset)[0]
-        _bind_tooltip(widget, text)
+        slaves = parent.grid_slaves(row=row, column=col_offset)
+        if not slaves:
+            return
+        _bind_tooltip(slaves[0], text)
 
     def _browse_includes(self, var: tk.StringVar) -> None:
         paths = filedialog.askopenfilenames(
@@ -611,7 +646,8 @@ class _BuildConfigPanel(ttk.Frame):
         except Exception as e:
             self._log(f"Config error: {e}")
             return
-        self._log("Building .pyz ...")
+        build_cfg = {k: v for k, v in config.items() if v}
+        self._log(f"Building .pyz ... config: {build_cfg}")
         _log_q: queue.Queue[str] = queue.Queue()
 
         def _poll_log() -> None:
@@ -901,6 +937,7 @@ class _UvPythonPanel(ttk.Frame):
         self._default_workdir = default_workdir
         self._default_uv_path = default_uv_path
         self._all_downloads: list[dict[str, Any]] = []
+        self._last_selected: str | None = None
         self._build()
         self.pack(fill="both", expand=True)
 
@@ -1045,6 +1082,13 @@ class _UvPythonPanel(ttk.Frame):
                 pass
 
     def _auto_detect_uv(self) -> None:
+        saved = self._uv_path.get().strip()
+        if saved:
+            if Path(saved).is_file():
+                self._log(f"uv path restored: {saved}")
+                self.refresh_versions()
+                return
+            self._log(f"Saved uv path not found, re-detecting: {saved}")
         path = shutil.which("uv")
         if path:
             self._uv_path.set(path)
@@ -1099,14 +1143,14 @@ class _UvPythonPanel(ttk.Frame):
 
     def _on_tree_select(self, _event: tk.Event | None) -> None:
         sel = self._tree.selection()
-        if not sel or sel[0] == getattr(self, "_last_selected", None):
+        if not sel or sel[0] == self._last_selected:
             return
         self._last_selected = sel[0]
         tags = self._tree.item(sel[0], "tags")
         if "installed" not in tags:
             return
         values = self._tree.item(sel[0], "values")
-        key = str(values[1])
+        key = str(values[1]) if len(values) > 1 else ""
         target = self._target_dir.get().strip() or "."
         target_path = Path(target).resolve()
         if self._flatten.get():
@@ -1203,7 +1247,7 @@ class _UvPythonPanel(ttk.Frame):
             messagebox.showinfo("Info", "Select a version from the list first.")
             return
         values = self._tree.item(sel[0], "values")
-        key = str(values[1])
+        key = str(values[1]) if len(values) > 1 else ""
         target = self._target_dir.get().strip() or "."
         flatten = self._flatten.get()
         uv_path = self._get_uv_path()
@@ -1351,7 +1395,7 @@ class _UvPythonPanel(ttk.Frame):
             messagebox.showinfo("Info", "Select a version from the list first.")
             return
         values = self._tree.item(sel[0], "values")
-        key = str(values[1])
+        key = str(values[1]) if len(values) > 1 else ""
         target = self._target_dir.get().strip() or "."
         target_path = Path(target).resolve()
 
@@ -1420,7 +1464,7 @@ class ZipAppsGUI(tk.Tk):
         w = self.winfo_reqwidth()
         h = self.winfo_reqheight()
         x = (sw - w) // 2
-        y = (sh - h) // 2
+        y = (sh - h) // 2                                                                           
         self.geometry(f"+{x}+{y}")
 
     def _collect_gui_config(self) -> dict[str, str]:
@@ -1612,6 +1656,10 @@ class ZipAppsGUI(tk.Tk):
         self._log_text.configure(state="disabled")
 
 
-if __name__ == "__main__":
+def main() -> None:
     app = ZipAppsGUI()
     app.mainloop()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,19 @@
+[project]
+name = "uv-zipapps-gui"
+version = "0.4.0"
+description = "Tkinter GUI for zipapps configuration and uv Python management"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    {name = "Clericpy", email = "clericpy@example.com"},
+]
+license = {text = "MIT"}
+dependencies = [
+    "zipapps>=2026.4.17",
+]
+
+[project.scripts]
+uv-zipapps-gui = "uv_zipapps_gui:main"
+
+[tool.flit.module]
+name = "uv_zipapps_gui"
